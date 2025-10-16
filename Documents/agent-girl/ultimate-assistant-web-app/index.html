@@ -201,6 +201,72 @@
             }
         }
 
+        // Page switching functions
+        function showDashboardPage() {
+            // Hide all pages
+            document.getElementById('dashboard-page').classList.remove('hidden');
+            document.getElementById('journal-page').classList.add('hidden');
+
+            // Update sidebar active states
+            updateSidebarActive('dashboard');
+        }
+
+        function showJournalPage() {
+            // Hide all pages
+            document.getElementById('dashboard-page').classList.add('hidden');
+            document.getElementById('journal-page').classList.remove('hidden');
+
+            // Trigger entrance animations for Journal page
+            setTimeout(() => {
+                const rightColumn = document.querySelector('#journal-page .journal-right-column');
+                if (rightColumn) {
+                    rightColumn.classList.add('animated');
+                }
+            }, 100);
+
+            // Update sidebar active states
+            updateSidebarActive('journal');
+        }
+
+        function updateSidebarActive(activePage) {
+            // Remove active class from all sidebar items
+            const sidebarItems = document.querySelectorAll('.sidebar-item');
+            sidebarItems.forEach(item => {
+                item.classList.remove('active', 'text-white');
+                item.classList.add('text-[#9ca3af]');
+
+                // Update SVG colors
+                const svg = item.querySelector('svg');
+                if (svg) {
+                    svg.classList.remove('text-[#06b6d4]');
+                    svg.classList.add('text-[#9ca3af]');
+                }
+            });
+
+            // Add active class to the correct sidebar item
+            if (activePage === 'dashboard') {
+                const dashboardItem = sidebarItems[0]; // First item is Dashboard
+                dashboardItem.classList.add('active', 'text-white');
+                dashboardItem.classList.remove('text-[#9ca3af]');
+
+                const dashboardSvg = dashboardItem.querySelector('svg');
+                if (dashboardSvg) {
+                    dashboardSvg.classList.add('text-[#06b6d4]');
+                    dashboardSvg.classList.remove('text-[#9ca3af]');
+                }
+            } else if (activePage === 'journal') {
+                const journalItem = sidebarItems[1]; // Second item is Journal
+                journalItem.classList.add('active', 'text-white');
+                journalItem.classList.remove('text-[#9ca3af]');
+
+                const journalSvg = journalItem.querySelector('svg');
+                if (journalSvg) {
+                    journalSvg.classList.add('text-[#06b6d4]');
+                    journalSvg.classList.remove('text-[#9ca3af]');
+                }
+            }
+        }
+
         // Enhanced event handling for energy buttons
         document.addEventListener('DOMContentLoaded', function() {
             // Convert all dropdown energy buttons to proper event listeners
@@ -3088,14 +3154,14 @@
 
             <!-- Navigation Menu -->
             <nav class="flex-1 p-4 space-y-2">
-                <a href="#" class="sidebar-item active flex items-center space-x-3 px-4 py-3 text-white rounded-xl transition-all duration-300">
+                <a href="#" onclick="showDashboardPage()" class="sidebar-item active flex items-center space-x-3 px-4 py-3 text-white rounded-xl transition-all duration-300">
                     <svg class="w-5 h-5 text-[#06b6d4]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                     </svg>
                     <span class="text-sm font-semibold">Dashboard</span>
                 </a>
 
-                <a href="#" class="sidebar-item flex items-center space-x-3 px-4 py-3 text-[#9ca3af] hover:text-white rounded-xl transition-all duration-300">
+                <a href="#" onclick="showJournalPage()" class="sidebar-item flex items-center space-x-3 px-4 py-3 text-[#9ca3af] hover:text-white rounded-xl transition-all duration-300">
                     <svg class="w-5 h-5 text-[#9ca3af]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                     </svg>
@@ -3198,6 +3264,8 @@
 
             <!-- Hero Section -->
             <main class="flex-1 overflow-y-auto main-content relative bg-gradient-to-br from-[#000000] via-[#0a0f1e] to-[#000000]">
+                <!-- Dashboard Page -->
+                <div id="dashboard-page">
                 <!-- Hero Container -->
                 <div class="flex gap-8 mb-8">
                     <!-- Left Column - Robot (35% width) -->
@@ -3773,7 +3841,179 @@
                     </div>
                 </div>
 
-        
+  
+                </div>
+
+                <!-- Journal Page -->
+                <div id="journal-page" class="hidden">
+                    <!-- 3D Perspective Container -->
+                    <div class="journal-3d-container" style="perspective: 1500px; transform-style: preserve-3d;">
+
+                        <!-- Background Grid Overlay -->
+                        <div class="journal-grid-overlay fixed inset-0 pointer-events-none opacity-20">
+                            <div class="absolute inset-0 bg-grid-pattern"></div>
+                        </div>
+
+                        <!-- Main Journal Layout Container -->
+                        <div class="journal-main-container min-h-screen p-6 relative z-10">
+
+                            <!-- Journal Header -->
+                            <header class="journal-header mb-8 text-center">
+                                <h1 class="text-5xl font-black bg-gradient-to-r from-[#00d4ff] via-[#06b6d4] to-[#0891b2] bg-clip-text text-transparent mb-2">
+                                    Energy Journal
+                                </h1>
+                                <p class="text-xl text-[#9ca3af]">Track your consciousness journey</p>
+                            </header>
+
+                            <!-- Two-Column Grid Layout -->
+                            <div class="journal-grid-layout grid grid-cols-1 lg:grid-cols-5 gap-8 max-w-7xl mx-auto">
+
+                                <!-- Left Column - Journal Entry Form (40%) -->
+                                <div class="journal-left-column lg:col-span-2">
+                                    <div class="journal-form-container" style="transform-style: preserve-3d; transform: rotateY(0deg);">
+
+                                        <!-- 3D Form Card -->
+                                        <div class="journal-form-card bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl" style="transform: translateZ(20px); transition: all 0.3s ease;">
+
+                                            <!-- Form Header -->
+                                            <div class="journal-form-header mb-6">
+                                                <h2 class="text-2xl font-bold text-white mb-2">New Entry</h2>
+                                                <div class="text-sm text-[#9ca3af]">Record your thoughts and feelings</div>
+                                            </div>
+
+                                            <!-- Date and Time Section -->
+                                            <div class="journal-datetime-section mb-6">
+                                                <div class="grid grid-cols-2 gap-4">
+                                                    <div class="journal-date-container">
+                                                        <label class="block text-sm font-medium text-[#9ca3af] mb-2">Date</label>
+                                                        <div class="journal-date-input bg-[#1a1f2e]/50 border border-white/10 rounded-xl px-4 py-3 text-white">
+                                                            <!-- Date input will go here -->
+                                                        </div>
+                                                    </div>
+                                                    <div class="journal-time-container">
+                                                        <label class="block text-sm font-medium text-[#9ca3af] mb-2">Time</label>
+                                                        <div class="journal-time-input bg-[#1a1f2e]/50 border border-white/10 rounded-xl px-4 py-3 text-white">
+                                                            <!-- Time input will go here -->
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Energy Level Section -->
+                                            <div class="journal-energy-section mb-6">
+                                                <label class="block text-sm font-medium text-[#9ca3af] mb-3">Energy Level</label>
+                                                <div class="journal-energy-scale">
+                                                    <!-- Energy scale will go here -->
+                                                </div>
+                                            </div>
+
+                                            <!-- Mood Selection Section -->
+                                            <div class="journal-mood-section mb-6">
+                                                <label class="block text-sm font-medium text-[#9ca3af] mb-3">Current Mood</label>
+                                                <div class="journal-mood-grid grid grid-cols-4 gap-3">
+                                                    <!-- Mood buttons will go here -->
+                                                </div>
+                                            </div>
+
+                                            <!-- Journal Entry Text -->
+                                            <div class="journal-text-section mb-6">
+                                                <label class="block text-sm font-medium text-[#9ca3af] mb-2">Your Entry</label>
+                                                <div class="journal-textarea-container">
+                                                    <textarea class="journal-textarea w-full h-48 bg-[#1a1f2e]/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-[#6b7280] resize-none focus:outline-none focus:ring-2 focus:ring-[#00d4ff] focus:border-transparent" placeholder="Share your thoughts..."></textarea>
+                                                </div>
+                                            </div>
+
+                                            <!-- Tags Section -->
+                                            <div class="journal-tags-section mb-6">
+                                                <label class="block text-sm font-medium text-[#9ca3af] mb-2">Tags</label>
+                                                <div class="journal-tags-container">
+                                                    <!-- Tags input will go here -->
+                                                </div>
+                                            </div>
+
+                                            <!-- Submit Button -->
+                                            <div class="journal-submit-section">
+                                                <button class="journal-submit-btn w-full bg-gradient-to-r from-[#00d4ff] to-[#0891b2] text-white font-bold py-4 px-6 rounded-xl hover:from-[#00b8e6] hover:to-[#06a5c4] transition-all duration-200 transform hover:scale-105">
+                                                    Save Entry
+                                                </button>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Right Column - Timeline (60%) -->
+                                <div class="journal-right-column lg:col-span-3">
+                                    <div class="journal-timeline-container" style="transform-style: preserve-3d; transform: rotateY(0deg);">
+
+                                        <!-- 3D Timeline Card -->
+                                        <div class="journal-timeline-card bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl" style="transform: translateZ(20px); transition: all 0.3s ease;">
+
+                                            <!-- Timeline Header -->
+                                            <div class="journal-timeline-header mb-6 flex justify-between items-center">
+                                                <h2 class="text-2xl font-bold text-white">Your Journey</h2>
+                                                <div class="journal-filter-controls">
+                                                    <!-- Filter controls will go here -->
+                                                </div>
+                                            </div>
+
+                                            <!-- Search Bar -->
+                                            <div class="journal-search-section mb-6">
+                                                <div class="journal-search-container">
+                                                    <input type="text" class="journal-search-input w-full bg-[#1a1f2e]/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-[#6b7280] focus:outline-none focus:ring-2 focus:ring-[#00d4ff] focus:border-transparent" placeholder="Search entries...">
+                                                </div>
+                                            </div>
+
+                                            <!-- Timeline Container -->
+                                            <div class="journal-timeline-content">
+                                                <div class="journal-timeline-scroll max-h-[600px] overflow-y-auto space-y-4">
+                                                    <!-- Timeline entries will go here -->
+
+                                                    <!-- Example Timeline Entry Structure -->
+                                                    <div class="journal-timeline-entry bg-[#1a1f2e]/30 border border-white/10 rounded-2xl p-6 hover:bg-[#1a1f2e]/50 transition-all duration-200" style="transform: translateZ(10px);">
+                                                        <div class="journal-entry-header flex justify-between items-start mb-4">
+                                                            <div class="journal-entry-datetime">
+                                                                <div class="text-lg font-semibold text-white">October 16, 2025</div>
+                                                                <div class="text-sm text-[#9ca3af]">2:30 PM</div>
+                                                            </div>
+                                                            <div class="journal-entry-energy">
+                                                                <div class="flex items-center space-x-2">
+                                                                    <div class="w-3 h-3 bg-green-400 rounded-full"></div>
+                                                                    <span class="text-sm text-green-400">High Energy</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="journal-entry-mood mb-3">
+                                                            <span class="inline-block bg-[#00d4ff]/20 text-[#00d4ff] px-3 py-1 rounded-full text-sm">
+                                                                😊 Positive
+                                                            </span>
+                                                        </div>
+                                                        <div class="journal-entry-content text-white mb-3">
+                                                            <!-- Entry preview -->
+                                                        </div>
+                                                        <div class="journal-entry-tags flex flex-wrap gap-2">
+                                                            <!-- Tags will go here -->
+                                                        </div>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+
+                                            <!-- Load More Button -->
+                                            <div class="journal-load-more-section mt-6 text-center">
+                                                <button class="journal-load-more-btn bg-[#1a1f2e]/50 border border-white/10 text-white px-6 py-3 rounded-xl hover:bg-[#1a1f2e]/70 transition-all duration-200">
+                                                    Load More Entries
+                                                </button>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
               </main>
         </div>
     </div>
@@ -5755,5 +5995,267 @@ solveProblem();</code></pre>
         });
 
     </script>
+
+    <!-- Journal Page Custom Styles -->
+    <style>
+        /* Grid Pattern Background */
+        .bg-grid-pattern {
+            background-image:
+                linear-gradient(rgba(0, 212, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 212, 255, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+
+        /* Journal Page Layout - All styles scoped to #journal-page */
+        #journal-page .journal-grid-layout {
+            grid-template-columns: 40% 60%;
+        }
+
+        /* Desktop Layout (>1024px) */
+        @media (min-width: 1024px) {
+            #journal-page .journal-grid-layout {
+                grid-template-columns: 40% 60%;
+                gap: 2rem;
+            }
+
+            #journal-page .journal-main-container {
+                padding: 2rem;
+            }
+
+            #journal-page .journal-form-card,
+            #journal-page .journal-timeline-card {
+                transform: translateZ(30px);
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            #journal-page .journal-form-card:hover,
+            #journal-page .journal-timeline-card:hover {
+                transform: translateZ(50px) rotateX(2deg);
+                box-shadow: 0 25px 50px -12px rgba(0, 212, 255, 0.25);
+            }
+        }
+
+        /* Tablet Layout (768px - 1024px) */
+        @media (min-width: 768px) and (max-width: 1023px) {
+            #journal-page .journal-grid-layout {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+                max-width: 4xl;
+            }
+
+            #journal-page .journal-main-container {
+                padding: 1.5rem;
+            }
+
+            #journal-page .journal-form-card,
+            #journal-page .journal-timeline-card {
+                transform: translateZ(15px);
+            }
+
+            #journal-page .journal-timeline-scroll {
+                max-height: 400px;
+            }
+        }
+
+        /* Mobile Layout (<768px) */
+        @media (max-width: 767px) {
+            #journal-page .journal-grid-layout {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            #journal-page .journal-main-container {
+                padding: 1rem;
+            }
+
+            #journal-page .journal-header h1 {
+                font-size: 2.5rem;
+            }
+
+            #journal-page .journal-form-card,
+            #journal-page .journal-timeline-card {
+                transform: translateZ(10px);
+                padding: 1.5rem;
+                border-radius: 1.5rem;
+            }
+
+            #journal-page .journal-datetime-section .grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            #journal-page .journal-mood-grid {
+                grid-template-columns: 3;
+                gap: 0.75rem;
+            }
+
+            #journal-page .journal-textarea {
+                height: 120px;
+            }
+
+            #journal-page .journal-timeline-scroll {
+                max-height: 300px;
+            }
+
+            #journal-page .journal-timeline-entry {
+                padding: 1rem;
+            }
+
+            #journal-page .journal-entry-header {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+
+        /* 3D Effects and Animations */
+        #journal-page .journal-3d-container {
+            perspective: 1500px;
+            transform-style: preserve-3d;
+        }
+
+        #journal-page .journal-form-container,
+        #journal-page .journal-timeline-container {
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #journal-page .journal-form-card,
+        #journal-page .journal-timeline-card {
+            transform-style: preserve-3d;
+            backface-visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Enhanced Hover Effects */
+        #journal-page .journal-timeline-entry {
+            transform-style: preserve-3d;
+            transition: all 0.2s ease;
+        }
+
+        #journal-page .journal-timeline-entry:hover {
+            transform: translateZ(15px) scale(1.02);
+            background: rgba(26, 31, 46, 0.7);
+            border-color: rgba(0, 212, 255, 0.3);
+        }
+
+        #journal-page .journal-submit-btn:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 20px 40px -15px rgba(0, 212, 255, 0.4);
+        }
+
+        #journal-page .journal-load-more-btn:hover {
+            transform: translateY(-1px);
+            border-color: rgba(0, 212, 255, 0.3);
+        }
+
+        /* Smooth Scrolling */
+        #journal-page .journal-timeline-scroll {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(0, 212, 255, 0.3) transparent;
+        }
+
+        #journal-page .journal-timeline-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #journal-page .journal-timeline-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        #journal-page .journal-timeline-scroll::-webkit-scrollbar-thumb {
+            background: rgba(0, 212, 255, 0.3);
+            border-radius: 3px;
+        }
+
+        #journal-page .journal-timeline-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 212, 255, 0.5);
+        }
+
+        /* Glass Morphism Enhancement */
+        #journal-page .journal-form-card,
+        #journal-page .journal-timeline-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        /* Form Input Enhancement */
+        #journal-page .journal-date-input,
+        #journal-page .journal-time-input,
+        #journal-page .journal-search-input {
+            transition: all 0.2s ease;
+        }
+
+        #journal-page .journal-date-input:hover,
+        #journal-page .journal-time-input:hover,
+        #journal-page .journal-search-input:hover {
+            border-color: rgba(0, 212, 255, 0.2);
+            background: rgba(26, 31, 46, 0.6);
+        }
+
+        #journal-page .journal-date-input:focus,
+        #journal-page .journal-time-input:focus,
+        #journal-page .journal-search-input:focus {
+            border-color: rgba(0, 212, 255, 0.5);
+            background: rgba(26, 31, 46, 0.7);
+            transform: translateZ(5px);
+        }
+
+        /* Responsive Typography */
+        @media (max-width: 767px) {
+            #journal-page .journal-header h1 {
+                font-size: 2rem;
+                line-height: 1.2;
+            }
+
+            #journal-page .journal-header p {
+                font-size: 1rem;
+            }
+
+            #journal-page .journal-form-header h2,
+            #journal-page .journal-timeline-header h2 {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Animation for page entrance */
+        @keyframes slideInFromLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px) translateZ(0);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0) translateZ(20px);
+            }
+        }
+
+        @keyframes slideInFromRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px) translateZ(0);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0) translateZ(20px);
+            }
+        }
+
+        #journal-page .journal-left-column {
+            animation: slideInFromLeft 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        #journal-page .journal-right-column {
+            animation: slideInFromRight 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.2s forwards;
+            opacity: 0;
+        }
+
+        #journal-page .journal-right-column.animated {
+            opacity: 1;
+        }
+    </style>
 </body>
 </html>
