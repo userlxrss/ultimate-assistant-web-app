@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cute 3D Robot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+        }
+
+        .robot-container {
+            position: relative;
+            width: 300px;
+            height: 400px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        /* Robot Head - Large rounded rectangle like iPad */
+        .robot-head {
+            position: absolute;
+            width: 200px;
+            height: 180px;
+            left: 50px;
+            top: 50px;
+            background: #ffffff;
+            border-radius: 30px;
+            box-shadow:
+                0 20px 40px rgba(0,0,0,0.2),
+                inset 0 2px 5px rgba(255,255,255,0.8),
+                inset 0 -2px 5px rgba(0,0,0,0.1);
+            border: 8px solid #ffffff;
+            overflow: hidden;
+        }
+
+        /* Screen face with dark teal gradient */
+        .screen-face {
+            position: absolute;
+            width: 164px;
+            height: 144px;
+            left: 8px;
+            top: 8px;
+            background: linear-gradient(135deg, #2c5f5f 0%, #1a3a3a 50%, #0f2f2f 100%);
+            border-radius: 22px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            box-shadow: inset 0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        /* Eyes container */
+        .eyes {
+            display: flex;
+            gap: 30px;
+            position: relative;
+        }
+
+        /* Glowing cyan eyes */
+        .eye {
+            width: 45px;
+            height: 45px;
+            background: radial-gradient(circle, #00ffff 0%, #00cccc 50%, #009999 100%);
+            border-radius: 50%;
+            position: relative;
+            box-shadow:
+                0 0 30px rgba(0, 255, 255, 0.8),
+                0 0 50px rgba(0, 255, 255, 0.4),
+                inset 0 2px 5px rgba(255,255,255,0.5);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow:
+                    0 0 30px rgba(0, 255, 255, 0.8),
+                    0 0 50px rgba(0, 255, 255, 0.4),
+                    inset 0 2px 5px rgba(255,255,255,0.5);
+            }
+            50% {
+                box-shadow:
+                    0 0 40px rgba(0, 255, 255, 1),
+                    0 0 60px rgba(0, 255, 255, 0.6),
+                    inset 0 2px 5px rgba(255,255,255,0.7);
+            }
+        }
+
+        /* White highlights/reflections on eyes */
+        .eye::before {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.6) 100%);
+            border-radius: 50%;
+            top: 8px;
+            left: 10px;
+            filter: blur(1px);
+        }
+
+        .eye::after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 50%;
+            top: 12px;
+            left: 15px;
+        }
+
+        /* Cyan line mouth */
+        .mouth {
+            width: 40px;
+            height: 3px;
+            background: #00ffff;
+            border-radius: 2px;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.6);
+            position: relative;
+            top: -5px;
+        }
+
+        /* Small white rectangular body */
+        .robot-body {
+            position: absolute;
+            width: 70px;
+            height: 60px;
+            left: 115px;
+            top: 240px;
+            background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+            border-radius: 15px;
+            box-shadow:
+                0 10px 25px rgba(0,0,0,0.15),
+                inset 0 2px 3px rgba(255,255,255,0.8),
+                inset 0 -2px 3px rgba(0,0,0,0.1);
+        }
+
+        /* Arms */
+        .arm {
+            position: absolute;
+            width: 25px;
+            height: 80px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f8f8 100%);
+            border-radius: 12px;
+            top: 250px;
+            box-shadow:
+                0 5px 15px rgba(0,0,0,0.1),
+                inset 0 1px 2px rgba(255,255,255,0.8);
+        }
+
+        .arm-left {
+            left: 75px;
+            transform: rotate(-5deg);
+        }
+
+        .arm-right {
+            right: 75px;
+            transform: rotate(5deg);
+        }
+
+        /* Blue circular joints/shoulders */
+        .joint {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, #4a90e2 0%, #357abd 100%);
+            border-radius: 50%;
+            box-shadow:
+                0 0 15px rgba(74, 144, 226, 0.5),
+                inset 0 2px 3px rgba(255,255,255,0.3);
+        }
+
+        .joint-left {
+            left: 77px;
+            top: 245px;
+        }
+
+        .joint-right {
+            right: 77px;
+            top: 245px;
+        }
+
+        /* Rounded hands/mittens */
+        .hand {
+            position: absolute;
+            width: 35px;
+            height: 35px;
+            background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
+            border-radius: 50%;
+            box-shadow:
+                0 5px 12px rgba(0,0,0,0.1),
+                inset 0 1px 2px rgba(255,255,255,0.8);
+        }
+
+        .hand-left {
+            left: 70px;
+            top: 320px;
+        }
+
+        .hand-right {
+            right: 70px;
+            top: 320px;
+        }
+
+        /* Small blue circular elements near bottom */
+        .bottom-element {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: radial-gradient(circle, #4a90e2 0%, #357abd 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 8px rgba(74, 144, 226, 0.6);
+        }
+
+        .bottom-element-1 {
+            left: 135px;
+            top: 310px;
+        }
+
+        .bottom-element-2 {
+            left: 155px;
+            top: 310px;
+        }
+
+        /* Floating cyan geometric icon (diamond/crystal) */
+        .floating-icon {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            right: 30px;
+            top: 100px;
+            transform: rotate(45deg);
+            background: linear-gradient(135deg, #00ffff 0%, #00cccc 50%, #009999 100%);
+            box-shadow:
+                0 0 25px rgba(0, 255, 255, 0.8),
+                0 0 40px rgba(0, 255, 255, 0.4),
+                inset 0 2px 4px rgba(255,255,255,0.3);
+            animation: float-icon 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes float-icon {
+            0% {
+                transform: rotate(45deg) translateX(0px);
+                opacity: 0.8;
+            }
+            100% {
+                transform: rotate(45deg) translateX(10px);
+                opacity: 1;
+            }
+        }
+
+        /* Soft glow effects around the robot */
+        .glow-effect {
+            position: absolute;
+            width: 250px;
+            height: 250px;
+            left: 25px;
+            top: 75px;
+            background: radial-gradient(circle, rgba(0, 255, 255, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: glow-pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes glow-pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 0.8; }
+        }
+
+        /* Title */
+        .title {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="robot-container">
+        <!-- Glow effect -->
+        <div class="glow-effect"></div>
+
+        <!-- Robot Head -->
+        <div class="robot-head">
+            <div class="screen-face">
+                <div class="eyes">
+                    <div class="eye"></div>
+                    <div class="eye"></div>
+                </div>
+                <div class="mouth"></div>
+            </div>
+        </div>
+
+        <!-- Robot Body -->
+        <div class="robot-body"></div>
+
+        <!-- Arms -->
+        <div class="arm arm-left"></div>
+        <div class="arm arm-right"></div>
+
+        <!-- Joints -->
+        <div class="joint joint-left"></div>
+        <div class="joint joint-right"></div>
+
+        <!-- Hands -->
+        <div class="hand hand-left"></div>
+        <div class="hand hand-right"></div>
+
+        <!-- Bottom elements -->
+        <div class="bottom-element bottom-element-1"></div>
+        <div class="bottom-element bottom-element-2"></div>
+
+        <!-- Floating crystal icon -->
+        <div class="floating-icon"></div>
+    </div>
+
+    <div class="title">CUTE ROBOT</div>
+</body>
+</html>
