@@ -1,0 +1,2331 @@
+openapi: 3.0.3
+info:
+  title: Assistant Hub API
+  description: Comprehensive API for assistant hub application with multi-service integration
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: api-support@assistant-hub.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.assistant-hub.com/v1
+    description: Production server
+  - url: https://staging-api.assistant-hub.com/v1
+    description: Staging server
+  - url: http://localhost:3000/v1
+    description: Development server
+
+tags:
+  - name: Authentication
+    description: User authentication and authorization
+  - name: Dashboard
+    description: Dashboard data and analytics
+  - name: Journal
+    description: Journal entries management
+  - name: Tasks
+    description: Task management and Motion integration
+  - name: Calendar
+    description: Calendar events and Google Calendar sync
+  - name: Email
+    description: Email operations and Gmail integration
+  - name: Contacts
+    description: Contact management and Google Contacts sync
+  - name: Integrations
+    description: External service integrations management
+  - name: Webhooks
+    description: Webhook endpoints for real-time updates
+
+paths:
+  # Authentication endpoints
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login
+      description: Authenticate user and return JWT tokens
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitedError'
+
+  /auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Refresh access token
+      description: Refresh JWT access token using refresh token
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: User logout
+      description: Invalidate user tokens
+      security:
+        - bearerAuth: []
+      operationId: logout
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  # Dashboard endpoints
+  /dashboard/overview:
+    get:
+      tags:
+        - Dashboard
+      summary: Get dashboard overview
+      description: Retrieve dashboard overview data with aggregated information
+      security:
+        - bearerAuth: []
+      operationId: getDashboardOverview
+      parameters:
+        - $ref: '#/components/parameters/DateRangeParam'
+      responses:
+        '200':
+          description: Dashboard overview retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardOverview'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /dashboard/metrics:
+    get:
+      tags:
+        - Dashboard
+      summary: Get dashboard metrics
+      description: Retrieve detailed metrics for dashboard
+      security:
+        - bearerAuth: []
+      operationId: getDashboardMetrics
+      parameters:
+        - $ref: '#/components/parameters/DateRangeParam'
+        - $ref: '#/components/parameters/MetricsTypeParam'
+      responses:
+        '200':
+          description: Metrics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardMetrics'
+
+  # Journal endpoints
+  /journal/entries:
+    get:
+      tags:
+        - Journal
+      summary: List journal entries
+      description: Retrieve paginated list of journal entries
+      security:
+        - bearerAuth: []
+      operationId: listJournalEntries
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/DateRangeParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - $ref: '#/components/parameters/TagsParam'
+      responses:
+        '200':
+          description: Journal entries retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JournalEntriesResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    post:
+      tags:
+        - Journal
+      summary: Create journal entry
+      description: Create a new journal entry
+      security:
+        - bearerAuth: []
+      operationId: createJournalEntry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateJournalEntryRequest'
+      responses:
+        '201':
+          description: Journal entry created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JournalEntry'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /journal/entries/{entryId}:
+    get:
+      tags:
+        - Journal
+      summary: Get journal entry
+      description: Retrieve a specific journal entry
+      security:
+        - bearerAuth: []
+      operationId: getJournalEntry
+      parameters:
+        - $ref: '#/components/parameters/EntryIdParam'
+      responses:
+        '200':
+          description: Journal entry retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JournalEntry'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    put:
+      tags:
+        - Journal
+      summary: Update journal entry
+      description: Update a specific journal entry
+      security:
+        - bearerAuth: []
+      operationId: updateJournalEntry
+      parameters:
+        - $ref: '#/components/parameters/EntryIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateJournalEntryRequest'
+      responses:
+        '200':
+          description: Journal entry updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JournalEntry'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    delete:
+      tags:
+        - Journal
+      summary: Delete journal entry
+      description: Delete a specific journal entry
+      security:
+        - bearerAuth: []
+      operationId: deleteJournalEntry
+      parameters:
+        - $ref: '#/components/parameters/EntryIdParam'
+      responses:
+        '204':
+          description: Journal entry deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  # Tasks endpoints
+  /tasks:
+    get:
+      tags:
+        - Tasks
+      summary: List tasks
+      description: Retrieve paginated list of tasks with filtering options
+      security:
+        - bearerAuth: []
+      operationId: listTasks
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/StatusParam'
+        - $ref: '#/components/parameters/PriorityParam'
+        - $ref: '#/components/parameters/DateRangeParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - $ref: '#/components/parameters/SourceParam'
+      responses:
+        '200':
+          description: Tasks retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TasksResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    post:
+      tags:
+        - Tasks
+      summary: Create task
+      description: Create a new task
+      security:
+        - bearerAuth: []
+      operationId: createTask
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTaskRequest'
+      responses:
+        '201':
+          description: Task created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /tasks/{taskId}:
+    get:
+      tags:
+        - Tasks
+      summary: Get task
+      description: Retrieve a specific task
+      security:
+        - bearerAuth: []
+      operationId: getTask
+      parameters:
+        - $ref: '#/components/parameters/TaskIdParam'
+      responses:
+        '200':
+          description: Task retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    put:
+      tags:
+        - Tasks
+      summary: Update task
+      description: Update a specific task
+      security:
+        - bearerAuth: []
+      operationId: updateTask
+      parameters:
+        - $ref: '#/components/parameters/TaskIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTaskRequest'
+      responses:
+        '200':
+          description: Task updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    delete:
+      tags:
+        - Tasks
+      summary: Delete task
+      description: Delete a specific task
+      security:
+        - bearerAuth: []
+      operationId: deleteTask
+      parameters:
+        - $ref: '#/components/parameters/TaskIdParam'
+      responses:
+        '204':
+          description: Task deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /tasks/sync:
+    post:
+      tags:
+        - Tasks
+      summary: Sync tasks with Motion
+      description: Synchronize tasks with Motion API
+      security:
+        - bearerAuth: []
+      operationId: syncTasksWithMotion
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskSyncRequest'
+      responses:
+        '200':
+          description: Tasks synced successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskSyncResponse'
+
+  # Calendar endpoints
+  /calendar/events:
+    get:
+      tags:
+        - Calendar
+      summary: List calendar events
+      description: Retrieve paginated list of calendar events
+      security:
+        - bearerAuth: []
+      operationId: listCalendarEvents
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/DateRangeParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - $ref: '#/components/parameters/CalendarIdParam'
+      responses:
+        '200':
+          description: Calendar events retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalendarEventsResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    post:
+      tags:
+        - Calendar
+      summary: Create calendar event
+      description: Create a new calendar event
+      security:
+        - bearerAuth: []
+      operationId: createCalendarEvent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCalendarEventRequest'
+      responses:
+        '201':
+          description: Calendar event created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalendarEvent'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /calendar/events/{eventId}:
+    get:
+      tags:
+        - Calendar
+      summary: Get calendar event
+      description: Retrieve a specific calendar event
+      security:
+        - bearerAuth: []
+      operationId: getCalendarEvent
+      parameters:
+        - $ref: '#/components/parameters/EventIdParam'
+      responses:
+        '200':
+          description: Calendar event retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalendarEvent'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    put:
+      tags:
+        - Calendar
+      summary: Update calendar event
+      description: Update a specific calendar event
+      security:
+        - bearerAuth: []
+      operationId: updateCalendarEvent
+      parameters:
+        - $ref: '#/components/parameters/EventIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCalendarEventRequest'
+      responses:
+        '200':
+          description: Calendar event updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalendarEvent'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    delete:
+      tags:
+        - Calendar
+      summary: Delete calendar event
+      description: Delete a specific calendar event
+      security:
+        - bearerAuth: []
+      operationId: deleteCalendarEvent
+      parameters:
+        - $ref: '#/components/parameters/EventIdParam'
+      responses:
+        '204':
+          description: Calendar event deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /calendar/sync:
+    post:
+      tags:
+        - Calendar
+      summary: Sync calendar with Google
+      description: Synchronize calendar events with Google Calendar
+      security:
+        - bearerAuth: []
+      operationId: syncCalendarWithGoogle
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CalendarSyncRequest'
+      responses:
+        '200':
+          description: Calendar synced successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalendarSyncResponse'
+
+  # Email endpoints
+  /email/messages:
+    get:
+      tags:
+        - Email
+      summary: List email messages
+      description: Retrieve paginated list of email messages
+      security:
+        - bearerAuth: []
+      operationId: listEmailMessages
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/DateRangeParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - $ref: '#/components/parameters/FolderParam'
+        - $ref: '#/components/parameters/StatusParam'
+      responses:
+        '200':
+          description: Email messages retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailMessagesResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /email/messages/{messageId}:
+    get:
+      tags:
+        - Email
+      summary: Get email message
+      description: Retrieve a specific email message
+      security:
+        - bearerAuth: []
+      operationId: getEmailMessage
+      parameters:
+        - $ref: '#/components/parameters/MessageIdParam'
+      responses:
+        '200':
+          description: Email message retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailMessage'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    post:
+      tags:
+        - Email
+      summary: Send email message
+      description: Send a new email message
+      security:
+        - bearerAuth: []
+      operationId: sendEmailMessage
+      parameters:
+        - $ref: '#/components/parameters/MessageIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendEmailRequest'
+      responses:
+        '200':
+          description: Email sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailMessage'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /email/sync:
+    post:
+      tags:
+        - Email
+      summary: Sync email with Gmail
+      description: Synchronize email messages with Gmail
+      security:
+        - bearerAuth: []
+      operationId: syncEmailWithGmail
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailSyncRequest'
+      responses:
+        '200':
+          description: Email synced successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailSyncResponse'
+
+  # Contacts endpoints
+  /contacts:
+    get:
+      tags:
+        - Contacts
+      summary: List contacts
+      description: Retrieve paginated list of contacts
+      security:
+        - bearerAuth: []
+      operationId: listContacts
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - $ref: '#/components/parameters/TagsParam'
+      responses:
+        '200':
+          description: Contacts retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactsResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    post:
+      tags:
+        - Contacts
+      summary: Create contact
+      description: Create a new contact
+      security:
+        - bearerAuth: []
+      operationId: createContact
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateContactRequest'
+      responses:
+        '201':
+          description: Contact created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contact'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /contacts/{contactId}:
+    get:
+      tags:
+        - Contacts
+      summary: Get contact
+      description: Retrieve a specific contact
+      security:
+        - bearerAuth: []
+      operationId: getContact
+      parameters:
+        - $ref: '#/components/parameters/ContactIdParam'
+      responses:
+        '200':
+          description: Contact retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contact'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    put:
+      tags:
+        - Contacts
+      summary: Update contact
+      description: Update a specific contact
+      security:
+        - bearerAuth: []
+      operationId: updateContact
+      parameters:
+        - $ref: '#/components/parameters/ContactIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateContactRequest'
+      responses:
+        '200':
+          description: Contact updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contact'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    delete:
+      tags:
+        - Contacts
+      summary: Delete contact
+      description: Delete a specific contact
+      security:
+        - bearerAuth: []
+      operationId: deleteContact
+      parameters:
+        - $ref: '#/components/parameters/ContactIdParam'
+      responses:
+        '204':
+          description: Contact deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /contacts/sync:
+    post:
+      tags:
+        - Contacts
+      summary: Sync contacts with Google
+      description: Synchronize contacts with Google Contacts
+      security:
+        - bearerAuth: []
+      operationId: syncContactsWithGoogle
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactSyncRequest'
+      responses:
+        '200':
+          description: Contacts synced successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactSyncResponse'
+
+  # Integration endpoints
+  /integrations/motion:
+    get:
+      tags:
+        - Integrations
+      summary: Get Motion integration status
+      description: Retrieve Motion integration status and configuration
+      security:
+        - bearerAuth: []
+      operationId: getMotionIntegration
+      responses:
+        '200':
+          description: Motion integration status retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MotionIntegrationStatus'
+
+    post:
+      tags:
+        - Integrations
+      summary: Configure Motion integration
+      description: Configure Motion API integration
+      security:
+        - bearerAuth: []
+      operationId: configureMotionIntegration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MotionIntegrationConfig'
+      responses:
+        '200':
+          description: Motion integration configured successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegrationConfigResponse'
+
+  /integrations/google:
+    get:
+      tags:
+        - Integrations
+      summary: Get Google integration status
+      description: Retrieve Google services integration status
+      security:
+        - bearerAuth: []
+      operationId: getGoogleIntegration
+      responses:
+        '200':
+          description: Google integration status retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GoogleIntegrationStatus'
+
+    post:
+      tags:
+        - Integrations
+      summary: Configure Google integration
+      description: Configure Google services integration
+      security:
+        - bearerAuth: []
+      operationId: configureGoogleIntegration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoogleIntegrationConfig'
+      responses:
+        '200':
+          description: Google integration configured successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegrationConfigResponse'
+
+  # WebSocket endpoint for real-time updates
+  /ws/realtime:
+    get:
+      tags:
+        - Webhooks
+      summary: WebSocket connection for real-time updates
+      description: Establish WebSocket connection for real-time data updates
+      security:
+        - bearerAuth: []
+      operationId: connectWebSocket
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # Authentication schemas
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        password:
+          type: string
+          format: password
+          minLength: 8
+          example: securePassword123
+        rememberMe:
+          type: boolean
+          default: false
+
+    RefreshTokenRequest:
+      type: object
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+    AuthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/UserSession'
+        message:
+          type: string
+          example: Login successful
+
+    UserSession:
+      type: object
+      required:
+        - user
+        - tokens
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        tokens:
+          $ref: '#/components/schemas/Tokens'
+
+    User:
+      type: object
+      required:
+        - id
+        - email
+        - name
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        name:
+          type: string
+          example: John Doe
+        avatar:
+          type: string
+          format: uri
+          example: https://example.com/avatar.jpg
+        timezone:
+          type: string
+          example: America/New_York
+        preferences:
+          $ref: '#/components/schemas/UserPreferences'
+
+    UserPreferences:
+      type: object
+      properties:
+        theme:
+          type: string
+          enum: [light, dark, auto]
+          default: auto
+        language:
+          type: string
+          default: en
+        notifications:
+          $ref: '#/components/schemas/NotificationPreferences'
+
+    NotificationPreferences:
+      type: object
+      properties:
+        email:
+          type: boolean
+          default: true
+        push:
+          type: boolean
+          default: true
+        taskReminders:
+          type: boolean
+          default: true
+        calendarAlerts:
+          type: boolean
+          default: true
+
+    Tokens:
+      type: object
+      required:
+        - accessToken
+        - refreshToken
+      properties:
+        accessToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        refreshToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        expiresIn:
+          type: integer
+          example: 3600
+
+    TokenResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/Tokens'
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Operation completed successfully
+
+    # Dashboard schemas
+    DashboardOverview:
+      type: object
+      properties:
+        tasks:
+          $ref: '#/components/schemas/DashboardTaskStats'
+        calendar:
+          $ref: '#/components/schemas/DashboardCalendarStats'
+        email:
+          $ref: '#/components/schemas/DashboardEmailStats'
+        journal:
+          $ref: '#/components/schemas/DashboardJournalStats'
+        contacts:
+          $ref: '#/components/schemas/DashboardContactStats'
+
+    DashboardTaskStats:
+      type: object
+      properties:
+        total:
+          type: integer
+          example: 45
+        completed:
+          type: integer
+          example: 23
+        inProgress:
+          type: integer
+          example: 12
+        overdue:
+          type: integer
+          example: 5
+
+    DashboardCalendarStats:
+      type: object
+      properties:
+        todayEvents:
+          type: integer
+          example: 3
+        upcomingEvents:
+          type: integer
+          example: 12
+        meetingsToday:
+          type: integer
+          example: 2
+
+    DashboardEmailStats:
+      type: object
+      properties:
+        unread:
+          type: integer
+          example: 15
+        totalInbox:
+          type: integer
+          example: 234
+        sentToday:
+          type: integer
+          example: 8
+
+    DashboardJournalStats:
+      type: object
+      properties:
+        entriesThisWeek:
+          type: integer
+          example: 5
+        totalEntries:
+          type: integer
+          example: 127
+
+
+    DashboardContactStats:
+      type: object
+      properties:
+        totalContacts:
+          type: integer
+          example: 234
+        recentContacts:
+          type: integer
+          example: 12
+
+    DashboardMetrics:
+      type: object
+      properties:
+        productivity:
+          type: number
+          format: float
+          example: 0.85
+        efficiency:
+          type: number
+          format: float
+          example: 0.92
+        completionRate:
+          type: number
+          format: float
+          example: 0.78
+        trends:
+          type: array
+          items:
+            $ref: '#/components/schemas/MetricTrend'
+
+    MetricTrend:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        value:
+          type: number
+          format: float
+        metric:
+          type: string
+
+    # Journal schemas
+    JournalEntry:
+      type: object
+      required:
+        - id
+        - title
+        - content
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          example: Daily Reflection
+        content:
+          type: string
+          example: Today was productive and I accomplished many tasks...
+        tags:
+          type: array
+          items:
+            type: string
+          example: ["personal", "reflection"]
+        mood:
+          type: string
+          enum: [happy, sad, neutral, excited, anxious, grateful]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        isPrivate:
+          type: boolean
+          default: true
+
+    CreateJournalEntryRequest:
+      type: object
+      required:
+        - title
+        - content
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        content:
+          type: string
+          minLength: 1
+        tags:
+          type: array
+          items:
+            type: string
+        mood:
+          type: string
+          enum: [happy, sad, neutral, excited, anxious, grateful]
+        isPrivate:
+          type: boolean
+
+    UpdateJournalEntryRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        content:
+          type: string
+          minLength: 1
+        tags:
+          type: array
+          items:
+            type: string
+        mood:
+          type: string
+          enum: [happy, sad, neutral, excited, anxious, grateful]
+        isPrivate:
+          type: boolean
+
+    JournalEntriesResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            entries:
+              type: array
+              items:
+                $ref: '#/components/schemas/JournalEntry'
+            pagination:
+              $ref: '#/components/schemas/Pagination'
+
+    # Task schemas
+    Task:
+      type: object
+      required:
+        - id
+        - title
+        - status
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          example: Complete project proposal
+        description:
+          type: string
+          example: Finish the Q4 project proposal and send to team
+        status:
+          type: string
+          enum: [todo, in_progress, completed, cancelled]
+        priority:
+          type: string
+          enum: [low, medium, high, urgent]
+        dueDate:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+        tags:
+          type: array
+          items:
+            type: string
+        assignee:
+          $ref: '#/components/schemas/User'
+        source:
+          type: string
+          enum: [internal, motion, manual_import]
+        externalId:
+          type: string
+          description: ID from external system (Motion, etc.)
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateTaskRequest:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+        priority:
+          type: string
+          enum: [low, medium, high, urgent]
+        dueDate:
+          type: string
+          format: date-time
+        tags:
+          type: array
+          items:
+            type: string
+        assigneeId:
+          type: string
+          format: uuid
+
+    UpdateTaskRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+        status:
+          type: string
+          enum: [todo, in_progress, completed, cancelled]
+        priority:
+          type: string
+          enum: [low, medium, high, urgent]
+        dueDate:
+          type: string
+          format: date-time
+        tags:
+          type: array
+          items:
+            type: string
+        assigneeId:
+          type: string
+          format: uuid
+
+    TasksResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            tasks:
+              type: array
+              items:
+                $ref: '#/components/schemas/Task'
+            pagination:
+              $ref: '#/components/schemas/Pagination'
+
+    TaskSyncRequest:
+      type: object
+      properties:
+        syncDirection:
+          type: string
+          enum: [import, export, bidirectional]
+          default: bidirectional
+        lastSyncAt:
+          type: string
+          format: date-time
+
+    TaskSyncResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            importedTasks:
+              type: integer
+            exportedTasks:
+              type: integer
+            conflicts:
+              type: array
+              items:
+                $ref: '#/components/schemas/SyncConflict'
+            lastSyncAt:
+              type: string
+              format: date-time
+
+    SyncConflict:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [duplicate, version_conflict, data_mismatch]
+        taskId:
+          type: string
+        externalId:
+          type: string
+        resolution:
+          type: string
+          enum: [auto_merge, manual_resolve, skip]
+
+    # Calendar schemas
+    CalendarEvent:
+      type: object
+      required:
+        - id
+        - title
+        - startTime
+        - endTime
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          example: Team Meeting
+        description:
+          type: string
+          example: Weekly team sync and project updates
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        location:
+          type: string
+        isAllDay:
+          type: boolean
+          default: false
+        attendees:
+          type: array
+          items:
+            $ref: '#/components/schemas/Attendee'
+        calendarId:
+          type: string
+        externalId:
+          type: string
+          description: ID from Google Calendar
+        recurrence:
+          $ref: '#/components/schemas/RecurrenceRule'
+        reminders:
+          type: array
+          items:
+            $ref: '#/components/schemas/Reminder'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Attendee:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        status:
+          type: string
+          enum: [pending, accepted, declined, tentative]
+        isOrganizer:
+          type: boolean
+
+    RecurrenceRule:
+      type: object
+      properties:
+        frequency:
+          type: string
+          enum: [daily, weekly, monthly, yearly]
+        interval:
+          type: integer
+          minimum: 1
+        until:
+          type: string
+          format: date-time
+        count:
+          type: integer
+
+    Reminder:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [email, popup]
+        minutesBefore:
+          type: integer
+          minimum: 0
+
+    CreateCalendarEventRequest:
+      type: object
+      required:
+        - title
+        - startTime
+        - endTime
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        location:
+          type: string
+        isAllDay:
+          type: boolean
+        calendarId:
+          type: string
+        attendeeEmails:
+          type: array
+          items:
+            type: string
+            format: email
+        recurrence:
+          $ref: '#/components/schemas/RecurrenceRule'
+        reminders:
+          type: array
+          items:
+            $ref: '#/components/schemas/Reminder'
+
+    UpdateCalendarEventRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        location:
+          type: string
+        isAllDay:
+          type: boolean
+        attendeeEmails:
+          type: array
+          items:
+            type: string
+            format: email
+        recurrence:
+          $ref: '#/components/schemas/RecurrenceRule'
+        reminders:
+          type: array
+          items:
+            $ref: '#/components/schemas/Reminder'
+
+    CalendarEventsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            events:
+              type: array
+              items:
+                $ref: '#/components/schemas/CalendarEvent'
+            pagination:
+              $ref: '#/components/schemas/Pagination'
+
+    CalendarSyncRequest:
+      type: object
+      properties:
+        calendarIds:
+          type: array
+          items:
+            type: string
+        syncDirection:
+          type: string
+          enum: [import, export, bidirectional]
+          default: bidirectional
+        lastSyncAt:
+          type: string
+          format: date-time
+
+    CalendarSyncResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            importedEvents:
+              type: integer
+            exportedEvents:
+              type: integer
+            conflicts:
+              type: array
+              items:
+                $ref: '#/components/schemas/SyncConflict'
+            lastSyncAt:
+              type: string
+              format: date-time
+
+    # Email schemas
+    EmailMessage:
+      type: object
+      required:
+        - id
+        - subject
+        - from
+        - to
+        - sentAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        subject:
+          type: string
+          example: Project Update
+        from:
+          $ref: '#/components/schemas/EmailAddress'
+        to:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmailAddress'
+        cc:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmailAddress'
+        bcc:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmailAddress'
+        body:
+          type: string
+        bodyHtml:
+          type: string
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmailAttachment'
+        folder:
+          type: string
+          example: INBOX
+        isRead:
+          type: boolean
+        isStarred:
+          type: boolean
+        externalId:
+          type: string
+          description: Gmail message ID
+        sentAt:
+          type: string
+          format: date-time
+        receivedAt:
+          type: string
+          format: date-time
+
+    EmailAddress:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+
+    EmailAttachment:
+      type: object
+      properties:
+        id:
+          type: string
+        filename:
+          type: string
+        contentType:
+          type: string
+        size:
+          type: integer
+        url:
+          type: string
+          format: uri
+
+    SendEmailRequest:
+      type: object
+      required:
+        - to
+        - subject
+        - body
+      properties:
+        to:
+          type: array
+          items:
+            type: string
+            format: email
+          minItems: 1
+        cc:
+          type: array
+          items:
+            type: string
+            format: email
+        bcc:
+          type: array
+          items:
+            type: string
+            format: email
+        subject:
+          type: string
+          minLength: 1
+        body:
+          type: string
+          minLength: 1
+        bodyHtml:
+          type: string
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmailAttachment'
+
+    EmailMessagesResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            messages:
+              type: array
+              items:
+                $ref: '#/components/schemas/EmailMessage'
+            pagination:
+              $ref: '#/components/schemas/Pagination'
+
+    EmailSyncRequest:
+      type: object
+      properties:
+        folders:
+          type: array
+          items:
+            type: string
+        syncDirection:
+          type: string
+          enum: [import, export, bidirectional]
+          default: bidirectional
+        lastSyncAt:
+          type: string
+          format: date-time
+
+    EmailSyncResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            importedMessages:
+              type: integer
+            exportedMessages:
+              type: integer
+            conflicts:
+              type: array
+              items:
+                $ref: '#/components/schemas/SyncConflict'
+            lastSyncAt:
+              type: string
+              format: date-time
+
+    # Contact schemas
+    Contact:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: Jane Smith
+        firstName:
+          type: string
+        lastName:
+          type: string
+        emails:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmailAddress'
+        phones:
+          type: array
+          items:
+            $ref: '#/components/schemas/PhoneNumber'
+        addresses:
+          type: array
+          items:
+            $ref: '#/components/schemas/Address'
+        company:
+          type: string
+        jobTitle:
+          type: string
+        notes:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        externalId:
+          type: string
+          description: Google Contacts ID
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    PhoneNumber:
+      type: object
+      required:
+        - number
+      properties:
+        number:
+          type: string
+        type:
+          type: string
+          enum: [mobile, home, work, other]
+        isPrimary:
+          type: boolean
+
+    Address:
+      type: object
+      properties:
+        street:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        postalCode:
+          type: string
+        country:
+          type: string
+        type:
+          type: string
+          enum: [home, work, other]
+
+    CreateContactRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        firstName:
+          type: string
+        lastName:
+          type: string
+        emails:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmailAddress'
+        phones:
+          type: array
+          items:
+            $ref: '#/components/schemas/PhoneNumber'
+        addresses:
+          type: array
+          items:
+            $ref: '#/components/schemas/Address'
+        company:
+          type: string
+        jobTitle:
+          type: string
+        notes:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+
+    UpdateContactRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        firstName:
+          type: string
+        lastName:
+          type: string
+        emails:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmailAddress'
+        phones:
+          type: array
+          items:
+            $ref: '#/components/schemas/PhoneNumber'
+        addresses:
+          type: array
+          items:
+            $ref: '#/components/schemas/Address'
+        company:
+          type: string
+        jobTitle:
+          type: string
+        notes:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+
+    ContactsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            contacts:
+              type: array
+              items:
+                $ref: '#/components/schemas/Contact'
+            pagination:
+              $ref: '#/components/schemas/Pagination'
+
+    ContactSyncRequest:
+      type: object
+      properties:
+        syncDirection:
+          type: string
+          enum: [import, export, bidirectional]
+          default: bidirectional
+        lastSyncAt:
+          type: string
+          format: date-time
+
+    ContactSyncResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            importedContacts:
+              type: integer
+            exportedContacts:
+              type: integer
+            conflicts:
+              type: array
+              items:
+                $ref: '#/components/schemas/SyncConflict'
+            lastSyncAt:
+              type: string
+              format: date-time
+
+    # Integration schemas
+    MotionIntegrationStatus:
+      type: object
+      properties:
+        isConnected:
+          type: boolean
+        lastSyncAt:
+          type: string
+          format: date-time
+        syncStatus:
+          type: string
+          enum: [synced, pending, error]
+        configuration:
+          $ref: '#/components/schemas/MotionIntegrationConfig'
+
+    MotionIntegrationConfig:
+      type: object
+      required:
+        - apiKey
+        - workspaceId
+      properties:
+        apiKey:
+          type: string
+          format: password
+        workspaceId:
+          type: string
+        syncInterval:
+          type: integer
+          default: 300
+        autoSync:
+          type: boolean
+          default: true
+
+    GoogleIntegrationStatus:
+      type: object
+      properties:
+        isConnected:
+          type: boolean
+        services:
+          type: object
+          properties:
+            calendar:
+              type: boolean
+            contacts:
+              type: boolean
+            gmail:
+              type: boolean
+        lastSyncAt:
+          type: string
+          format: date-time
+        syncStatus:
+          type: string
+          enum: [synced, pending, error]
+        configuration:
+          $ref: '#/components/schemas/GoogleIntegrationConfig'
+
+    GoogleIntegrationConfig:
+      type: object
+      required:
+        - clientId
+        - clientSecret
+      properties:
+        clientId:
+          type: string
+        clientSecret:
+          type: string
+          format: password
+        redirectUri:
+          type: string
+          format: uri
+        scopes:
+          type: array
+          items:
+            type: string
+        syncInterval:
+          type: integer
+          default: 300
+        autoSync:
+          type: boolean
+          default: true
+
+    IntegrationConfigResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Integration configured successfully
+
+    # Common schemas
+    Pagination:
+      type: object
+      required:
+        - page
+        - limit
+        - total
+        - totalPages
+      properties:
+        page:
+          type: integer
+          minimum: 1
+          example: 1
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+          example: 20
+        total:
+          type: integer
+          minimum: 0
+          example: 150
+        totalPages:
+          type: integer
+          minimum: 0
+          example: 8
+        hasNext:
+          type: boolean
+        hasPrev:
+          type: boolean
+
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+        timestamp:
+          type: string
+          format: date-time
+        requestId:
+          type: string
+
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      description: Page number for pagination
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+
+    LimitParam:
+      name: limit
+      in: query
+      description: Number of items per page
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+    DateRangeParam:
+      name: dateRange
+      in: query
+      description: Date range filter (ISO 8601 format: startDate,endDate)
+      required: false
+      schema:
+        type: string
+        pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z,\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$'
+      example: '2024-01-01T00:00:00Z,2024-01-31T23:59:59Z'
+
+    SearchParam:
+      name: search
+      in: query
+      description: Search query string
+      required: false
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 100
+
+    StatusParam:
+      name: status
+      in: query
+      description: Status filter
+      required: false
+      schema:
+        type: string
+        enum: [todo, in_progress, completed, cancelled]
+
+    PriorityParam:
+      name: priority
+      in: query
+      description: Priority filter
+      required: false
+      schema:
+        type: string
+        enum: [low, medium, high, urgent]
+
+    TagsParam:
+      name: tags
+      in: query
+      description: Tags filter (comma-separated)
+      required: false
+      schema:
+        type: array
+        items:
+          type: string
+      style: form
+      explode: false
+
+    SourceParam:
+      name: source
+      in: query
+      description: Source filter
+      required: false
+      schema:
+        type: string
+        enum: [internal, motion, manual_import]
+
+    MetricsTypeParam:
+      name: type
+      in: query
+      description: Type of metrics to retrieve
+      required: false
+      schema:
+        type: string
+        enum: [productivity, efficiency, completion_rate, trends]
+
+    EntryIdParam:
+      name: entryId
+      in: path
+      description: Journal entry ID
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    TaskIdParam:
+      name: taskId
+      in: path
+      description: Task ID
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    EventIdParam:
+      name: eventId
+      in: path
+      description: Calendar event ID
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    MessageIdParam:
+      name: messageId
+      in: path
+      description: Email message ID
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    ContactIdParam:
+      name: contactId
+      in: path
+      description: Contact ID
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    CalendarIdParam:
+      name: calendarId
+      in: query
+      description: Calendar ID filter
+      required: false
+      schema:
+        type: string
+
+    FolderParam:
+      name: folder
+      in: query
+      description: Email folder filter
+      required: false
+      schema:
+        type: string
+
+  responses:
+    UnauthorizedError:
+      description: Authentication failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: UNAUTHORIZED
+            message: Invalid or expired authentication token
+            timestamp: 2024-01-15T10:30:00Z
+            requestId: req_123456789
+
+    ValidationError:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: VALIDATION_ERROR
+            message: Request validation failed
+            details:
+              field: title
+              reason: Title is required and must be at least 1 character long
+            timestamp: 2024-01-15T10:30:00Z
+            requestId: req_123456789
+
+    NotFoundError:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: NOT_FOUND
+            message: The requested resource was not found
+            timestamp: 2024-01-15T10:30:00Z
+            requestId: req_123456789
+
+    RateLimitedError:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: RATE_LIMITED
+            message: Rate limit exceeded. Please try again later.
+            timestamp: 2024-01-15T10:30:00Z
+            requestId: req_123456789

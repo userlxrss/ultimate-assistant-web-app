@@ -1,0 +1,59 @@
+{
+  "name": "ultimate-assistant-hub",
+  "version": "1.0.0",
+  "description": "Ultimate Assistant Hub API - Complete productivity and personal management system",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio"
+  },
+  "dependencies": {
+    "next": "^15.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "@prisma/client": "^5.20.0",
+    "prisma": "^5.20.0",
+    "zod": "^3.23.8",
+    "@auth/prisma-adapter": "^5.0.0",
+    "next-auth": "^5.0.0-beta.25",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^2.4.3",
+    "nodemailer": "^6.9.15",
+    "googleapis": "^144.0.0",
+    "motion": "^10.17.0",
+    "axios": "^1.7.7",
+    "date-fns": "^4.1.0",
+    "openai": "^4.67.1",
+    "rate-limiter-flexible": "^5.0.3",
+    "helmet": "^8.0.0",
+    "cors": "^2.8.5",
+    "uuid": "^10.0.0",
+    "sharp": "^0.33.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/nodemailer": "^6.4.19",
+    "@types/uuid": "^10.0.0",
+    "typescript": "^5.6.3",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^15.0.0",
+    "@next/eslint-config-typescript": "^15.0.0",
+    "swagger-ui-react": "^5.17.14",
+    "@types/swagger-ui-react": "^4.1.6",
+    "swagger-jsdoc": "^6.2.8"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

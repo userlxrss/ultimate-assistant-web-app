@@ -1,0 +1,50 @@
+services:
+  # Web service
+  - type: web
+    name: ultimate-assistant-hub
+    env: node
+    plan: starter
+    buildCommand: "npm run build"
+    startCommand: "npm start"
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - fromGroup: production-secrets
+
+  # Background worker for tasks
+  - type: worker
+    name: task-processor
+    env: node
+    plan: starter
+    buildCommand: "npm run build"
+    startCommand: "npm run worker"
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - fromGroup: production-secrets
+
+databases:
+  # PostgreSQL database
+  - name: ultimate-assistant-db
+    plan: starter
+
+  # Redis cache
+  - name: ultimate-assistant-redis
+    plan: starter
+
+envVarGroups:
+  - name: production-secrets
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: NEXTAUTH_URL
+        sync: false
+      - key: NEXTAUTH_SECRET
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: NEXT_PUBLIC_APP_URL
+        sync: false

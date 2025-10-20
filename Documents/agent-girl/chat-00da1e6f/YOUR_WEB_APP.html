@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Ultimate Assistant Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        glass: 'rgba(255, 255, 255, 0.1)',
+                        glassBorder: 'rgba(255, 255, 255, 0.2)',
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .text-gradient {
+            background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen text-white">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="text-center mb-12 animate-float">
+            <h1 class="text-5xl font-bold mb-4 text-gradient">Your Ultimate Assistant Hub</h1>
+            <p class="text-xl opacity-90">Welcome to your personalized productivity platform!</p>
+        </header>
+
+        <!-- Quick Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+            <div class="glass rounded-2xl p-6 text-center transform hover:scale-105 transition-transform">
+                <div class="text-3xl mb-2">📋</div>
+                <div class="text-2xl font-bold">12</div>
+                <div class="text-sm opacity-80">Tasks Today</div>
+            </div>
+            <div class="glass rounded-2xl p-6 text-center transform hover:scale-105 transition-transform">
+                <div class="text-3xl mb-2">📔</div>
+                <div class="text-2xl font-bold">7</div>
+                <div class="text-sm opacity-80">Journal Entries</div>
+            </div>
+            <div class="glass rounded-2xl p-6 text-center transform hover:scale-105 transition-transform">
+                <div class="text-3xl mb-2">📅</div>
+                <div class="text-2xl font-bold">3</div>
+                <div class="text-sm opacity-80">Events Today</div>
+            </div>
+            <div class="glass rounded-2xl p-6 text-center transform hover:scale-105 transition-transform">
+                <div class="text-3xl mb-2">📊</div>
+                <div class="text-2xl font-bold">85%</div>
+                <div class="text-sm opacity-80">Productivity</div>
+            </div>
+        </div>
+
+        <!-- Main Dashboard -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+            <!-- Left Column -->
+            <div class="space-y-6">
+                <div class="glass rounded-2xl p-6">
+                    <h2 class="text-xl font-bold mb-4">🎯 Today's Focus</h2>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                            <span>Complete project proposal</span>
+                            <span class="text-xs bg-green-500/20 text-green-300 px-2 py-1 rounded">High</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                            <span>Team meeting at 2 PM</span>
+                            <span class="text-xs bg-yellow-500/20 text-yellow-300 px-2 py-1 rounded">Medium</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                            <span>Review code changes</span>
+                            <span class="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded">Low</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass rounded-2xl p-6">
+                    <h2 class="text-xl font-bold mb-4">💭 Mood Tracker</h2>
+                    <div class="text-center">
+                        <div class="text-5xl mb-2">😊</div>
+                        <div class="text-2xl font-bold">8/10</div>
+                        <div class="text-sm opacity-80">Feeling good today!</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Middle Column -->
+            <div class="space-y-6">
+                <div class="glass rounded-2xl p-6">
+                    <h2 class="text-xl font-bold mb-4">📈 Productivity Score</h2>
+                    <div class="text-center">
+                        <div class="text-6xl font-bold text-gradient mb-2">87%</div>
+                        <div class="text-sm opacity-80">Great progress this week!</div>
+                        <div class="mt-4 w-full bg-white/20 rounded-full h-4">
+                            <div class="bg-gradient-to-r from-green-400 to-blue-500 h-4 rounded-full" style="width: 87%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass rounded-2xl p-6">
+                    <h2 class="text-xl font-bold mb-4">🔔 Quick Actions</h2>
+                    <div class="space-y-3">
+                        <button class="w-full p-3 bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-left">
+                            ➕ Add New Task
+                        </button>
+                        <button class="w-full p-3 bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-left">
+                            📔 Write Journal Entry
+                        </button>
+                        <button class="w-full p-3 bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-left">
+                            📅 Schedule Event
+                        </button>
+                        <button class="w-full p-3 bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-left">
+                            ✉️ Compose Email
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="space-y-6">
+                <div class="glass rounded-2xl p-6">
+                    <h2 class="text-xl font-bold mb-4">📅 Upcoming Events</h2>
+                    <div class="space-y-3">
+                        <div class="p-3 bg-white/5 rounded-lg">
+                            <div class="font-semibold">Team Standup</div>
+                            <div class="text-sm opacity-80">Today, 2:00 PM - 2:30 PM</div>
+                        </div>
+                        <div class="p-3 bg-white/5 rounded-lg">
+                            <div class="font-semibold">Client Call</div>
+                            <div class="text-sm opacity-80">Today, 4:00 PM - 5:00 PM</div>
+                        </div>
+                        <div class="p-3 bg-white/5 rounded-lg">
+                            <div class="font-semibold">Project Review</div>
+                            <div class="text-sm opacity-80">Tomorrow, 10:00 AM</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass rounded-2xl p-6">
+                    <h2 class="text-xl font-bold mb-4">📧 Recent Emails</h2>
+                    <div class="space-y-3">
+                        <div class="p-3 bg-white/5 rounded-lg">
+                            <div class="font-semibold">Re: Project Update</div>
+                            <div class="text-sm opacity-80">From: team@company.com</div>
+                        </div>
+                        <div class="p-3 bg-white/5 rounded-lg">
+                            <div class="font-semibold">Meeting Notes</div>
+                            <div class="text-sm opacity-80">From: manager@company.com</div>
+                        </div>
+                        <div class="p-3 bg-white/5 rounded-lg">
+                            <div class="font-semibold">Weekly Report</div>
+                            <div class="text-sm opacity-80">From: analytics@company.com</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Module Cards -->
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-12">
+            <div class="glass rounded-2xl p-6 text-center transform hover:scale-105 transition-all cursor-pointer">
+                <div class="text-3xl mb-2">📋</div>
+                <div class="font-semibold">Tasks</div>
+            </div>
+            <div class="glass rounded-2xl p-6 text-center transform hover:scale-105 transition-all cursor-pointer">
+                <div class="text-3xl mb-2">📔</div>
+                <div class="font-semibold">Journal</div>
+            </div>
+            <div class="glass rounded-2xl p-6 text-center transform hover:scale-105 transition-all cursor-pointer">
+                <div class="text-3xl mb-2">📅</div>
+                <div class="font-semibold">Calendar</div>
+            </div>
+            <div class="glass rounded-2xl p-6 text-center transform hover:scale-105 transition-all cursor-pointer">
+                <div class="text-3xl mb-2">✉️</div>
+                <div class="font-semibold">Email</div>
+            </div>
+            <div class="glass rounded-2xl p-6 text-center transform hover:scale-105 transition-all cursor-pointer">
+                <div class="text-3xl mb-2">👥</div>
+                <div class="font-semibold">Contacts</div>
+            </div>
+            <div class="glass rounded-2xl p-6 text-center transform hover:scale-105 transition-all cursor-pointer">
+                <div class="text-3xl mb-2">📊</div>
+                <div class="font-semibold">Analytics</div>
+            </div>
+        </div>
+
+        <!-- Settings Section -->
+        <div class="glass rounded-2xl p-8 text-center">
+            <h2 class="text-2xl font-bold mb-6">⚙️ Personalize Your Hub</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                <div class="p-6 bg-white/5 rounded-lg">
+                    <h3 class="font-semibold mb-3">🎨 Customize Theme</h3>
+                    <p class="text-sm opacity-80 mb-4">Change colors, fonts, and layout to match your style</p>
+                    <button class="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors">
+                        Customize
+                    </button>
+                </div>
+                <div class="p-6 bg-white/5 rounded-lg">
+                    <h3 class="font-semibold mb-3">📊 Edit Dashboard</h3>
+                    <p class="text-sm opacity-80 mb-4">Add/remove widgets and track what matters to you</p>
+                    <button class="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors">
+                        Edit Layout
+                    </button>
+                </div>
+                <div class="p-6 bg-white/5 rounded-lg">
+                    <h3 class="font-semibold mb-3">🔧 Settings</h3>
+                    <p class="text-sm opacity-80 mb-4">Configure notifications, integrations, and preferences</p>
+                    <button class="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors">
+                        Configure
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- How to Edit Instructions -->
+        <div class="mt-12 text-center">
+            <div class="glass rounded-2xl p-8 max-w-4xl mx-auto">
+                <h2 class="text-2xl font-bold mb-6">📝 How to Personalize Your Actual App</h2>
+                <div class="text-left grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="font-semibold mb-3">📂 Edit the Source Files:</h3>
+                        <ul class="space-y-2 text-sm opacity-80">
+                            <li>📍 <code>/Users/larstuesca/Documents/agent-girl/chat-00da1e6f/src/app/page.tsx</code> - Homepage</li>
+                            <li>📍 <code>/Users/larstuesca/Documents/agent-girl/chat-00da1e6f/src/app/dashboard/page.tsx</code> - Dashboard</li>
+                            <li>📍 <code>/Users/larstuesca/Documents/agent-girl/chat-00da1e6f/src/components/ui/</code> - UI Components</li>
+                            <li>📍 <code>/Users/larstuesca/Documents/agent-girl/chat-00da1e6f/tailwind.config.js</code> - Colors & Theme</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold mb-3">🚀 To Run the Live App:</h3>
+                        <ul class="space-y-2 text-sm opacity-80">
+                            <li>1. Open Terminal</li>
+                            <li>2. <code>cd /Users/larstuesca/Documents/agent-girl/chat-00da1e6f</code></li>
+                            <li>3. <code>npm run dev</code></li>
+                            <li>4. Open <code>http://localhost:3000</code> in browser</li>
+                            <li>5. Start editing and see live changes!</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="mt-6 p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
+                    <p class="text-green-300">✅ Your complete React application is built and ready to personalize!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Add interactive elements
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click animations to cards
+            const cards = document.querySelectorAll('.glass');
+            cards.forEach(card => {
+                card.addEventListener('click', function() {
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 100);
+                });
+            });
+
+            // Animate numbers on load
+            const animateValue = (element, start, end, duration) => {
+                let startTimestamp = null;
+                const step = (timestamp) => {
+                    if (!startTimestamp) startTimestamp = timestamp;
+                    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                    element.textContent = Math.floor(progress * (end - start) + start);
+                    if (progress < 1) {
+                        window.requestAnimationFrame(step);
+                    }
+                };
+                window.requestAnimationFrame(step);
+            };
+
+            // Animate productivity score
+            const scoreElement = document.querySelector('.text-6xl.font-bold.text-gradient');
+            if (scoreElement) {
+                animateValue(scoreElement, 0, 87, 2000);
+                scoreElement.textContent = '87%';
+            }
+        });
+    </script>
+</body>
+</html>

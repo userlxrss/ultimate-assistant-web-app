@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ultimate-assistant-hub
+  labels:
+    name: ultimate-assistant-hub
+    environment: production

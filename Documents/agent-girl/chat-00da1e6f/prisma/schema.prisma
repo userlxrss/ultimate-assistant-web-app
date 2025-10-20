@@ -1,0 +1,671 @@
+// Ultimate Assistant Hub Database Schema
+// Comprehensive schema for integrated productivity platform
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Management
+model User {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email             String   @unique @db.VarChar(255)
+  username          String?  @unique @db.VarChar(100)
+  passwordHash      String   @map("password_hash") @db.VarChar(255)
+  firstName         String?  @map("first_name") @db.VarChar(100)
+  lastName          String?  @map("last_name") @db.VarChar(100)
+  timezone          String   @default("UTC") @db.VarChar(50)
+  language          String   @default("en") @db.VarChar(10)
+  avatarUrl         String?  @map("avatar_url") @db.Text
+  isActive          Boolean  @default(true) @map("is_active")
+  emailVerified     Boolean  @default(false) @map("email_verified")
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  lastLoginAt       DateTime? @map("last_login_at") @db.Timestamptz(6)
+
+  // Relations
+  userPreferences   UserPreferences?
+  externalConnections ExternalConnection[]
+  journalEntries    JournalEntry[]
+  dailyWins         DailyWin[]
+  learningInsights  LearningInsight[]
+  tasks             Task[]
+  taskProjects      TaskProject[]
+  calendarEvents    CalendarEvent[]
+  calendarSources   CalendarSource[]
+  emailThreads      EmailThread[]
+  contacts          Contact[]
+  dashboardWidgets  DashboardWidget[]
+  analyticsData     AnalyticsData[]
+  userInsights      UserInsight[]
+  activityLogs      ActivityLog[]
+  syncStatuses      SyncStatus[]
+  dataSubjectRequests DataSubjectRequest[]
+  dataErasureLogs   DataErasureLog[]
+  performedErasures DataErasureLog[] @relation("PerformedBy")
+  resolvedConflicts SyncConflict[] @relation("ResolvedBy")
+  syncConflicts     SyncConflict[]
+
+  @@map("users")
+}
+
+model UserPreferences {
+  userId               String  @id @map("user_id") @db.Uuid
+  theme                String  @default("light") @db.VarChar(20)
+  dashboardLayout      Json    @default("{}") @map("dashboard_layout") @db.JsonB
+  notificationSettings Json    @default("{}") @map("notification_settings") @db.JsonB
+  privacySettings      Json    @default("{}") @map("privacy_settings") @db.JsonB
+  apiSettings          Json    @default("{}") @map("api_settings") @db.JsonB
+  createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  user                 User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
+}
+
+model ExternalConnection {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String    @map("user_id") @db.Uuid
+  serviceName       String    @map("service_name") @db.VarChar(50)
+  serviceUserId     String?   @map("service_user_id") @db.VarChar(255)
+  accessToken       String?   @map("access_token") @db.Text
+  refreshToken      String?   @map("refresh_token") @db.Text
+  tokenExpiresAt    DateTime? @map("token_expires_at") @db.Timestamptz(6)
+  syncEnabled       Boolean   @default(true) @map("sync_enabled")
+  lastSyncAt        DateTime? @map("last_sync_at") @db.Timestamptz(6)
+  syncSettings      Json      @default("{}") @map("sync_settings") @db.JsonB
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, serviceName])
+  @@map("external_connections")
+}
+
+// Journal Module
+model JournalEntry {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String    @map("user_id") @db.Uuid
+  title           String?   @db.VarChar(500)
+  content         String    @db.Text
+  entryDate       DateTime  @map("entry_date") @db.Date
+  moodScore       Int?      @map("mood_score") @db.SmallInt
+  moodLabel       String?   @map("mood_label") @db.VarChar(50)
+  tags            String[]  @default([])
+  isPrivate       Boolean   @default(true) @map("is_private")
+  isFavorite      Boolean   @default(false) @map("is_favorite")
+  wordCount       Int?      @map("word_count")
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reflections     JournalReflection[]
+
+  @@map("journal_entries")
+}
+
+model JournalReflection {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  entryId        String   @map("entry_id") @db.Uuid
+  reflectionType String   @map("reflection_type") @db.VarChar(50)
+  content        String   @db.Text
+  insights       Json     @default("[]") @db.JsonB
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  entry          JournalEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  @@map("journal_reflections")
+}
+
+model DailyWin {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId           String   @map("user_id") @db.Uuid
+  entryDate        DateTime @map("entry_date") @db.Date
+  winDescription   String   @map("win_description") @db.Text
+  category         String?  @db.VarChar(100)
+  achievementLevel Int      @default(1) @map("achievement_level") @db.SmallInt
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, entryDate, winDescription])
+  @@map("daily_wins")
+}
+
+model LearningInsight {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String   @map("user_id") @db.Uuid
+  entryDate       DateTime @map("entry_date") @db.Date
+  insightTitle    String?  @map("insight_title") @db.VarChar(500)
+  insightContent  String   @map("insight_content") @db.Text
+  category        String?  @db.VarChar(100)
+  tags            String[] @default([])
+  sourceType      String?  @map("source_type") @db.VarChar(50)
+  sourceReference String?  @map("source_reference") @db.Text
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("learning_insights")
+}
+
+// Tasks Module
+model Task {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId               String    @map("user_id") @db.Uuid
+  motionTaskId         String?   @map("motion_task_id") @db.VarChar(255)
+  title                String    @db.VarChar(500)
+  description          String?   @db.Text
+  status               String    @default("pending") @db.VarChar(50)
+  priority             Int       @default(3) @db.SmallInt
+  dueDate              DateTime? @map("due_date") @db.Timestamptz(6)
+  estimatedDuration    Int?      @map("estimated_duration")
+  actualDuration       Int?      @map("actual_duration")
+  completionPercentage Int       @default(0) @map("completion_percentage") @db.SmallInt
+  tags                 String[]  @default([])
+  category             String?   @db.VarChar(100)
+  projectId            String?   @map("project_id") @db.Uuid
+  parentTaskId         String?   @map("parent_task_id") @db.Uuid
+  isRecurring          Boolean   @default(false) @map("is_recurring")
+  recurrenceRule       String?   @map("recurrence_rule") @db.Text
+  externalData         Json      @default("{}") @map("external_data") @db.JsonB
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  completedAt          DateTime? @map("completed_at") @db.Timestamptz(6)
+
+  // Relations
+  user                 User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project              TaskProject?      @relation(fields: [projectId], references: [id])
+  parentTask           Task?             @relation("TaskHierarchy", fields: [parentTaskId], references: [id])
+  subtasks             Task[]            @relation("TaskHierarchy")
+  timeEntries          TaskTimeEntry[]
+  dependencies         TaskDependency[] @relation("DependsOn")
+  dependents           TaskDependency[] @relation("TaskDependsOn")
+
+  @@map("tasks")
+}
+
+model TaskProject {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String    @map("user_id") @db.Uuid
+  motionProjectId   String?   @map("motion_project_id") @db.VarChar(255)
+  name              String    @db.VarChar(200)
+  description       String?   @db.Text
+  color             String?   @db.VarChar(7)
+  isActive          Boolean   @default(true) @map("is_active")
+  externalData      Json      @default("{}") @map("external_data") @db.JsonB
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks             Task[]
+
+  @@map("task_projects")
+}
+
+model TaskTimeEntry {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  taskId         String   @map("task_id") @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  startTime      DateTime @map("start_time") @db.Timestamptz(6)
+  endTime        DateTime? @map("end_time") @db.Timestamptz(6)
+  durationMinutes Int?    @map("duration_minutes")
+  notes          String?  @db.Text
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  task           Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@map("task_time_entries")
+}
+
+model TaskDependency {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  taskId           String   @map("task_id") @db.Uuid
+  dependsOnTaskId  String   @map("depends_on_task_id") @db.Uuid
+  dependencyType   String   @default("finish_to_start") @map("dependency_type") @db.VarChar(50)
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  task             Task     @relation("DependsOn", fields: [taskId], references: [id], onDelete: Cascade)
+  dependsOnTask    Task     @relation("TaskDependsOn", fields: [dependsOnTaskId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, dependsOnTaskId])
+  @@map("task_dependencies")
+}
+
+// Calendar Module
+model CalendarEvent {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String    @map("user_id") @db.Uuid
+  googleEventId     String?   @map("google_event_id") @db.VarChar(255)
+  calendarId        String?   @map("calendar_id") @db.VarChar(255)
+  title             String    @db.VarChar(500)
+  description       String?   @db.Text
+  location          String?   @db.Text
+  startTime         DateTime  @map("start_time") @db.Timestamptz(6)
+  endTime           DateTime  @map("end_time") @db.Timestamptz(6)
+  isAllDay          Boolean   @default(false) @map("is_all_day")
+  timezone          String?   @db.VarChar(50)
+  visibility        String    @default("default") @db.VarChar(20)
+  status            String    @default("confirmed") @db.VarChar(20)
+  attendees         Json      @default("[]") @db.JsonB
+  recurrenceRule    String?   @map("recurrence_rule") @db.Text
+  originalEventId   String?   @map("original_event_id") @db.Uuid
+  externalData      Json      @default("{}") @map("external_data") @db.JsonB
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  originalEvent     CalendarEvent?    @relation("EventRecurrence", fields: [originalEventId], references: [id])
+  recurringEvents   CalendarEvent[]   @relation("EventRecurrence")
+  reminders         EventReminder[]
+
+  @@map("calendar_events")
+}
+
+model CalendarSource {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String    @map("user_id") @db.Uuid
+  googleCalendarId  String    @map("google_calendar_id") @db.VarChar(255)
+  name              String    @db.VarChar(200)
+  description       String?   @db.Text
+  color             String?   @db.VarChar(7)
+  timezone          String?   @db.VarChar(50)
+  isPrimary         Boolean   @default(false) @map("is_primary")
+  syncEnabled       Boolean   @default(true) @map("sync_enabled")
+  lastSyncAt        DateTime? @map("last_sync_at") @db.Timestamptz(6)
+  externalData      Json      @default("{}") @map("external_data") @db.JsonB
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, googleCalendarId])
+  @@map("calendar_sources")
+}
+
+model EventReminder {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventId        String    @map("event_id") @db.Uuid
+  reminderType  String    @map("reminder_type") @db.VarChar(50)
+  minutesBefore Int       @map("minutes_before")
+  isSent        Boolean   @default(false) @map("is_sent")
+  sentAt        DateTime? @map("sent_at") @db.Timestamptz(6)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  event         CalendarEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@map("event_reminders")
+}
+
+// Email Module
+model EmailThread {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String    @map("user_id") @db.Uuid
+  gmailThreadId     String?   @map("gmail_thread_id") @db.VarChar(255)
+  subject           String?   @db.VarChar(1000)
+  snippet           String?   @db.Text
+  participantEmails String[]  @map("participant_emails") @default([])
+  lastMessageAt     DateTime? @map("last_message_at") @db.Timestamptz(6)
+  messageCount      Int       @default(0) @map("message_count")
+  isRead            Boolean   @default(false) @map("is_read")
+  isStarred         Boolean   @default(false) @map("is_starred")
+  isImportant       Boolean   @default(false) @map("is_important")
+  labels            String[]  @default([])
+  folder            String?   @db.VarChar(100)
+  externalData      Json      @default("{}") @map("external_data") @db.JsonB
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages          EmailMessage[]
+
+  @@map("email_threads")
+}
+
+model EmailMessage {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  threadId       String    @map("thread_id") @db.Uuid
+  userId         String    @map("user_id") @db.Uuid
+  gmailMessageId String?   @map("gmail_message_id") @db.VarChar(255)
+  fromEmail      String?   @map("from_email") @db.VarChar(255)
+  toEmails       String[]  @map("to_emails") @default([])
+  ccEmails       String[]  @map("cc_emails") @default([])
+  bccEmails      String[]  @map("bcc_emails") @default([])
+  subject        String?   @db.VarChar(1000)
+  bodyText       String?   @map("body_text") @db.Text
+  bodyHtml       String?   @map("body_html") @db.Text
+  attachments    Json      @default("[]") @db.JsonB
+  sentAt         DateTime? @map("sent_at") @db.Timestamptz(6)
+  receivedAt     DateTime? @map("received_at") @db.Timestamptz(6)
+  isRead         Boolean   @default(false) @map("is_read")
+  isDraft        Boolean   @default(false) @map("is_draft")
+  isSent         Boolean   @default(false) @map("is_sent")
+  externalData   Json      @default("{}") @map("external_data") @db.JsonB
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  thread         EmailThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  emailAttachments EmailAttachment[]
+
+  @@map("email_messages")
+}
+
+model EmailAttachment {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  messageId            String    @map("message_id") @db.Uuid
+  gmailAttachmentId    String?   @map("gmail_attachment_id") @db.VarChar(255)
+  filename             String?   @db.VarChar(500)
+  contentType          String?   @map("content_type") @db.VarChar(200)
+  sizeBytes            Int?      @map("size_bytes")
+  fileUrl              String?   @map("file_url") @db.Text
+  isDownloaded         Boolean   @default(false) @map("is_downloaded")
+  externalData         Json      @default("{}") @map("external_data") @db.JsonB
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  message              EmailMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@map("email_attachments")
+}
+
+// Contacts Module
+model Contact {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  googleContactId String? @map("google_contact_id") @db.VarChar(255)
+  firstName     String?   @map("first_name") @db.VarChar(100)
+  lastName      String?   @map("last_name") @db.VarChar(100)
+  displayName   String?   @map("display_name") @db.VarChar(200)
+  company       String?   @db.VarChar(200)
+  jobTitle      String?   @map("job_title") @db.VarChar(200)
+  notes         String?   @db.Text
+  birthday      DateTime? @db.Date
+  isFavorite    Boolean   @default(false) @map("is_favorite")
+  tags          String[]  @default([])
+  customFields  Json      @default("{}") @map("custom_fields") @db.JsonB
+  externalData  Json      @default("{}") @map("external_data") @db.JsonB
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emails        ContactEmail[]
+  phones        ContactPhone[]
+  addresses     ContactAddress[]
+
+  @@map("contacts")
+}
+
+model ContactEmail {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contactId String   @map("contact_id") @db.Uuid
+  email     String   @db.VarChar(255)
+  type      String?  @db.VarChar(50)
+  isPrimary Boolean  @default(false) @map("is_primary")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@map("contact_emails")
+}
+
+model ContactPhone {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contactId   String   @map("contact_id") @db.Uuid
+  phoneNumber String   @map("phone_number") @db.VarChar(50)
+  type        String?  @db.VarChar(50)
+  isPrimary   Boolean  @default(false) @map("is_primary")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  contact     Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@map("contact_phones")
+}
+
+model ContactAddress {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contactId     String   @map("contact_id") @db.Uuid
+  streetAddress String?  @map("street_address") @db.Text
+  city          String?  @db.VarChar(100)
+  state         String?  @db.VarChar(100)
+  postalCode    String?  @map("postal_code") @db.VarChar(20)
+  country       String?  @db.VarChar(100)
+  type          String?  @db.VarChar(50)
+  isPrimary     Boolean  @default(false) @map("is_primary")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  contact       Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@map("contact_addresses")
+}
+
+// Dashboard Analytics
+model DashboardWidget {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  widgetType  String   @map("widget_type") @db.VarChar(50)
+  title       String?  @db.VarChar(200)
+  position    Json     @db.JsonB
+  config      Json     @default("{}") @db.JsonB
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("dashboard_widgets")
+}
+
+model AnalyticsData {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  metricName  String   @map("metric_name") @db.VarChar(100)
+  metricValue Decimal? @map("metric_value") @db.Decimal(10,2)
+  metricUnit  String?  @map("metric_unit") @db.VarChar(50)
+  periodStart DateTime @map("period_start") @db.Timestamptz(6)
+  periodEnd   DateTime @map("period_end") @db.Timestamptz(6)
+  dimensions  Json     @default("{}") @db.JsonB
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("analytics_data")
+}
+
+model UserInsight {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String   @map("user_id") @db.Uuid
+  insightType     String   @map("insight_type") @db.VarChar(50)
+  title           String   @db.VarChar(500)
+  description     String?  @db.Text
+  confidenceScore Decimal? @map("confidence_score") @db.Decimal(3,2)
+  actionItems     Json     @default("[]") @map("action_items") @db.JsonB
+  relatedData     Json     @default("{}") @map("related_data") @db.JsonB
+  isDismissed     Boolean  @default(false) @map("is_dismissed")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_insights")
+}
+
+model ActivityLog {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  activityType String   @map("activity_type") @db.VarChar(100)
+  entityType   String?  @map("entity_type") @db.VarChar(50)
+  entityId     String?  @map("entity_id") @db.Uuid
+  details      Json     @default("{}") @db.JsonB
+  ipAddress    String?  @map("ip_address") @db.Inet
+  userAgent    String?  @map("user_agent") @db.Text
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("activity_logs")
+}
+
+// System Tables
+model SyncStatus {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String    @map("user_id") @db.Uuid
+  serviceName       String    @map("service_name") @db.VarChar(50)
+  syncType          String    @map("sync_type") @db.VarChar(50)
+  status            String    @db.VarChar(50)
+  startedAt         DateTime  @map("started_at") @db.Timestamptz(6)
+  completedAt       DateTime? @map("completed_at") @db.Timestamptz(6)
+  recordsProcessed  Int       @default(0) @map("records_processed")
+  recordsUpdated    Int       @default(0) @map("records_updated")
+  recordsCreated    Int       @default(0) @map("records_created")
+  errorMessage      String?   @map("error_message") @db.Text
+  nextSyncAt        DateTime? @map("next_sync_at") @db.Timestamptz(6)
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, serviceName, syncType])
+  @@map("sync_status")
+}
+
+model CacheEntry {
+  cacheKey     String    @id @map("cache_key") @db.VarChar(255)
+  cacheData    Json      @map("cache_data") @db.JsonB
+  expiresAt    DateTime  @map("expires_at") @db.Timestamptz(6)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("cache_entries")
+}
+
+model FeatureFlag {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  flagName          String   @unique @map("flag_name") @db.VarChar(100)
+  isEnabled         Boolean  @default(false) @map("is_enabled")
+  enabledForUsers   String[] @default([]) @map("enabled_for_users") @db.Uuid
+  rolloutPercentage Int      @default(0) @map("rollout_percentage")
+  description       String?  @db.Text
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("feature_flags")
+}
+
+model SchemaMigration {
+  version            String   @id @map("version") @db.VarChar(255)
+  appliedAt          DateTime @default(now()) @map("applied_at") @db.Timestamptz(6)
+  description        String?  @db.Text
+  rollbackAvailable  Boolean  @default(false) @map("rollback_available")
+
+  @@map("schema_migrations")
+}
+
+// Compliance and Audit
+model DataSubjectRequest {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                String?   @map("user_id") @db.Uuid
+  requestType           String    @map("request_type") @db.VarChar(50)
+  status                String    @default("pending") @db.VarChar(50)
+  requestData           Json      @default("{}") @map("request_data") @db.JsonB
+  processingStartedAt   DateTime? @map("processing_started_at") @db.Timestamptz(6)
+  completedAt           DateTime? @map("completed_at") @db.Timestamptz(6)
+  notes                 String?   @db.Text
+  createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  user                  User?     @relation(fields: [userId], references: [id])
+
+  @@map("data_subject_requests")
+}
+
+model DataErasureLog {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String?   @map("user_id") @db.Uuid
+  tableName      String    @map("table_name") @db.VarChar(100)
+  recordsAffected Int?     @map("records_affected")
+  erasureType    String?   @map("erasure_type") @db.VarChar(50)
+  performedBy    String?   @map("performed_by") @db.Uuid
+  performedAt    DateTime  @default(now()) @map("performed_at") @db.Timestamptz(6)
+  reason         String?   @db.Text
+
+  // Relations
+  user           User?     @relation(fields: [userId], references: [id])
+  performer      User?     @relation("PerformedBy", fields: [performedBy], references: [id])
+
+  @@map("data_erasure_log")
+}
+
+model SyncConflict {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  serviceName   String    @map("service_name") @db.VarChar(50)
+  entityType    String    @map("entity_type") @db.VarChar(50)
+  entityId      String?   @map("entity_id") @db.Uuid
+  localData     Json      @map("local_data") @db.JsonB
+  remoteData    Json      @map("remote_data") @db.JsonB
+  conflictType  String?   @map("conflict_type") @db.VarChar(100)
+  resolution    String?   @map("resolution") @db.VarChar(50)
+  resolvedBy    String?   @map("resolved_by") @db.Uuid
+  resolvedAt    DateTime? @map("resolved_at") @db.Timestamptz(6)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resolver      User?     @relation("ResolvedBy", fields: [resolvedBy], references: [id])
+
+  @@map("sync_conflicts")
+}
+
+model QueryPerformanceLog {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  queryHash         String   @map("query_hash") @db.VarChar(64)
+  queryText         String?  @map("query_text") @db.Text
+  executionTimeMs   Int?     @map("execution_time_ms")
+  rowsReturned      Int?     @map("rows_returned")
+  userId            String?  @map("user_id") @db.Uuid
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("query_performance_log")
+}
+
+model BackupMetadata {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  backupType     String    @map("backup_type") @db.VarChar(50)
+  backupPath     String    @map("backup_path") @db.Text
+  backupSizeBytes BigInt?   @map("backup_size_bytes") @db.BigInt
+  startedAt      DateTime  @map("started_at") @db.Timestamptz(6)
+  completedAt    DateTime? @map("completed_at") @db.Timestamptz(6)
+  status         String    @map("status") @db.VarChar(50)
+  tablesIncluded String[]  @map("tables_included") @default([])
+  compressed     Boolean   @default(true)
+  encrypted      Boolean   @default(true)
+  checksum       String?   @db.VarChar(255)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("backup_metadata")
+}
