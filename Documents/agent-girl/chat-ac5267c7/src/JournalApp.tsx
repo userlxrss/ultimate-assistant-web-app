@@ -1,8 +1,8 @@
 import React from 'react';
-import Journal from './components/Journal';
+import JournalSimple from './components/JournalSimple';
 
 const JournalApp: React.FC = () => {
-  return <Journal />;
+  return <JournalSimple />;
 };
 
 export default JournalApp;
