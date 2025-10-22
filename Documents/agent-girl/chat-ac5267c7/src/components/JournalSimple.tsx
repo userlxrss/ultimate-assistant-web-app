@@ -411,35 +411,7 @@ const JournalSimple: React.FC = () => {
                   />
                 </div>
 
-                {/* Tags */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Tags
-                  </label>
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {currentEntry.tags?.map(tag => (
-                      <span
-                        key={tag}
-                        className="px-3 py-1 bg-sage-100 dark:bg-sage-900/30 text-sage-700 dark:text-sage-300 rounded-full text-sm flex items-center gap-1"
-                      >
-                        #{tag}
-                        <button onClick={() => removeTag(tag)} className="text-sage-500 hover:text-sage-700">×</button>
-                      </span>
-                    ))}
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="Add a tag and press Enter..."
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-sage-500 dark:bg-gray-800 dark:text-white"
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
-                        addTag(e.currentTarget.value);
-                        e.currentTarget.value = '';
-                      }
-                    }}
-                  />
-                </div>
-
+  
                 {/* Action Buttons */}
                 <div className="flex gap-3">
                   <button
@@ -517,18 +489,6 @@ const JournalSimple: React.FC = () => {
                     {entry.reflections && (
                       <div className="text-xs text-gray-600 dark:text-gray-300 mt-2 line-clamp-2">
                         {entry.reflections}
-                      </div>
-                    )}
-                    {entry.tags && entry.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {entry.tags.map(tag => (
-                          <span
-                            key={tag}
-                            className="px-2 py-0.5 bg-sage-100 dark:bg-sage-900/30 text-sage-700 dark:text-sage-300 rounded text-xs"
-                          >
-                            #{tag}
-                          </span>
-                        ))}
                       </div>
                     )}
                   </div>
