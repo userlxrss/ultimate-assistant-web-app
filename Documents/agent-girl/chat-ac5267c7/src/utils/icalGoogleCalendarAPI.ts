@@ -156,8 +156,8 @@ export class ICalGoogleCalendarAPI {
     }
 
     try {
-      // Convert Google Calendar URL to use our proxy to avoid CORS
-      const proxyUrl = this.icalUrl.replace('https://calendar.google.com', '/calendar-proxy');
+      // Use our dedicated iCal proxy endpoint
+      const proxyUrl = 'http://localhost:3010/api/calendar/ical';
 
       // Fetch iCal data through proxy
       const response = await fetch(proxyUrl);

@@ -4,11 +4,13 @@ import DashboardSimple from './components/DashboardSimple';
 import JournalApp from './JournalApp';
 import TasksApp from './TasksApp';
 import CalendarApp from './components/calendar/CalendarApp';
+import EmailApp from './EmailApp';
 import { SettingsPanel } from './components/Settings';
 import { NotificationProvider } from './components/NotificationSystem';
 import { TimerProvider } from './contexts/TimerContext';
+import { OAuthSimpleConnect } from './components/OAuthSimpleConnect';
 
-type ActiveModule = 'dashboard' | 'journal' | 'tasks' | 'calendar' | 'email' | 'contacts' | 'settings';
+type ActiveModule = 'dashboard' | 'journal' | 'tasks' | 'calendar' | 'email' | 'contacts' | 'settings' | 'oauth';
 
 const MainApp: React.FC = () => {
   const [activeModule, setActiveModule] = useState<ActiveModule>('dashboard');
@@ -28,6 +30,7 @@ const MainApp: React.FC = () => {
     { icon: '📅', label: 'Calendar', id: 'calendar' as ActiveModule },
     { icon: '📧', label: 'Email', id: 'email' as ActiveModule },
     { icon: '👥', label: 'Contacts', id: 'contacts' as ActiveModule },
+    { icon: '🔐', label: 'OAuth', id: 'oauth' as ActiveModule },
     { icon: '⚙️', label: 'Settings', id: 'settings' as ActiveModule }
   ];
 
@@ -46,12 +49,7 @@ const MainApp: React.FC = () => {
       case 'calendar':
         return <CalendarApp />;
       case 'email':
-        return (
-          <div className="glass-card rounded-2xl p-8">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Email Module</h2>
-            <p className="text-gray-600 dark:text-gray-400">Email functionality coming soon...</p>
-          </div>
-        );
+        return <EmailApp />;
       case 'contacts':
         return (
           <div className="glass-card rounded-2xl p-8">
@@ -59,6 +57,8 @@ const MainApp: React.FC = () => {
             <p className="text-gray-600 dark:text-gray-400">Contacts functionality coming soon...</p>
           </div>
         );
+      case 'oauth':
+        return <OAuthSimpleConnect />;
       case 'settings':
         return <SettingsPanel dateRange={dateRange} onDateRangeChange={setDateRange} onExport={() => {}} />;
       default:

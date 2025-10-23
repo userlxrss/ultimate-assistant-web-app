@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tasks Management - Ultimate Assistant Hub</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @tailwind base;
+        @tailwind components;
+        @tailwind utilities;
+
+        @layer base {
+          * {
+            @apply border-gray-200 dark:border-gray-700;
+          }
+          body {
+            @apply bg-gradient-to-br from-sage-50 via-dusty-blue-50 to-soft-lavender-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 min-h-screen;
+            font-feature-settings: "rlig" 1, "calt" 1;
+          }
+        }
+
+        @layer components {
+          .glass {
+            @apply bg-white/20 dark:bg-white/10 backdrop-blur-md border border-white/20 dark:border-white/10 shadow-glass;
+          }
+
+          .glass-card {
+            @apply glass rounded-2xl p-6 hover:shadow-glass-inset transition-all duration-300;
+          }
+
+          .glass-button {
+            @apply glass px-4 py-2 rounded-xl hover:bg-white/30 dark:hover:bg-white/20 transition-all duration-300 border border-white/20 dark:border-white/10;
+          }
+
+          .stat-card {
+            @apply glass-card transform hover:scale-105 transition-transform duration-300;
+          }
+
+          .activity-item {
+            @apply glass p-3 rounded-xl mb-2 hover:bg-white/25 dark:hover:bg-white/15 transition-all duration-300;
+          }
+        }
+
+        @layer utilities {
+          .line-clamp-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+          }
+
+          .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+          }
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+          width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+          @apply bg-white/10 dark:bg-white/5;
+          border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+          @apply bg-sage-500/30 dark:bg-sage-400/30;
+          border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+          @apply bg-sage-500/50 dark:bg-sage-400/50;
+        }
+
+        :root {
+          --sage-50: #f0f7f4;
+          --sage-100: #e1f0e8;
+          --sage-200: #c3e1d3;
+          --sage-300: #a5d2bd;
+          --sage-400: #87c3a7;
+          --sage-500: #69b491;
+          --sage-600: #559172;
+          --sage-700: #417453;
+          --sage-800: #2d5734;
+          --sage-900: #193a15;
+
+          --dusty-blue-50: #f0f5f8;
+          --dusty-blue-100: #e0eaf0;
+          --dusty-blue-200: #c2d5e1;
+          --dusty-blue-300: #a4c0d2;
+          --dusty-blue-400: #86abc3;
+          --dusty-blue-500: #6886b4;
+          --dusty-blue-600: #536c91;
+          --dusty-blue-700: #3e526e;
+          --dusty-blue-800: #29384b;
+          --dusty-blue-900: #141e28;
+
+          --soft-lavender-50: #f8f6fc;
+          --soft-lavender-100: #f1ecf9;
+          --soft-lavender-200: #e3daf3;
+          --soft-lavender-300: #d5c8ed;
+          --soft-lavender-400: #c7b6e7;
+          --soft-lavender-500: #b9a4e1;
+          --soft-lavender-600: #9483b4;
+          --soft-lavender-700: #6f6287;
+          --soft-lavender-800: #4a415a;
+          --soft-lavender-900: #25202d;
+        }
+
+        .dark {
+          color-scheme: dark;
+        }
+
+        .animate-float {
+          animation: float 3s ease-in-out infinite;
+        }
+
+        .animate-pulse-slow {
+          animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        .animate-slide-up {
+          animation: slideUp 0.5s ease-out;
+        }
+
+        .animate-fade-in {
+          animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
+        }
+
+        @keyframes slideUp {
+          0% { transform: translateY(20px); opacity: 0; }
+          100% { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes fadeIn {
+          0% { opacity: 0; }
+          100% { opacity: 1; }
+        }
+
+        .shadow-glass {
+          box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+
+        .shadow-glass-inset {
+          box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+
+        .backdrop-blur-md {
+          backdrop-filter: blur(12px);
+        }
+
+        .text-sage-600 { color: var(--sage-600); }
+        .text-sage-700 { color: var(--sage-700); }
+        .bg-sage-500 { background-color: var(--sage-500); }
+        .bg-sage-100 { background-color: var(--sage-100); }
+        .border-sage-500 { border-color: var(--sage-500); }
+        .text-dusty-blue-600 { color: var(--dusty-blue-600); }
+        .text-soft-lavender-600 { color: var(--soft-lavender-600); }
+        .bg-dusty-blue-100 { background-color: var(--dusty-blue-100); }
+        .bg-soft-lavender-100 { background-color: var(--soft-lavender-100); }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo } = React;
+
+        // Task Types and Utilities
+        const generateDummyTasks = () => {
+            const now = new Date();
+            const tasks = [];
+            const categories = ['Work', 'Personal', 'Health', 'Learning', 'Finance', 'Shopping', 'Home', 'Creative', 'Social', 'Admin'];
+            const workspaces = ['Office', 'Home Office', 'Remote', 'Client Site', 'On the Go'];
+            const taskTitles = [
+                'Complete project proposal', 'Review quarterly reports', 'Team meeting preparation',
+                'Update documentation', 'Client presentation', 'Code review', 'Budget planning',
+                'Market research', 'Design mockups', 'Database optimization', 'Email campaign',
+                'Social media posts', 'Website updates', 'Performance review', 'Strategic planning',
+                'Vendor negotiations', 'Training session', 'Quality assurance', 'Bug fixes',
+                'Feature development', 'Content creation', 'Data analysis', 'User research',
+                'Security audit', 'System maintenance'
+            ];
+
+            // Generate 3 overdue tasks
+            for (let i = 0; i < 3; i++) {
+                const dueDate = new Date(now);
+                dueDate.setDate(dueDate.getDate() - Math.floor(Math.random() * 5) - 1);
+                tasks.push({
+                    id: `task-overdue-${i + 1}`,
+                    title: taskTitles[i],
+                    description: `Overdue task that needs immediate attention`,
+                    completed: false,
+                    createdAt: new Date(dueDate.getTime() - 24 * 60 * 60 * 1000 * Math.floor(Math.random() * 3 + 1)),
+                    dueDate,
+                    priority: ['high', 'urgent', 'medium'][Math.floor(Math.random() * 3)],
+                    status: 'pending',
+                    category: categories[Math.floor(Math.random() * categories.length)],
+                    workspace: workspaces[Math.floor(Math.random() * workspaces.length)],
+                    duration: Math.floor(Math.random() * 120) + 30,
+                    subtasks: [],
+                    tags: ['overdue', 'important'],
+                    estimatedTime: Math.floor(Math.random() * 180) + 30,
+                    syncStatus: 'synced',
+                    lastSyncAt: new Date(now.getTime() - Math.floor(Math.random() * 3600000))
+                });
+            }
+
+            // Generate 5 tasks due today
+            for (let i = 0; i < 5; i++) {
+                const dueDate = new Date(now);
+                dueDate.setHours(dueDate.getHours() + Math.floor(Math.random() * 8) + 1);
+                tasks.push({
+                    id: `task-today-${i + 1}`,
+                    title: taskTitles[3 + i],
+                    description: `Task scheduled for today`,
+                    completed: false,
+                    createdAt: new Date(now.getTime() - Math.floor(Math.random() * 3600000 * 24)),
+                    dueDate,
+                    priority: ['medium', 'high', 'low', 'high', 'medium'][i],
+                    status: i === 0 ? 'in-progress' : 'pending',
+                    category: categories[Math.floor(Math.random() * categories.length)],
+                    workspace: workspaces[Math.floor(Math.random() * workspaces.length)],
+                    duration: Math.floor(Math.random() * 90) + 15,
+                    subtasks: [],
+                    tags: ['today', 'scheduled'],
+                    estimatedTime: Math.floor(Math.random() * 120) + 15,
+                    syncStatus: 'synced',
+                    lastSyncAt: new Date(now.getTime() - Math.floor(Math.random() * 3600000))
+                });
+            }
+
+            // Generate 10 tasks due this week
+            for (let i = 0; i < 10; i++) {
+                const dueDate = new Date(now);
+                dueDate.setDate(dueDate.getDate() + Math.floor(Math.random() * 7) + 1);
+                tasks.push({
+                    id: `task-week-${i + 1}`,
+                    title: taskTitles[8 + i],
+                    description: `Task scheduled for this week`,
+                    completed: false,
+                    createdAt: new Date(now.getTime() - Math.floor(Math.random() * 3600000 * 48)),
+                    dueDate,
+                    priority: ['low', 'medium', 'high', 'medium', 'low', 'high', 'medium', 'low', 'high', 'medium'][i],
+                    status: 'pending',
+                    category: categories[Math.floor(Math.random() * categories.length)],
+                    workspace: workspaces[Math.floor(Math.random() * workspaces.length)],
+                    duration: Math.floor(Math.random() * 150) + 20,
+                    subtasks: [],
+                    tags: ['week', 'planned'],
+                    estimatedTime: Math.floor(Math.random() * 200) + 20,
+                    syncStatus: 'synced',
+                    lastSyncAt: new Date(now.getTime() - Math.floor(Math.random() * 3600000 * 2))
+                });
+            }
+
+            // Generate 5 tasks due next week
+            for (let i = 0; i < 5; i++) {
+                const dueDate = new Date(now);
+                dueDate.setDate(dueDate.getDate() + 8 + Math.floor(Math.random() * 7));
+                tasks.push({
+                    id: `task-next-week-${i + 1}`,
+                    title: taskTitles[18 + i],
+                    description: `Task scheduled for next week`,
+                    completed: false,
+                    createdAt: new Date(now.getTime() - Math.floor(Math.random() * 3600000 * 24)),
+                    dueDate,
+                    priority: ['low', 'medium', 'low', 'high', 'medium'][i],
+                    status: 'pending',
+                    category: categories[Math.floor(Math.random() * categories.length)],
+                    workspace: workspaces[Math.floor(Math.random() * workspaces.length)],
+                    duration: Math.floor(Math.random() * 100) + 25,
+                    subtasks: [],
+                    tags: ['next-week', 'planned'],
+                    estimatedTime: Math.floor(Math.random() * 150) + 25,
+                    syncStatus: 'synced',
+                    lastSyncAt: new Date(now.getTime() - Math.floor(Math.random() * 3600000 * 3))
+                });
+            }
+
+            // Generate 2 tasks with no due date
+            for (let i = 0; i < 2; i++) {
+                tasks.push({
+                    id: `task-no-date-${i + 1}`,
+                    title: taskTitles[23 + i],
+                    description: `Backlog task with no specific due date`,
+                    completed: false,
+                    createdAt: new Date(now.getTime() - Math.floor(Math.random() * 3600000 * 48)),
+                    priority: ['low', 'medium'][i],
+                    status: 'pending',
+                    category: categories[Math.floor(Math.random() * categories.length)],
+                    workspace: workspaces[Math.floor(Math.random() * workspaces.length)],
+                    duration: Math.floor(Math.random() * 60) + 30,
+                    subtasks: [],
+                    tags: ['backlog', 'no-deadline'],
+                    estimatedTime: Math.floor(Math.random() * 90) + 30,
+                    syncStatus: 'synced',
+                    lastSyncAt: new Date(now.getTime() - Math.floor(Math.random() * 3600000 * 4))
+                });
+            }
+
+            // Generate 15 completed tasks
+            for (let i = 0; i < 15; i++) {
+                const completedAt = new Date(now.getTime() - Math.floor(Math.random() * 3600000 * 24 * 30));
+                const createdAt = new Date(completedAt.getTime() - Math.floor(Math.random() * 3600000 * 24 * 7));
+                const dueDate = new Date(completedAt.getTime() + Math.floor(Math.random() * 3600000 * 24));
+
+                tasks.push({
+                    id: `task-completed-${i + 1}`,
+                    title: `Completed task ${i + 1}: ${taskTitles[Math.floor(Math.random() * taskTitles.length)]}`,
+                    description: `Successfully completed task`,
+                    completed: true,
+                    createdAt,
+                    completedAt,
+                    dueDate: dueDate > now ? undefined : dueDate,
+                    priority: ['low', 'medium', 'high'][Math.floor(Math.random() * 3)],
+                    status: 'completed',
+                    category: categories[Math.floor(Math.random() * categories.length)],
+                    workspace: workspaces[Math.floor(Math.random() * workspaces.length)],
+                    duration: Math.floor(Math.random() * 120) + 15,
+                    subtasks: [],
+                    tags: ['completed'],
+                    estimatedTime: Math.floor(Math.random() * 120) + 15,
+                    actualTime: Math.floor(Math.random() * 140) + 10,
+                    syncStatus: 'synced',
+                    lastSyncAt: completedAt
+                });
+            }
+
+            return tasks;
+        };
+
+        // Motion API Simulation
+        const motionAPI = {
+            async createTask(taskData) {
+                await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 500));
+                if (Math.random() < 0.05) throw new Error('Motion API temporarily unavailable');
+
+                return {
+                    success: true,
+                    data: {
+                        ...taskData,
+                        id: `motion_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                        createdAt: new Date(),
+                        syncStatus: 'synced',
+                        lastSyncAt: new Date()
+                    },
+                    message: 'Task created successfully in Motion'
+                };
+            },
+
+            async updateTask(taskId, updates) {
+                await new Promise(resolve => setTimeout(resolve, 300 + Math.random() * 700));
+                return {
+                    success: true,
+                    data: { id: taskId, ...updates },
+                    message: 'Task updated successfully in Motion'
+                };
+            },
+
+            async deleteTask(taskId) {
+                await new Promise(resolve => setTimeout(resolve, 400 + Math.random() * 600));
+                return {
+                    success: true,
+                    message: 'Task deleted successfully from Motion'
+                };
+            },
+
+            async completeTask(taskId) {
+                await new Promise(resolve => setTimeout(resolve, 400 + Math.random() * 600));
+                return {
+                    success: true,
+                    data: {
+                        id: taskId,
+                        completed: true,
+                        completedAt: new Date(),
+                        status: 'completed'
+                    },
+                    message: 'Task marked as completed in Motion'
+                };
+            },
+
+            async bulkCompleteTasks(taskIds) {
+                await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
+                const results = [];
+                const errors = [];
+
+                for (const taskId of taskIds) {
+                    if (Math.random() < 0.01) {
+                        errors.push({ taskId, error: 'Failed to process task' });
+                    } else {
+                        results.push(taskId);
+                    }
+                }
+
+                return {
+                    success: results.length > 0,
+                    data: {
+                        successful: results.length,
+                        failed: errors.length,
+                        results,
+                        errors
+                    },
+                    message: `Bulk operation completed: ${results.length} successful, ${errors.length} failed`
+                };
+            }
+        };
+
+        // Main Tasks Component
+        const TasksApp = () => {
+            const [darkMode, setDarkMode] = useState(false);
+            const [sidebarOpen, setSidebarOpen] = useState(true);
+            const [tasks, setTasks] = useState([]);
+            const [filteredTasks, setFilteredTasks] = useState([]);
+            const [filter, setFilter] = useState({});
+            const [isFormOpen, setIsFormOpen] = useState(false);
+            const [editingTask, setEditingTask] = useState(null);
+            const [isProcessing, setIsProcessing] = useState(false);
+            const [syncStatus, setSyncStatus] = useState('');
+            const [quickAddInput, setQuickAddInput] = useState('');
+            const [showFilters, setShowFilters] = useState(false);
+
+            const navigation = [
+                { name: 'Dashboard', icon: 'fas fa-chart-line', active: false },
+                { name: 'Tasks', icon: 'fas fa-check-square', active: true },
+                { name: 'Journal', icon: 'fas fa-book', active: false },
+                { name: 'Calendar', icon: 'fas fa-calendar', active: false },
+                { name: 'Email', icon: 'fas fa-envelope', active: false },
+                { name: 'Contacts', icon: 'fas fa-users', active: false },
+                { name: 'Settings', icon: 'fas fa-cog', active: false },
+            ];
+
+            useEffect(() => {
+                const initialTasks = generateDummyTasks();
+                setTasks(initialTasks);
+                setFilteredTasks(initialTasks);
+            }, []);
+
+            useEffect(() => {
+                const filtered = tasks.filter(task => {
+                    if (filter.search && !task.title.toLowerCase().includes(filter.search.toLowerCase())) {
+                        return false;
+                    }
+                    if (filter.priority && task.priority !== filter.priority) {
+                        return false;
+                    }
+                    if (filter.status && task.status !== filter.status) {
+                        return false;
+                    }
+                    return true;
+                });
+                setFilteredTasks(filtered);
+            }, [tasks, filter]);
+
+            const activeTasksCount = tasks.filter(task => !task.completed).length;
+
+            const handleQuickAdd = async (e) => {
+                e.preventDefault();
+                if (!quickAddInput.trim() || isProcessing) return;
+
+                setIsProcessing(true);
+                setSyncStatus('Creating task...');
+
+                try {
+                    const response = await motionAPI.createTask({
+                        title: quickAddInput,
+                        priority: 'medium',
+                        category: 'Work',
+                        tags: [],
+                        description: '',
+                        subtasks: []
+                    });
+
+                    if (response.success) {
+                        setTasks(prev => [...prev, response.data]);
+                        setQuickAddInput('');
+                        setSyncStatus('Task created successfully!');
+                    }
+                } catch (error) {
+                    setSyncStatus(`Error: ${error.message}`);
+                } finally {
+                    setIsProcessing(false);
+                    setTimeout(() => setSyncStatus(''), 3000);
+                }
+            };
+
+            const handleTaskToggle = async (task) => {
+                setIsProcessing(true);
+                setSyncStatus('Updating task...');
+
+                try {
+                    const response = await motionAPI.completeTask(task.id);
+                    if (response.success) {
+                        const updatedTask = { ...task, ...response.data };
+                        setTasks(prev => prev.map(t => t.id === task.id ? updatedTask : t));
+                        setSyncStatus('Task updated successfully!');
+                    }
+                } catch (error) {
+                    setSyncStatus(`Error: ${error.message}`);
+                } finally {
+                    setIsProcessing(false);
+                    setTimeout(() => setSyncStatus(''), 3000);
+                }
+            };
+
+            const handleDeleteTask = async (task) => {
+                if (!confirm('Delete this task?')) return;
+
+                setIsProcessing(true);
+                setSyncStatus('Deleting task...');
+
+                try {
+                    const response = await motionAPI.deleteTask(task.id);
+                    if (response.success) {
+                        setTasks(prev => prev.filter(t => t.id !== task.id));
+                        setSyncStatus('Task deleted successfully!');
+                    }
+                } catch (error) {
+                    setSyncStatus(`Error: ${error.message}`);
+                } finally {
+                    setIsProcessing(false);
+                    setTimeout(() => setSyncStatus(''), 3000);
+                }
+            };
+
+            const toggleDarkMode = () => {
+                setDarkMode(!darkMode);
+                document.documentElement.classList.toggle('dark');
+            };
+
+            const formatDueDate = (date) => {
+                if (!date) return 'No due date';
+                const now = new Date();
+                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
+                const taskDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+                if (taskDate < today) {
+                    return `Overdue (${date.toLocaleDateString()})`;
+                } else if (taskDate.getTime() === today.getTime()) {
+                    return `Today at ${date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`;
+                } else if (taskDate.getTime() === tomorrow.getTime()) {
+                    return `Tomorrow at ${date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`;
+                } else {
+                    return date.toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                }
+            };
+
+            const getPriorityColor = (priority) => {
+                switch (priority) {
+                    case 'urgent':
+                        return 'text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/20 border-red-200 dark:border-red-800';
+                    case 'high':
+                        return 'text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800';
+                    case 'medium':
+                        return 'text-yellow-600 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800';
+                    case 'low':
+                        return 'text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/20 border-green-200 dark:border-green-800';
+                    default:
+                        return 'text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-900/20 border-gray-200 dark:border-gray-800';
+                }
+            };
+
+            return (
+                <div className={`min-h-screen ${darkMode ? 'dark' : ''}`}>
+                    <div className="flex h-screen bg-gradient-to-br from-sage-50 via-dusty-blue-50 to-soft-lavender-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+                        {/* Sidebar */}
+                        <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} glass-card m-4 rounded-2xl transition-all duration-300 overflow-hidden`}>
+                            <div className="p-6">
+                                <div className="flex items-center justify-between mb-8">
+                                    <h1 className={`font-bold text-xl text-gray-900 dark:text-white ${!sidebarOpen && 'hidden'}`}>
+                                        Assistant Hub
+                                    </h1>
+                                    <button
+                                        onClick={() => setSidebarOpen(!sidebarOpen)}
+                                        className="p-2 rounded-lg hover:bg-white/10 dark:hover:bg-white/5 transition-colors duration-200"
+                                    >
+                                        <i className={`fas fa-${sidebarOpen ? 'times' : 'bars'} w-5 h-5`}></i>
+                                    </button>
+                                </div>
+
+                                {sidebarOpen && (
+                                    <nav className="space-y-2">
+                                        {navigation.map((item) => (
+                                            <button
+                                                key={item.name}
+                                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                                                    item.active
+                                                        ? 'bg-sage-500/20 text-sage-600 dark:text-sage-400 border border-sage-500/30'
+                                                        : 'hover:bg-white/10 dark:hover:bg-white/5 text-gray-700 dark:text-gray-300'
+                                                }`}
+                                            >
+                                                <i className={item.icon}></i>
+                                                <span className="font-medium">{item.name}</span>
+                                            </button>
+                                        ))}
+                                    </nav>
+                                )}
+                            </div>
+                        </aside>
+
+                        {/* Main Content */}
+                        <main className="flex-1 overflow-y-auto">
+                            {/* Header */}
+                            <header className="glass-card m-4 rounded-2xl">
+                                <div className="p-6">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                                                📋 You have {activeTasksCount} task{activeTasksCount !== 1 ? 's' : ''}
+                                            </h2>
+                                            <p className="text-gray-600 dark:text-gray-300">
+                                                Complete task management with Motion API integration
+                                            </p>
+                                        </div>
+
+                                        <div className="flex items-center gap-3">
+                                            <button className="p-2 rounded-xl hover:bg-white/10 dark:hover:bg-white/5 transition-colors duration-200 relative">
+                                                <i className="fas fa-bell w-5 h-5 text-gray-600 dark:text-gray-400"></i>
+                                                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                                            </button>
+
+                                            <button
+                                                onClick={toggleDarkMode}
+                                                className="p-2 rounded-xl hover:bg-white/10 dark:hover:bg-white/5 transition-colors duration-200"
+                                            >
+                                                <i className={`fas fa-${darkMode ? 'sun' : 'moon'} w-5 h-5 text-gray-600 dark:text-gray-400`}></i>
+                                            </button>
+
+                                            <button className="p-2 rounded-xl hover:bg-white/10 dark:hover:bg-white/5 transition-colors duration-200">
+                                                <i className="fas fa-user w-5 h-5 text-gray-600 dark:text-gray-400"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </header>
+
+                            {/* Sync Status */}
+                            {syncStatus && (
+                                <div className={`mx-4 mb-4 p-4 rounded-lg flex items-center gap-3 ${
+                                    syncStatus.includes('Error')
+                                        ? 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-300'
+                                        : 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+                                }`}>
+                                    {syncStatus.includes('Creating') || syncStatus.includes('Updating') || syncStatus.includes('Deleting') ? (
+                                        <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                                    ) : (
+                                        <i className="fas fa-check-circle w-5 h-5"></i>
+                                    )}
+                                    <span>{syncStatus}</span>
+                                </div>
+                            )}
+
+                            {/* Daily Reminder */}
+                            <div className="mx-4 mb-6 p-4 rounded-lg bg-soft-lavender-100 dark:bg-soft-lavender-900/20 border border-soft-lavender-200 dark:border-soft-lavender-800">
+                                <div className="flex items-center gap-3">
+                                    <i className="fas fa-bell w-5 h-5 text-soft-lavender-600 dark:text-soft-lavender-400"></i>
+                                    <div className="flex-1">
+                                        <div className="font-medium text-soft-lavender-700 dark:text-soft-lavender-300">
+                                            Daily Reminder
+                                        </div>
+                                        <div className="text-sm text-soft-lavender-600 dark:text-soft-lavender-400">
+                                            You receive task updates daily at 7:00 AM
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Quick Add Task */}
+                            <div className="mx-4 mb-6 glass-card p-4">
+                                <form onSubmit={handleQuickAdd} className="flex items-center gap-3">
+                                    <i className="fas fa-plus w-5 h-5 text-sage-500"></i>
+                                    <input
+                                        type="text"
+                                        value={quickAddInput}
+                                        onChange={(e) => setQuickAddInput(e.target.value)}
+                                        placeholder="Quick add task... (e.g., 'Review proposal #high @work today 2h')"
+                                        className="flex-1 px-4 py-3 rounded-xl glass-button focus:outline-none focus:ring-2 focus:ring-sage-500"
+                                        disabled={isProcessing}
+                                    />
+                                    <button
+                                        type="submit"
+                                        disabled={!quickAddInput.trim() || isProcessing}
+                                        className="px-4 py-2 rounded-xl bg-sage-500 hover:bg-sage-600 text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {isProcessing ? 'Adding...' : 'Add Task'}
+                                    </button>
+                                </form>
+                                <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                                    Press Enter to add task • Use # @ for quick formatting
+                                </div>
+                            </div>
+
+                            {/* Filters */}
+                            <div className="mx-4 mb-6 glass-card p-4">
+                                <div className="flex items-center gap-3 mb-3">
+                                    <i className="fas fa-filter w-4 h-4 text-gray-500"></i>
+                                    <button
+                                        onClick={() => setShowFilters(!showFilters)}
+                                        className="flex items-center gap-2 text-sm"
+                                    >
+                                        Filters
+                                        <i className={`fas fa-chevron-${showFilters ? 'up' : 'down'} w-3 h-3`}></i>
+                                    </button>
+                                </div>
+
+                                {showFilters && (
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 animate-slide-up">
+                                        <input
+                                            type="text"
+                                            placeholder="Search tasks..."
+                                            value={filter.search || ''}
+                                            onChange={(e) => setFilter({...filter, search: e.target.value})}
+                                            className="px-3 py-2 rounded-lg glass-button focus:outline-none focus:ring-2 focus:ring-sage-500 text-sm"
+                                        />
+                                        <select
+                                            value={filter.priority || ''}
+                                            onChange={(e) => setFilter({...filter, priority: e.target.value})}
+                                            className="px-3 py-2 rounded-lg glass-button focus:outline-none focus:ring-2 focus:ring-sage-500 text-sm"
+                                        >
+                                            <option value="">All priorities</option>
+                                            <option value="urgent">Urgent</option>
+                                            <option value="high">High</option>
+                                            <option value="medium">Medium</option>
+                                            <option value="low">Low</option>
+                                        </select>
+                                        <select
+                                            value={filter.status || ''}
+                                            onChange={(e) => setFilter({...filter, status: e.target.value})}
+                                            className="px-3 py-2 rounded-lg glass-button focus:outline-none focus:ring-2 focus:ring-sage-500 text-sm"
+                                        >
+                                            <option value="">All statuses</option>
+                                            <option value="pending">Pending</option>
+                                            <option value="in-progress">In Progress</option>
+                                            <option value="completed">Completed</option>
+                                        </select>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Tasks List */}
+                            <div className="mx-4 mb-6">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="text-sm text-gray-600 dark:text-gray-300">
+                                        Showing {filteredTasks.length} of {tasks.length} tasks
+                                    </div>
+                                    <button
+                                        onClick={async () => {
+                                            if (!confirm('Delete all tasks?')) return;
+                                            setIsProcessing(true);
+                                            setSyncStatus('Deleting all tasks...');
+                                            await new Promise(resolve => setTimeout(resolve, 1500));
+                                            setTasks([]);
+                                            setFilteredTasks([]);
+                                            setSyncStatus('All tasks deleted successfully!');
+                                            setIsProcessing(false);
+                                            setTimeout(() => setSyncStatus(''), 3000);
+                                        }}
+                                        disabled={isProcessing}
+                                        className="px-3 py-1.5 rounded-lg bg-red-100 dark:bg-red-900/20 hover:bg-red-200 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 transition-colors flex items-center gap-2 text-sm disabled:opacity-50"
+                                    >
+                                        <i className="fas fa-trash w-4 h-4"></i>
+                                        Delete All
+                                    </button>
+                                </div>
+
+                                <div className="space-y-3">
+                                    {filteredTasks.length === 0 ? (
+                                        <div className="glass-card p-12 text-center">
+                                            <i className="fas fa-clock w-16 h-16 mx-auto mb-4 text-gray-400 opacity-50"></i>
+                                            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                                                No tasks found
+                                            </h3>
+                                            <p className="text-gray-600 dark:text-gray-300 mb-4">
+                                                Get started by creating your first task
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        filteredTasks.map(task => (
+                                            <div key={task.id} className={`glass-card p-4 transition-all duration-300 ${task.completed ? 'opacity-60' : ''}`}>
+                                                <div className="flex items-start gap-3">
+                                                    <button
+                                                        onClick={() => handleTaskToggle(task)}
+                                                        disabled={isProcessing}
+                                                        className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                                                            task.completed
+                                                                ? 'bg-sage-500 border-sage-500 text-white'
+                                                                : 'border-gray-300 dark:border-gray-600 hover:border-sage-500'
+                                                        }`}
+                                                    >
+                                                        {task.completed && <i className="fas fa-check text-xs"></i>}
+                                                    </button>
+
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-start justify-between gap-2">
+                                                            <div className="flex-1 min-w-0">
+                                                                <h3 className={`font-medium text-gray-900 dark:text-white mb-1 ${task.completed ? 'line-through' : ''}`}>
+                                                                    {task.title}
+                                                                </h3>
+
+                                                                {task.description && (
+                                                                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
+                                                                        {task.description}
+                                                                    </p>
+                                                                )}
+
+                                                                <div className="flex flex-wrap items-center gap-3 text-xs">
+                                                                    {task.dueDate && (
+                                                                        <div className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
+                                                                            <i className="fas fa-calendar w-3 h-3"></i>
+                                                                            <span>{formatDueDate(task.dueDate)}</span>
+                                                                        </div>
+                                                                    )}
+
+                                                                    <div className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(task.priority)}`}>
+                                                                        <i className="fas fa-flag w-3 h-3 mr-1"></i>
+                                                                        {task.priority}
+                                                                    </div>
+
+                                                                    <div className="px-2 py-1 rounded-full bg-dusty-blue-100 dark:bg-dusty-blue-900/30 text-dusty-blue-700 dark:text-dusty-blue-300 text-xs">
+                                                                        {task.category}
+                                                                    </div>
+
+                                                                    <div className="flex items-center gap-1">
+                                                                        {task.syncStatus === 'synced' ? (
+                                                                            <i className="fas fa-sync w-3 h-3 text-green-500"></i>
+                                                                        ) : (
+                                                                            <div className="w-3 h-3 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <button
+                                                                onClick={() => handleDeleteTask(task)}
+                                                                className="p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors"
+                                                            >
+                                                                <i className="fas fa-trash w-4 h-4 text-red-500"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+                        </main>
+                    </div>
+                </div>
+            );
+        };
+
+        // Render the app
+        ReactDOM.render(<TasksApp />, document.getElementById('root'));
+    </script>
+</body>
+</html>

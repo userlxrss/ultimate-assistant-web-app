@@ -94,9 +94,9 @@ export const CalendarMonth: React.FC<CalendarMonthProps> = ({
 
                 {/* Events */}
                 <div className="flex-1 overflow-hidden space-y-0.5">
-                  {dayEvents.slice(0, 4).map(event => (
+                  {dayEvents.slice(0, 4).map((event, eventIndex) => (
                     <div
-                      key={event.id}
+                      key={`${event.id}-${day.toISOString()}-${eventIndex}`}
                       className={`text-xs px-1 py-0.5 rounded truncate border-l-2 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 ${getEventColor(event.type.id)}`}
                       onClick={(e) => {
                         e.stopPropagation();

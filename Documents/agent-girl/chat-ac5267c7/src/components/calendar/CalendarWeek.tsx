@@ -255,14 +255,14 @@ export const CalendarWeek: React.FC<CalendarWeekProps> = ({
                 ))}
 
                 {/* Events */}
-                {dayEvents.map(event => {
+                {dayEvents.map((event, eventIndex) => {
                   const position = getEventPosition(event, dayIndex);
                   const isBeingDragged = draggedEvent === event.id;
                   const isBeingResized = resizingEvent === event.id;
 
                   return (
                     <div
-                      key={event.id}
+                      key={`${event.id}-${dayIndex}-${eventIndex}`}
                       id={`event-${event.id}`}
                       className={`absolute cursor-move transition-all duration-200 border-l-2 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:shadow-md hover:z-40 ${getEventColor(event.type.id)} ${
                         isBeingDragged ? 'opacity-50 shadow-lg scale-105 z-50' : ''

@@ -1,0 +1,1106 @@
+openapi: 3.0.3
+info:
+  title: Productivity Hub OAuth API
+  description: Comprehensive OAuth authentication system for Google APIs and Motion API integration
+  version: 2.0.0
+  contact:
+    name: Productivity Hub Team
+    email: support@productivityhub.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:3002
+    description: Development server
+  - url: https://api.productivityhub.com
+    description: Production server
+
+security:
+  - cookieAuth: []
+
+paths:
+  /health:
+    get:
+      tags:
+        - System
+      summary: Health check endpoint
+      description: Returns the health status of the API server and database connection
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Server is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                status: ok
+                timestamp: "2025-01-15T10:30:00.000Z"
+                server: "Productivity Hub Backend Enhanced"
+                version: "2.0.0"
+                database: "connected"
+
+  /api/auth/status:
+    get:
+      tags:
+        - Authentication
+      summary: Get authentication status
+      description: Retrieve current authentication status for all connected services
+      operationId: getAuthStatus
+      responses:
+        '200':
+          description: Authentication status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthStatusResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/auth/disconnect/{service}:
+    post:
+      tags:
+        - Authentication
+      summary: Disconnect a service
+      description: Revoke access and disconnect a specific service
+      operationId: disconnectService
+      parameters:
+        - name: service
+          in: path
+          required: true
+          description: Service type to disconnect
+          schema:
+            type: string
+            enum: [google, motion]
+      responses:
+        '200':
+          description: Service disconnected successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "google disconnected successfully"
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Service not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/google:
+    get:
+      tags:
+        - OAuth
+      summary: Initiate Google OAuth flow
+      description: Start the Google OAuth 2.0 authentication flow
+      operationId: initiateGoogleOAuth
+      responses:
+        '302':
+          description: Redirect to Google OAuth consent screen
+          headers:
+            Location:
+              description: Google OAuth URL
+              schema:
+                type: string
+        '500':
+          description: Google OAuth not configured
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/google/callback:
+    get:
+      tags:
+        - OAuth
+      summary: Google OAuth callback
+      description: Handle Google OAuth callback and exchange authorization code for tokens
+      operationId: googleOAuthCallback
+      parameters:
+        - name: code
+          in: query
+          required: true
+          description: Authorization code from Google
+          schema:
+            type: string
+        - name: state
+          in: query
+          required: true
+          description: OAuth state parameter for CSRF protection
+          schema:
+            type: string
+        - name: error
+          in: query
+          description: OAuth error (if any)
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Redirect to OAuth callback page
+          headers:
+            Location:
+              description: Callback URL with success/error parameters
+              schema:
+                type: string
+
+  /auth/motion:
+    post:
+      tags:
+        - OAuth
+      summary: Connect Motion API
+      description: Authenticate with Motion API using an API key
+      operationId: connectMotionAPI
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - apiKey
+              properties:
+                apiKey:
+                  type: string
+                  pattern: '^mot_'
+                  description: Motion API key (starts with 'mot_')
+              example:
+                apiKey: "mot_1234567890abcdef"
+      responses:
+        '200':
+          description: Motion API connected successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "Motion API connected successfully"
+                workspace:
+                  id: "ws_123"
+                  name: "My Workspace"
+        '400':
+          description: Invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/test/{service}:
+    get:
+      tags:
+        - OAuth
+      summary: Test service connection
+      description: Test if a service connection is working properly
+      operationId: testServiceConnection
+      parameters:
+        - name: service
+          in: path
+          required: true
+          description: Service type to test
+          schema:
+            type: string
+            enum: [google, motion]
+      responses:
+        '200':
+          description: Service connection test results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceTestResponse'
+        '401':
+          description: Service not connected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/google/gmail/profile:
+    get:
+      tags:
+        - Google APIs
+      summary: Get Gmail profile
+      description: Retrieve the authenticated user's Gmail profile information
+      operationId: getGmailProfile
+      responses:
+        '200':
+          description: Gmail profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GmailProfile'
+        '401':
+          description: Google not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/google/gmail/messages:
+    get:
+      tags:
+        - Google APIs
+      summary: List Gmail messages
+      description: Retrieve a list of Gmail messages with optional filtering
+      operationId: listGmailMessages
+      parameters:
+        - name: maxResults
+          in: query
+          description: Maximum number of messages to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+        - name: pageToken
+          in: query
+          description: Token for retrieving next page
+          schema:
+            type: string
+        - name: q
+          in: query
+          description: Search query
+          schema:
+            type: string
+        - name: labelIds
+          in: query
+          description: Label IDs to filter by
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: Messages retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GmailMessagesResponse'
+
+  /api/google/calendar/events:
+    get:
+      tags:
+        - Google APIs
+      summary: List calendar events
+      description: Retrieve calendar events with optional filtering
+      operationId: listCalendarEvents
+      parameters:
+        - name: calendarId
+          in: query
+          description: Calendar ID (default: primary)
+          schema:
+            type: string
+            default: primary
+        - name: timeMin
+          in: query
+          description: Start time in ISO 8601 format
+          schema:
+            type: string
+            format: date-time
+        - name: timeMax
+          in: query
+          description: End time in ISO 8601 format
+          schema:
+            type: string
+            format: date-time
+        - name: maxResults
+          in: query
+          description: Maximum number of events to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 250
+            default: 10
+        - name: singleEvents
+          in: query
+          description: Whether to expand recurring events
+          schema:
+            type: boolean
+            default: true
+        - name: orderBy
+          in: query
+          description: Order of events
+          schema:
+            type: string
+            enum: [startTime, updated]
+            default: startTime
+      responses:
+        '200':
+          description: Calendar events retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalendarEventsResponse'
+
+  /api/google/calendar/events:
+    post:
+      tags:
+        - Google APIs
+      summary: Create calendar event
+      description: Create a new calendar event
+      operationId: createCalendarEvent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - calendarId
+                - event
+              properties:
+                calendarId:
+                  type: string
+                  description: Calendar ID where to create the event
+                event:
+                  $ref: '#/components/schemas/CalendarEvent'
+      responses:
+        '201':
+          description: Event created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalendarEvent'
+
+  /api/google/contacts:
+    get:
+      tags:
+        - Google APIs
+      summary: List Google Contacts
+      description: Retrieve a list of Google Contacts
+      operationId: listContacts
+      parameters:
+        - name: maxResults
+          in: query
+          description: Maximum number of contacts to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 100
+        - name: pageToken
+          in: query
+          description: Token for retrieving next page
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Contacts retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactsResponse'
+
+  /api/motion/tasks:
+    get:
+      tags:
+        - Motion APIs
+      summary: List Motion tasks
+      description: Retrieve a list of Motion tasks
+      operationId: listMotionTasks
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of tasks to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          description: Number of tasks to skip
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: status
+          in: query
+          description: Filter by task status
+          schema:
+            type: string
+            enum: [completed, in_progress, planned, cancelled]
+        - name: projectId
+          in: query
+          description: Filter by project ID
+          schema:
+            type: string
+        - name: sort
+          in: query
+          description: Sort order
+          schema:
+            type: string
+            enum: [created_at, updated_at, due_date, name]
+            default: created_at
+      responses:
+        '200':
+          description: Tasks retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MotionTasksResponse'
+
+  /api/motion/tasks:
+    post:
+      tags:
+        - Motion APIs
+      summary: Create Motion task
+      description: Create a new Motion task
+      operationId: createMotionTask
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMotionTaskRequest'
+      responses:
+        '201':
+          description: Task created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MotionTask'
+
+  /api/motion/projects:
+    get:
+      tags:
+        - Motion APIs
+      summary: List Motion projects
+      description: Retrieve a list of Motion projects
+      operationId: listMotionProjects
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of projects to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+        - name: status
+          in: query
+          description: Filter by project status
+          schema:
+            type: string
+            enum: [active, completed, archived]
+      responses:
+        '200':
+          description: Projects retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MotionProjectsResponse'
+
+  /api/motion/workspace:
+    get:
+      tags:
+        - Motion APIs
+      summary: Get Motion workspace info
+      description: Retrieve information about the Motion workspace
+      operationId: getMotionWorkspace
+      responses:
+        '200':
+          description: Workspace info retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MotionWorkspace'
+
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [ok, error]
+        timestamp:
+          type: string
+          format: date-time
+        server:
+          type: string
+        version:
+          type: string
+        database:
+          type: string
+          enum: [connected, disconnected]
+      required:
+        - status
+        - timestamp
+        - server
+        - version
+
+    AuthStatusResponse:
+      type: object
+      properties:
+        authenticated:
+          type: boolean
+        user:
+          $ref: '#/components/schemas/User'
+        services:
+          type: object
+          properties:
+            google:
+              $ref: '#/components/schemas/ServiceStatus'
+            motion:
+              $ref: '#/components/schemas/ServiceStatus'
+      required:
+        - authenticated
+        - services
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        avatar_url:
+          type: string
+          format: uri
+      required:
+        - id
+        - email
+        - name
+
+    ServiceStatus:
+      type: object
+      properties:
+        connected:
+          type: boolean
+        lastSync:
+          type: string
+          format: date-time
+        scopes:
+          type: array
+          items:
+            type: string
+        expiresAt:
+          type: string
+          format: date-time
+      required:
+        - connected
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      required:
+        - success
+        - message
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+      required:
+        - error
+
+    ServiceTestResponse:
+      type: object
+      properties:
+        connected:
+          type: boolean
+        service:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+        gmail:
+          type: object
+          properties:
+            emailAddress:
+              type: string
+              format: email
+            messagesTotal:
+              type: integer
+        calendar:
+          type: object
+          properties:
+            calendarsFound:
+              type: integer
+        message:
+          type: string
+      required:
+        - connected
+        - service
+
+    GmailProfile:
+      type: object
+      properties:
+        emailAddress:
+          type: string
+          format: email
+        messagesTotal:
+          type: integer
+        threadsTotal:
+          type: integer
+        historyId:
+          type: string
+      required:
+        - emailAddress
+        - messagesTotal
+
+    GmailMessagesResponse:
+      type: object
+      properties:
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/GmailMessage'
+        nextPageToken:
+          type: string
+        resultSizeEstimate:
+          type: integer
+      required:
+        - messages
+
+    GmailMessage:
+      type: object
+      properties:
+        id:
+          type: string
+        threadId:
+          type: string
+        snippet:
+          type: string
+        internalDate:
+          type: string
+        payload:
+          type: object
+          properties:
+            headers:
+              type: array
+              items:
+                $ref: '#/components/schemas/EmailHeader'
+            parts:
+              type: array
+              items:
+                $ref: '#/components/schemas/MessagePart'
+      required:
+        - id
+        - threadId
+
+    EmailHeader:
+      type: object
+      properties:
+        name:
+          type: string
+        value:
+          type: string
+      required:
+        - name
+        - value
+
+    MessagePart:
+      type: object
+      properties:
+        partId:
+          type: string
+        mimeType:
+          type: string
+        filename:
+          type: string
+        data:
+          type: string
+        size:
+          type: integer
+        headers:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmailHeader'
+
+    CalendarEventsResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CalendarEvent'
+        nextPageToken:
+          type: string
+        timeZone:
+          type: string
+      required:
+        - items
+
+    CalendarEvent:
+      type: object
+      properties:
+        id:
+          type: string
+        summary:
+          type: string
+        description:
+          type: string
+        start:
+          $ref: '#/components/schemas/EventDateTime'
+        end:
+          $ref: '#/components/schemas/EventDateTime'
+        location:
+          type: string
+        attendees:
+          type: array
+          items:
+            $ref: '#/components/schemas/EventAttendee'
+        recurrence:
+          type: array
+          items:
+            type: string
+        transparency:
+          type: string
+          enum: [opaque, transparent]
+        visibility:
+          type: string
+          enum: [default, public, private, confidential]
+      required:
+        - id
+
+    EventDateTime:
+      oneOf:
+        - type: object
+          properties:
+            date:
+              type: string
+              format: date
+            timeZone:
+              type: string
+          required:
+            - date
+        - type: object
+          properties:
+            dateTime:
+              type: string
+              format: date-time
+            timeZone:
+              type: string
+          required:
+            - dateTime
+
+    EventAttendee:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        displayName:
+          type: string
+        responseStatus:
+          type: string
+          enum: [needsAction, declined, tentative, accepted]
+        organizer:
+          type: boolean
+        self:
+          type: boolean
+      required:
+        - email
+
+    ContactsResponse:
+      type: object
+      properties:
+        connections:
+          type: array
+          items:
+            $ref: '#/components/schemas/Contact'
+        nextPageToken:
+          type: string
+        totalItems:
+          type: integer
+      required:
+        - connections
+
+    Contact:
+      type: object
+      properties:
+        resourceName:
+          type: string
+        etag:
+          type: string
+        names:
+          type: array
+          items:
+            $ref: '#/components/schemas/PersonName'
+        emailAddresses:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmailAddress'
+        phoneNumbers:
+          type: array
+          items:
+            $ref: '#/components/schemas/PhoneNumber'
+        organizations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Organization'
+      required:
+        - resourceName
+
+    PersonName:
+      type: object
+      properties:
+        metadata:
+          $ref: '#/components/schemas/FieldMetadata'
+        displayName:
+          type: string
+        familyName:
+          type: string
+        givenName:
+          type: string
+        displayNameLastFirst:
+          type: string
+        unstructuredName:
+          type: string
+
+    EmailAddress:
+      type: object
+      properties:
+        metadata:
+          $ref: '#/components/schemas/FieldMetadata'
+        value:
+          type: string
+          format: email
+        type:
+          type: string
+          enum: [home, work, other]
+        displayName:
+          type: string
+
+    PhoneNumber:
+      type: object
+      properties:
+        metadata:
+          $ref: '#/components/schemas/FieldMetadata'
+        value:
+          type: string
+        canonicalForm:
+          type: string
+        type:
+          type: string
+          enum: [home, work, mobile, main, other]
+
+    Organization:
+      type: object
+      properties:
+        metadata:
+          $ref: '#/components/schemas/FieldMetadata'
+        name:
+          type: string
+        title:
+          type: string
+        department:
+          type: string
+        symbol:
+          type: string
+        location:
+          type: string
+        current:
+          type: boolean
+
+    FieldMetadata:
+      type: object
+      properties:
+        primary:
+          type: boolean
+        verified:
+          type: boolean
+        source:
+          type: object
+          properties:
+            type:
+              type: string
+            id:
+              type: string
+
+    MotionTasksResponse:
+      type: object
+      properties:
+        tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/MotionTask'
+        total:
+          type: integer
+        offset:
+          type: integer
+        limit:
+          type: integer
+      required:
+        - tasks
+        - total
+
+    MotionTask:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [completed, in_progress, planned, cancelled]
+        priority:
+          type: string
+          enum: [low, medium, high, urgent]
+        dueDate:
+          type: string
+          format: date-time
+        projectId:
+          type: string
+        assigneeId:
+          type: string
+        estimatedDuration:
+          type: integer
+          description: Duration in minutes
+        tags:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - status
+
+    CreateMotionTaskRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Task name
+        description:
+          type: string
+          description: Task description
+        dueDate:
+          type: string
+          format: date-time
+          description: Due date for the task
+        projectId:
+          type: string
+          description: Project ID to assign task to
+        assigneeId:
+          type: string
+          description: User ID to assign task to
+        priority:
+          type: string
+          enum: [low, medium, high, urgent]
+          default: medium
+        estimatedDuration:
+          type: integer
+          description: Estimated duration in minutes
+        tags:
+          type: array
+          items:
+            type: string
+          description: Tags for the task
+
+    MotionProjectsResponse:
+      type: object
+      properties:
+        projects:
+          type: array
+          items:
+            $ref: '#/components/schemas/MotionProject'
+        total:
+          type: integer
+      required:
+        - projects
+
+    MotionProject:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [active, completed, archived]
+        color:
+          type: string
+          pattern: '^#[0-9A-Fa-f]{6}$'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - status
+
+    MotionWorkspace:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        timezone:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        plan:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            status:
+              type: string
+      required:
+        - id
+        - name
+
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: productivity-hub-session
+      description: Session cookie for authentication
+
+tags:
+  - name: System
+    description: System health and monitoring endpoints
+  - name: Authentication
+    description: Authentication and authorization endpoints
+  - name: OAuth
+    description: OAuth flow endpoints
+  - name: Google APIs
+    description: Google API integration endpoints
+  - name: Motion APIs
+    description: Motion API integration endpoints

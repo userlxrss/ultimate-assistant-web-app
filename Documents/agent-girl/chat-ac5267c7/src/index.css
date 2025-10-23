@@ -1,0 +1,67 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gradient-to-br from-sage-50 via-dusty-blue-50 to-soft-lavender-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 min-h-screen;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-white/20 dark:bg-white/10 backdrop-blur-md border border-white/20 dark:border-white/10 shadow-glass;
+  }
+
+  .glass-card {
+    @apply glass rounded-2xl p-6 hover:shadow-glass-inset transition-all duration-300;
+  }
+
+  .glass-button {
+    @apply glass px-4 py-2 rounded-xl hover:bg-white/30 dark:hover:bg-white/20 transition-all duration-300 border border-white/20 dark:border-white/10;
+  }
+
+  .stat-card {
+    @apply glass-card transform hover:scale-105 transition-transform duration-300;
+  }
+
+  .activity-item {
+    @apply glass p-3 rounded-xl mb-2 hover:bg-white/25 dark:hover:bg-white/15 transition-all duration-300;
+  }
+}
+
+@layer utilities {
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-white/10 dark:bg-white/5;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-sage-500/30 dark:bg-sage-400/30;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-sage-500/50 dark:bg-sage-400/50;
+}

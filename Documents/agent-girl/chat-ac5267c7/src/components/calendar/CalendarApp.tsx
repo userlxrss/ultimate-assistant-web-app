@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { CalendarEvent, ConflictResolution } from '../../types/calendar';
 import { generateSampleEvents } from '../../data/calendarData';
 import { useNotifications } from '../NotificationSystem';
-import { CalendarWeek } from './CalendarWeek';
 import { CalendarMonth } from './CalendarMonth';
 import { CalendarDay } from './CalendarDay';
 import { CalendarAgenda } from './CalendarAgenda';
@@ -11,14 +10,15 @@ import { EventDetails } from './EventDetails';
 import { ConflictDetector } from './ConflictDetector';
 import { mockGoogleCalendarAPI } from '../../utils/mockGoogleCalendarAPI';
 import { googleCalendarAPI } from '../../utils/googleCalendarAPI';
-import { format, addDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isToday } from 'date-fns';
+import { icalGoogleCalendarAPI } from '../../utils/icalGoogleCalendarAPI';
+import { format, addDays, startOfMonth, endOfMonth, isToday } from 'date-fns';
 
-type CalendarView = 'week' | 'month' | 'day' | 'agenda';
+type CalendarView = 'month' | 'day' | 'agenda';
 
 const CalendarApp: React.FC = () => {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [view, setView] = useState<CalendarView>('week');
+  const [view, setView] = useState<CalendarView>('month');
   const [showEventForm, setShowEventForm] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | undefined>();
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<Date | undefined>();
@@ -29,8 +29,23 @@ const CalendarApp: React.FC = () => {
   const [isSyncing, setIsSyncing] = useState(false);
   const { showSuccess, showError, showInfo } = useNotifications();
 
-  // Determine which API to use based on whether real credentials are available
+  // Determine which API to use based on available credentials
   const getCalendarAPI = () => {
+    // First, try to use iCal API with your configured URL
+    const icalUrl = localStorage.getItem('google_calendar_ical_url');
+    if (icalUrl) {
+      icalGoogleCalendarAPI.setICalUrl(icalUrl);
+      return icalGoogleCalendarAPI;
+    }
+
+    // Set your iCal URL if not already stored
+    const yourICalUrl = 'https://calendar.google.com/calendar/ical/tuescalarina3%40gmail.com/private-c6f3fb37bc8b117cb68a077d05d24cb1/basic.ics';
+    if (!localStorage.getItem('google_calendar_ical_url')) {
+      localStorage.setItem('google_calendar_ical_url', yourICalUrl);
+      icalGoogleCalendarAPI.setICalUrl(yourICalUrl);
+      return icalGoogleCalendarAPI;
+    }
+
     // Check if real credentials are available in localStorage
     const savedApiKey = localStorage.getItem('google_calendar_api_key');
     const savedClientId = localStorage.getItem('google_calendar_client_id');
@@ -39,6 +54,7 @@ const CalendarApp: React.FC = () => {
     if (savedApiKey && savedClientId) {
       return googleCalendarAPI;
     }
+
     // Fall back to mock API for testing
     return mockGoogleCalendarAPI;
   };
@@ -52,54 +68,14 @@ const CalendarApp: React.FC = () => {
         ...event,
         id: `google-${event.id}`,
       }));
+
+      // Store in localStorage for persistence
+      localStorage.setItem('google_calendar_events', JSON.stringify(googleEventsWithPrefix));
+
       return [...nonGoogleEvents, ...googleEventsWithPrefix];
     });
     showSuccess('Calendar Synced', `Successfully synced ${googleEvents.length} events from Google Calendar`);
   }, [showSuccess]);
-
-  // Check Google Calendar connection on mount
-  useEffect(() => {
-    const currentAPI = getCalendarAPI();
-    setIsGoogleConnected(currentAPI.isAuthenticated());
-
-    // Listen for Google Calendar sync events from Settings
-    const handleSyncEvent = (event: CustomEvent) => {
-      const googleEvents = event.detail;
-      handleGoogleEventsSynced(googleEvents);
-    };
-
-    window.addEventListener('googleCalendarEventsSynced', handleSyncEvent as EventListener);
-
-    // Load any previously synced Google Calendar events
-    const storedGoogleEvents = localStorage.getItem('google_calendar_events');
-    if (storedGoogleEvents) {
-      try {
-        const googleEvents = JSON.parse(storedGoogleEvents);
-        const googleEventsWithPrefix = googleEvents.map((event: any) => ({
-          ...event,
-          id: `google-${event.id}`,
-          startTime: new Date(event.startTime),
-          endTime: new Date(event.endTime),
-        }));
-        setEvents(prev => [...prev, ...googleEventsWithPrefix]);
-      } catch (error) {
-        console.error('Failed to load stored Google Calendar events:', error);
-      }
-    }
-
-    return () => {
-      window.removeEventListener('googleCalendarEventsSynced', handleSyncEvent as EventListener);
-    };
-  }, [handleGoogleEventsSynced]);
-
-  // Load sample data on mount (only if no Google Calendar events exist)
-  useEffect(() => {
-    const storedGoogleEvents = localStorage.getItem('google_calendar_events');
-    if (!storedGoogleEvents) {
-      const sampleEvents = generateSampleEvents();
-      setEvents(sampleEvents);
-    }
-  }, []);
 
   // Sync with Google Calendar
   const syncWithGoogleCalendar = useCallback(async () => {
@@ -126,12 +102,72 @@ const CalendarApp: React.FC = () => {
     }
   }, [isGoogleConnected, handleGoogleEventsSynced, showError]);
 
+  // Check Google Calendar connection on mount
+  useEffect(() => {
+    const currentAPI = getCalendarAPI();
+    setIsGoogleConnected(currentAPI.isAuthenticated());
+
+    // Listen for Google Calendar sync events from Settings
+    const handleSyncEvent = (event: CustomEvent) => {
+      const googleEvents = event.detail;
+      handleGoogleEventsSynced(googleEvents);
+    };
+
+    window.addEventListener('googleCalendarEventsSynced', handleSyncEvent as EventListener);
+
+    // Load any previously synced Google Calendar events
+    const storedGoogleEvents = localStorage.getItem('google_calendar_events');
+    if (storedGoogleEvents) {
+      try {
+        const googleEvents = JSON.parse(storedGoogleEvents);
+        const googleEventsWithDates = googleEvents.map((event: any) => ({
+          ...event,
+          startTime: new Date(event.startTime),
+          endTime: new Date(event.endTime),
+        }));
+        console.log('Loading Google Calendar events from storage:', googleEventsWithDates.length);
+
+        // Clear old empty events and force fresh sync
+        if (googleEventsWithDates.length === 0) {
+          console.log('Clearing empty stored events - will force fresh sync');
+          localStorage.removeItem('google_calendar_events');
+        } else {
+          setEvents(googleEventsWithDates);
+        }
+      } catch (error) {
+        console.error('Failed to load stored Google Calendar events:', error);
+        localStorage.removeItem('google_calendar_events');
+      }
+    }
+
+    return () => {
+      window.removeEventListener('googleCalendarEventsSynced', handleSyncEvent as EventListener);
+    };
+  }, [handleGoogleEventsSynced]);
+
+  // Auto-sync on mount if using iCal API
+  useEffect(() => {
+    const currentAPI = getCalendarAPI();
+    if (currentAPI.isAuthenticated() && events.length === 0) {
+      console.log('Auto-syncing Google Calendar on mount...');
+      syncWithGoogleCalendar();
+    }
+  }, [events.length, syncWithGoogleCalendar]);
+
+  // Load sample data on mount (only if no events exist and no Google Calendar events are stored)
+  useEffect(() => {
+    const storedGoogleEvents = localStorage.getItem('google_calendar_events');
+    console.log('Sample data check - storedGoogleEvents:', !!storedGoogleEvents, 'events.length:', events.length);
+    if (!storedGoogleEvents && events.length === 0) {
+      console.log('Loading sample events...');
+      const sampleEvents = generateSampleEvents();
+      setEvents(sampleEvents);
+    }
+  }, [events.length]);
+
   // Navigation functions
   const navigatePrevious = () => {
     switch (view) {
-      case 'week':
-        setCurrentDate(prev => addDays(prev, -7));
-        break;
       case 'month':
         setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() - 1));
         break;
@@ -146,9 +182,6 @@ const CalendarApp: React.FC = () => {
 
   const navigateNext = () => {
     switch (view) {
-      case 'week':
-        setCurrentDate(prev => addDays(prev, 7));
-        break;
       case 'month':
         setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() + 1));
         break;
@@ -189,10 +222,6 @@ const CalendarApp: React.FC = () => {
     let endDate: Date;
 
     switch (view) {
-      case 'week':
-        startDate = startOfWeek(currentDate, { weekStartsOn: 1 });
-        endDate = endOfWeek(currentDate, { weekStartsOn: 1 });
-        break;
       case 'month':
         startDate = startOfMonth(currentDate);
         endDate = endOfMonth(currentDate);
@@ -353,10 +382,6 @@ const CalendarApp: React.FC = () => {
 
   const getViewTitle = () => {
     switch (view) {
-      case 'week':
-        const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
-        const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 });
-        return `${format(weekStart, 'MMM d')} - ${format(weekEnd, 'MMM d, yyyy')}`;
       case 'month':
         return format(currentDate, 'MMMM yyyy');
       case 'day':
@@ -447,7 +472,7 @@ const CalendarApp: React.FC = () => {
 
             {/* View Switcher */}
             <div className="flex items-center gap-2 bg-white/20 dark:bg-white/10 rounded-lg p-1">
-              {(['week', 'month', 'day', 'agenda'] as CalendarView[]).map((viewType) => (
+              {(['month', 'day', 'agenda'] as CalendarView[]).map((viewType) => (
                 <button
                   key={viewType}
                   onClick={() => setView(viewType)}
@@ -514,24 +539,14 @@ const CalendarApp: React.FC = () => {
           </div>
         </div>
 
-        {/* Conflict Detector */}
-        <ConflictDetector
+        {/* Conflict Detector - Temporarily disabled */}
+        {/* <ConflictDetector
           events={filteredEvents}
           onResolveConflict={handleConflictResolution}
-        />
+        /> */}
 
         {/* Calendar View */}
         <div className="glass-card rounded-2xl p-6">
-          {view === 'week' && (
-            <CalendarWeek
-              events={filteredEvents}
-              currentDate={currentDate}
-              onEventClick={handleEventClick}
-              onTimeSlotClick={handleTimeSlotClick}
-              onEventDrop={handleEventDrop}
-              onEventResize={handleEventResize}
-            />
-          )}
           {view === 'month' && (
             <CalendarMonth
               events={filteredEvents}

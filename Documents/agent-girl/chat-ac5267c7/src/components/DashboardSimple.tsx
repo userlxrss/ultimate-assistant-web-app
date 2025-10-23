@@ -53,7 +53,7 @@ const DashboardTimer: React.FC = () => {
     return tasks.filter(task => !task.completed && task.estimatedTime).slice(0, 3);
   }, []);
 
-  const dailyFocusTime = calculateDailyFocusTime(generateTasks(60));
+  const dailyFocusTime = useMemo(() => calculateDailyFocusTime(generateTasks(60)), []);
   const currentSessionTime = timerState.elapsedTime;
   const totalFocusTime = dailyFocusTime + currentSessionTime;
 

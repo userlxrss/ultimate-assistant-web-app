@@ -1,0 +1,342 @@
+// Prisma Schema for OAuth Authentication System
+// This schema defines the database structure for OAuth credential storage and user authentication
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // Use "sqlite" for development
+  url      = env("DATABASE_URL")
+}
+
+// Users table - Core user account information
+model User {
+  id                String   @id @default(cuid())
+  email             String   @unique
+  passwordHash      String   @map("password_hash")
+  emailVerified     Boolean  @default(false) @map("email_verified")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  lastLogin         DateTime? @map("last_login")
+  isActive          Boolean  @default(true) @map("is_active")
+  twoFactorEnabled  Boolean  @default(false) @map("two_factor_enabled")
+  phoneNumber       String?  @map("phone_number")
+  timezone          String   @default("UTC")
+  language          String   @default("en")
+
+  // Relations
+  preferences      UserPreferences?
+  sessions         UserSession[]
+  providers        UserProvider[]
+  auditLogs        AuthAuditLog[]
+
+  @@map("users")
+}
+
+// User preferences table - User-specific settings
+model UserPreferences {
+  id                     String   @id @default(cuid())
+  userId                 String   @unique @map("user_id")
+  settings               Json     @default("{}")
+  notificationsEnabled   Boolean  @default(true) @map("notifications_enabled")
+  autoSyncEnabled        Boolean  @default(true) @map("auto_sync_enabled")
+  syncIntervalMinutes    Int      @default(15) @map("sync_interval_minutes")
+  theme                  String   @default("light")
+  createdAt              DateTime @default(now()) @map("created_at")
+  updatedAt              DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
+}
+
+// User sessions table - Session management
+model UserSession {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  sessionToken String  @unique @map("session_token")
+  refreshToken String? @map("refresh_token")
+  ipAddress   String?  @map("ip_address")
+  userAgent   String?  @map("user_agent")
+  createdAt   DateTime @default(now()) @map("created_at")
+  expiresAt   DateTime @map("expires_at")
+  lastUsed    DateTime @default(now()) @map("last_used")
+  isActive    Boolean  @default(true) @map("is_active")
+  deviceInfo  Json?    @map("device_info")
+
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_sessions")
+}
+
+// Service configurations table - OAuth provider configurations
+model ServiceConfig {
+  id                      String   @id @default(cuid())
+  serviceName             String   @unique @map("service_name")
+  displayName             String   @map("display_name")
+  clientId                String   @map("client_id")
+  clientSecretEncrypted   String   @map("client_secret_encrypted")
+  scopes                  Json     @map("scopes")
+  redirectUri             String   @map("redirect_uri")
+  authUrl                 String   @map("auth_url")
+  tokenUrl                String   @map("token_url")
+  refreshUrl              String?  @map("refresh_url")
+  revokeUrl               String?  @map("revoke_url")
+  userinfoUrl             String?  @map("userinfo_url")
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+  isActive                Boolean  @default(true) @map("is_active")
+  settings                Json     @default("{}")
+  rateLimitPerHour        Int      @default(1000) @map("rate_limit_per_hour")
+
+  // Relations
+  providers               UserProvider[]
+
+  @@map("service_configs")
+}
+
+// User providers table - Links users to OAuth providers
+model UserProvider {
+  id          String    @id @default(cuid())
+  userId      String    @map("user_id")
+  provider    String    // Reference to service_configs.service_name
+  providerId  String    @map("provider_id")
+  displayName String?   @map("display_name")
+  avatarUrl   String?   @map("avatar_url")
+  email       String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  isActive    Boolean   @default(true) @map("is_active")
+  syncStatus  SyncStatus @default(PENDING) @map("sync_status")
+  lastSyncAt  DateTime? @map("last_sync_at")
+  syncError   String?   @map("sync_error")
+  accessLevel AccessLevel @default(READ) @map("access_level")
+
+  // Relations
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  oauthToken  OAuthToken?
+  syncLogs    SyncLog[]
+  rateLimits  RateLimit[]
+
+  @@unique([userId, provider, providerId])
+  @@index([userId])
+  @@index([provider])
+  @@index([isActive])
+  @@index([syncStatus])
+  @@index([lastSyncAt])
+  @@map("user_providers")
+}
+
+// OAuth tokens table - Stores encrypted OAuth tokens
+model OAuthToken {
+  id                        String    @id @default(cuid())
+  userProviderId            String    @unique @map("user_provider_id")
+  accessTokenEncrypted      String    @map("access_token_encrypted")
+  refreshTokenEncrypted     String?   @map("refresh_token_encrypted")
+  tokenType                 String    @default("Bearer") @map("token_type")
+  expiresAt                 DateTime? @map("expires_at")
+  scope                     String?
+  createdAt                 DateTime  @default(now()) @map("created_at")
+  updatedAt                 DateTime  @updatedAt @map("updated_at")
+  isActive                  Boolean   @default(true) @map("is_active")
+  lastUsed                  DateTime  @default(now()) @map("last_used")
+  usageCount                Int       @default(0) @map("usage_count")
+  metadata                  Json      @default("{}")
+
+  // Relations
+  userProvider              UserProvider @relation(fields: [userProviderId], references: [id], onDelete: Cascade)
+  refreshLogs               TokenRefreshLog[]
+
+  @@index([expiresAt])
+  @@index([isActive])
+  @@index([lastUsed])
+  @@map("oauth_tokens")
+}
+
+// Token refresh log table - Tracks token refresh history
+model TokenRefreshLog {
+  id                        String    @id @default(cuid())
+  tokenId                   String    @map("token_id")
+  oldAccessTokenEncrypted   String?   @map("old_access_token_encrypted")
+  newAccessTokenEncrypted   String?   @map("new_access_token_encrypted")
+  refreshTokenEncrypted     String?   @map("refresh_token_encrypted")
+  refreshUsed               Boolean   @default(false) @map("refresh_used")
+  createdAt                 DateTime  @default(now()) @map("created_at")
+  success                   Boolean
+  errorMessage              String?   @map("error_message")
+  errorCode                 String?   @map("error_code")
+  durationMs                Int?      @map("duration_ms")
+  ipAddress                 String?   @map("ip_address")
+
+  // Relations
+  token                     OAuthToken @relation(fields: [tokenId], references: [id], onDelete: Cascade)
+
+  @@index([tokenId])
+  @@index([createdAt])
+  @@index([success])
+  @@map("token_refresh_log")
+}
+
+// Authentication audit log table - Comprehensive audit trail
+model AuthAuditLog {
+  id             String      @id @default(cuid())
+  userId         String?     @map("user_id")
+  provider       String?
+  action         AuthAction
+  ipAddress      String?     @map("ip_address")
+  userAgent      String?     @map("user_agent")
+  timestamp      DateTime    @default(now())
+  success        Boolean
+  errorMessage   String?     @map("error_message")
+  errorCode      String?     @map("error_code")
+  sessionId      String?     @map("session_id")
+  additionalData Json?       @map("additional_data")
+
+  // Relations
+  user           User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([timestamp])
+  @@index([action])
+  @@index([provider])
+  @@index([success])
+  @@map("auth_audit_log")
+}
+
+// Sync logs table - Tracks synchronization activities
+model SyncLog {
+  id            String     @id @default(cuid())
+  userProviderId String    @map("user_provider_id")
+  actionType    SyncAction @map("action_type")
+  status        SyncStatus
+  dataSize      Int        @default(0) @map("data_size")
+  itemsProcessed Int       @default(0) @map("items_processed")
+  itemsTotal    Int        @default(0) @map("items_total")
+  durationMs    Int?       @map("duration_ms")
+  errorMessage  String?    @map("error_message")
+  errorCode     String?    @map("error_code")
+  timestamp     DateTime   @default(now())
+  startedAt     DateTime   @default(now()) @map("started_at")
+  completedAt   DateTime?  @map("completed_at")
+  metadata      Json       @default("{}")
+
+  // Relations
+  userProvider  UserProvider @relation(fields: [userProviderId], references: [id], onDelete: Cascade)
+
+  @@index([userProviderId])
+  @@index([timestamp])
+  @@index([status])
+  @@index([actionType])
+  @@map("sync_logs")
+}
+
+// Rate limiting table - API rate limit tracking
+model RateLimit {
+  id             String   @id @default(cuid())
+  userProviderId String   @map("user_provider_id")
+  endpoint       String
+  windowStart    DateTime @map("window_start")
+  requestCount   Int      @default(0) @map("request_count")
+  limit          Int
+  resetAt        DateTime @map("reset_at")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  // Relations
+  userProvider   UserProvider @relation(fields: [userProviderId], references: [id], onDelete: Cascade)
+
+  @@unique([userProviderId, endpoint, windowStart])
+  @@index([windowStart])
+  @@index([resetAt])
+  @@map("rate_limits")
+}
+
+// Enums
+enum SyncStatus {
+  PENDING
+  ACTIVE
+  ERROR
+  DISABLED
+}
+
+enum SyncAction {
+  FULL_SYNC
+  INCREMENTAL_SYNC
+  SINGLE_ITEM_SYNC
+}
+
+enum AuthAction {
+  LOGIN
+  LOGOUT
+  TOKEN_REFRESH
+  DISCONNECT
+  CONNECT
+  REGISTER
+  PASSWORD_RESET
+}
+
+enum AccessLevel {
+  READ
+  WRITE
+  ADMIN
+}
+
+// Views for common queries
+// Note: Views would need to be created manually as raw SQL
+// See database-migration-scripts.sql for view definitions
+
+/*
+-- Active User Connections View
+CREATE VIEW active_user_connections AS
+SELECT
+    u.id as user_id,
+    u.email,
+    up.provider,
+    up.display_name as provider_display_name,
+    up.sync_status,
+    up.last_sync_at,
+    ot.expires_at as token_expires_at,
+    CASE
+        WHEN ot.expires_at < CURRENT_TIMESTAMP THEN 'expired'
+        WHEN ot.expires_at < CURRENT_TIMESTAMP + INTERVAL '1 hour' THEN 'expiring_soon'
+        ELSE 'active'
+    END as token_status
+FROM users u
+JOIN user_providers up ON u.id = up.user_id
+JOIN oauth_tokens ot ON up.id = ot.user_provider_id
+WHERE u.is_active = true
+  AND up.is_active = true
+  AND ot.is_active = true;
+
+-- Recent Auth Activity View
+CREATE VIEW recent_auth_activity AS
+SELECT
+    u.email,
+    al.action,
+    al.provider,
+    al.success,
+    al.timestamp,
+    al.ip_address,
+    al.user_agent
+FROM auth_audit_log al
+JOIN users u ON al.user_id = u.id
+WHERE al.timestamp > CURRENT_TIMESTAMP - INTERVAL '24 hours'
+ORDER BY al.timestamp DESC;
+
+-- Sync Summary View
+CREATE VIEW sync_summary AS
+SELECT
+    up.provider,
+    COUNT(*) as total_connections,
+    COUNT(CASE WHEN up.sync_status = 'active' THEN 1 END) as active_syncs,
+    COUNT(CASE WHEN up.sync_status = 'error' THEN 1 END) as error_syncs,
+    MAX(up.last_sync_at) as last_sync_time,
+    AVG(CASE WHEN sl.status = 'completed' THEN sl.duration_ms END) as avg_sync_duration_ms
+FROM user_providers up
+LEFT JOIN sync_logs sl ON up.id = sl.user_provider_id
+    AND sl.timestamp > CURRENT_TIMESTAMP - INTERVAL '24 hours'
+WHERE up.is_active = true
+GROUP BY up.provider;
+*/

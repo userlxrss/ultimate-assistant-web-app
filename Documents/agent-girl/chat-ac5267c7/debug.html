@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Test</title>
+</head>
+<body>
+    <div id="root">Testing...</div>
+    <script>
+        console.log('Debug HTML loaded');
+        fetch('/src/main.tsx')
+            .then(response => response.text())
+            .then(content => {
+                console.log('main.tsx length:', content.length);
+                document.getElementById('root').innerHTML = 'main.tsx loaded successfully';
+            })
+            .catch(error => {
+                console.error('Error loading main.tsx:', error);
+                document.getElementById('root').innerHTML = 'Error loading main.tsx';
+            });
+    </script>
+</body>
+</html>

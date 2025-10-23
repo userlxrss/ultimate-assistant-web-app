@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Test</title>
+</head>
+<body>
+    <div id="root">Loading...</div>
+    <script>
+        console.log('Simple test page loaded');
+        document.getElementById('root').innerHTML = 'JavaScript is working!';
+        setTimeout(() => {
+            document.getElementById('root').innerHTML = 'JavaScript is working after timeout!';
+        }, 1000);
+    </script>
+</body>
+</html>
