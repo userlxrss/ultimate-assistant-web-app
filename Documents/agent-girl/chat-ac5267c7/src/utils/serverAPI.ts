@@ -2,7 +2,7 @@
 
 const SERVER_BASE_URL = process.env.NODE_ENV === 'production'
   ? 'https://your-production-server.com'
-  : 'http://localhost:3006';
+  : 'http://localhost:3007';
 
 interface ServerResponse<T = any> {
   success?: boolean;

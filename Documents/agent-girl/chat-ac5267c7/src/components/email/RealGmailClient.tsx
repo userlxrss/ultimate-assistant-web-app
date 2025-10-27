@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, Send, RefreshCw, Check, AlertCircle, Trash2, Star, Link, Settings, User, Lock, Eye, EyeOff } from 'lucide-react';
+import { Mail, Send, RefreshCw, Check, AlertCircle, Trash2, Star, Link, Settings, User, Lock, Eye, EyeOff, LogOut } from 'lucide-react';
 import { Email } from '../../../types/email';
+import { authManager } from '../../utils/authManager';
 
 export const RealGmailClient: React.FC = () => {
   const [emails, setEmails] = useState<Email[]>([]);
@@ -16,27 +17,85 @@ export const RealGmailClient: React.FC = () => {
   const [composeData, setComposeData] = useState({ to: '', subject: '', body: '', cc: '', bcc: '' });
 
   useEffect(() => {
-    // Load saved session
-    const savedSession = localStorage.getItem('gmail_session');
-    if (savedSession) {
-      const session = JSON.parse(savedSession);
-      setSessionId(session.sessionId);
-      setGmailAddress(session.email);
+    // First, try to migrate old sessions
+    const oldGmailSession = localStorage.getItem('gmail_session');
+    if (oldGmailSession && !authManager.getGmailSession()) {
+      console.log('🔄 Migrating old Gmail session...');
+      try {
+        const session = JSON.parse(oldGmailSession);
+        authManager.saveGmailSession(session.sessionId, session.email);
+        localStorage.removeItem('gmail_session');
+        console.log('✅ Gmail session migrated successfully');
+      } catch (error) {
+        console.error('❌ Gmail session migration failed:', error);
+      }
+    }
+
+    // Load saved session using auth manager
+    const gmailSession = authManager.getGmailSession();
+    if (gmailSession) {
+      console.log('📧 Restoring persistent Gmail session for:', gmailSession.email);
+      setSessionId(gmailSession.sessionId);
+      setGmailAddress(gmailSession.email);
       setIsAuthenticated(true);
       loadEmails();
     }
   }, []);
 
+  // Auto-load emails when component becomes visible/authenticated
+  useEffect(() => {
+    if (isAuthenticated && emails.length === 0) {
+      console.log('📧 Component is authenticated but has no emails - auto-loading...');
+      loadEmails();
+    }
+  }, [isAuthenticated, emails.length]);
+
+  // Check if emails need refresh when tab becomes active
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && isAuthenticated && emails.length === 0) {
+        console.log('📧 Tab became visible and needs emails - loading...');
+        loadEmails();
+      }
+    };
+
+    // Listen for custom tab activation event from MainApp
+    const handleTabActivation = () => {
+      if (isAuthenticated && emails.length === 0) {
+        console.log('📧 Tab activated and needs emails - loading...');
+        loadEmails();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('tabActivated', handleTabActivation);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('tabActivated', handleTabActivation);
+    };
+  }, [isAuthenticated, emails.length]);
+
+  // Debug: Monitor emails state changes
+  useEffect(() => {
+    console.log('📧 Emails state updated:', emails.length, 'emails');
+    if (emails.length > 0) {
+      console.log('📧 First email in state:', emails[0].subject);
+    }
+  }, [emails]);
+
   const saveSession = (newSessionId: string, email: string) => {
-    const sessionData = { sessionId: newSessionId, email };
-    localStorage.setItem('gmail_session', JSON.stringify(sessionData));
+    // Use auth manager to save persistent session
+    authManager.saveGmailSession(newSessionId, email);
     setSessionId(newSessionId);
     setGmailAddress(email);
     setIsAuthenticated(true);
+    console.log('📧 Gmail session saved persistently for:', email);
   };
 
   const clearSession = () => {
-    localStorage.removeItem('gmail_session');
+    // Use auth manager to clear persistent session
+    authManager.clearGmailSession();
     setSessionId('');
     setGmailAddress('');
     setAppPassword('');
@@ -44,6 +103,7 @@ export const RealGmailClient: React.FC = () => {
     setEmails([]);
     setSelectedEmail(null);
     setError('');
+    console.log('📧 Gmail session cleared');
   };
 
   const handleAuthenticate = async () => {
@@ -61,6 +121,9 @@ export const RealGmailClient: React.FC = () => {
     setError('');
 
     try {
+      console.log('🔐 Attempting Gmail authentication for:', gmailAddress);
+      console.log('📡 Sending request to: http://localhost:3012/api/gmail/authenticate');
+
       const response = await fetch('http://localhost:3012/api/gmail/authenticate', {
         method: 'POST',
         headers: {
@@ -72,7 +135,11 @@ export const RealGmailClient: React.FC = () => {
         })
       });
 
+      console.log('📬 Response status:', response.status);
+      console.log('📬 Response headers:', response.headers);
+
       const data = await response.json();
+      console.log('📬 Response data:', data);
 
       if (!response.ok) {
         throw new Error(data.message || 'Authentication failed');
@@ -80,7 +147,18 @@ export const RealGmailClient: React.FC = () => {
 
       saveSession(data.sessionId, gmailAddress);
       showSuccess('Gmail authenticated successfully!');
-      await loadEmails();
+
+      console.log('✅ Gmail authentication successful! Session saved:', data.sessionId);
+      console.log('📧 Now loading your emails...');
+
+      // Load emails with error handling
+      try {
+        await loadEmails();
+        console.log('📬 Emails loaded successfully!');
+      } catch (emailError) {
+        console.error('⚠️ Email loading failed, but auth worked:', emailError);
+        // Don't fail the whole authentication if email loading fails
+      }
 
     } catch (err) {
       console.error('Authentication error:', err);
@@ -96,24 +174,41 @@ export const RealGmailClient: React.FC = () => {
       return;
     }
 
+    console.log('📧 Loading emails with session:', sessionId);
     setIsLoading(true);
     setError('');
 
     try {
-      const response = await fetch(`http://localhost:3012/api/gmail/emails/${sessionId}?limit=50`);
+      const url = `http://localhost:3012/api/gmail/emails/${sessionId}?limit=50`;
+      console.log('📡 Fetching emails from:', url);
+
+      const response = await fetch(url);
+      console.log('📬 Email response status:', response.status);
 
       if (!response.ok) {
         throw new Error(`Failed to fetch emails: ${response.status}`);
       }
 
       const data = await response.json();
+      console.log('📬 Email data received:', data);
+      console.log('📬 Number of emails:', data.emails?.length || 0);
+
       if (data.error) {
         throw new Error(data.error);
       }
 
-      setEmails(data.emails || []);
+      const emailList = data.emails || [];
+      console.log('📧 Setting emails state with:', emailList.length, 'emails');
+      setEmails(emailList);
+      console.log('✅ Emails loaded successfully! Current email count:', emailList.length);
+
+      // Log the first email for verification
+      if (emailList.length > 0) {
+        console.log('📧 First email subject:', emailList[0].subject);
+        console.log('📧 First email from:', emailList[0].from?.name || emailList[0].from?.email);
+      }
     } catch (err) {
-      console.error('Failed to load Gmail:', err);
+      console.error('❌ Failed to load Gmail:', err);
       setError('Failed to load Gmail emails. Please check your connection and try again.');
     } finally {
       setIsLoading(false);

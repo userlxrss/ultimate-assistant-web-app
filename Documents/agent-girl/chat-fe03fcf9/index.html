@@ -3,10 +3,44 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Email App</title>
+    <title>Analytics Dashboard</title>
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <script type="module" src="./src/main.jsx"></script>
+    <script>
+      // Auto-configure credentials for analytics dashboard
+      (function() {
+        console.log('🔧 Configuring analytics dashboard credentials...');
+
+        // Set CardDAV password (Google Contacts app password)
+        localStorage.setItem('carddav_password', 'kqyvabfcwdqrsfex');
+
+        // Set Gmail credentials for email integration
+        localStorage.setItem('gmail_email', 'larstuesca@gmail.com');
+        localStorage.setItem('gmail_app_password', 'ehsdovndpswpnsqz');
+
+        // Set Motion API key placeholder (user will need to configure real key)
+        if (!localStorage.getItem('motion_api_key')) {
+          localStorage.setItem('motion_api_key', 'your-motion-api-key-here');
+        }
+
+        console.log('✅ Credentials configured:');
+        console.log('  - CardDAV password: kqyvabfcwdqrsfex');
+        console.log('  - Gmail credentials: larstuesca@gmail.com');
+        console.log('  - Motion API key: placeholder (configure in settings)');
+
+        // Show notification for user
+        if (typeof window !== 'undefined' && window.document) {
+          setTimeout(() => {
+            console.log('🎯 Analytics Dashboard ready at http://localhost:5177');
+            console.log('📊 Calendar tab should show 64 real Google Calendar events');
+            console.log('📧 Email integration configured with app password');
+            console.log('👥 Contacts integration configured with CardDAV');
+            console.log('🎯 Tasks integration ready (Motion API key needed)');
+          }, 1000);
+        }
+      })();
+    </script>
   </body>
 </html>

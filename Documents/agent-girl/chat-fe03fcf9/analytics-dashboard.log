@@ -1,0 +1,14 @@
+
+> email-webapp@1.0.0 dev
+> vite
+
+
+  VITE v4.5.14  ready in 282 ms
+
+  ➜  Local:   http://localhost:5177/
+  ➜  Network: http://192.168.1.60:5177/
+  ➜  Network: http://10.5.0.2:5177/
+10:46:15 AM [vite] vite.config.js changed, restarting server...
+10:46:15 AM [vite] server restarted.
+10:46:17 AM [vite] vite.config.js changed, restarting server...
+10:46:17 AM [vite] server restarted.

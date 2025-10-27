@@ -1,6 +1,7 @@
 // Simple Google Calendar iCal Integration - No API Keys Required!
 
 import { CalendarEvent } from '../types/calendar';
+import { authManager } from './authManager';
 
 interface ICSEvent {
   summary: string;
@@ -20,7 +21,29 @@ export class ICalGoogleCalendarAPI {
 
   // Check if authenticated (connected to iCal URL)
   isAuthenticated(): boolean {
-    return this.isConnected && !!this.icalUrl;
+    // Check multiple authentication methods
+    if (this.isConnected && !!this.icalUrl) {
+      return true;
+    }
+
+    // Check for iCal URL in localStorage
+    const storedICalUrl = localStorage.getItem('google_calendar_ical_url');
+    if (storedICalUrl) {
+      this.icalUrl = storedICalUrl;
+      return true;
+    }
+
+    // Check for Google session in AuthManager
+    try {
+      const authStatus = authManager.getAuthStatus();
+      if (authStatus.google) {
+        return true;
+      }
+    } catch (error) {
+      console.log('AuthManager not available:', error);
+    }
+
+    return false;
   }
 
   // Set iCal URL
@@ -149,40 +172,42 @@ export class ICalGoogleCalendarAPI {
     };
   }
 
-  // Get events from Google Calendar via iCal
+  // Get events from Google Calendar via iCal (using proxy to avoid CORS)
   async getEvents(timeMin: Date, timeMax: Date): Promise<CalendarEvent[]> {
-    if (!this.icalUrl) {
-      throw new Error('iCal URL not set. Please configure your Google Calendar iCal URL.');
-    }
-
     try {
-      // Use our dedicated iCal proxy endpoint
-      const proxyUrl = 'http://localhost:3010/api/calendar/ical';
+      console.log('📅 Fetching Google Calendar events via proxy...');
 
-      // Fetch iCal data through proxy
-      const response = await fetch(proxyUrl);
+      // Use the proxy endpoint to avoid CORS issues
+      const response = await fetch('http://localhost:3012/api/calendar/events');
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch iCal data: ${response.status} ${response.statusText}`);
+        throw new Error(`Failed to fetch calendar events via proxy: ${response.status} ${response.statusText}`);
       }
 
-      const icalContent = await response.text();
+      const data = await response.json();
+      console.log(`✅ Successfully fetched ${data.events?.length || 0} events from Google Calendar proxy`);
 
-      // Parse iCal content
-      const icalEvents = this.parseICalContent(icalContent);
+      if (!data.success || !data.events) {
+        throw new Error('Invalid response from calendar proxy');
+      }
 
-      // Convert to CalendarEvent format
-      const events = icalEvents
-        .map(event => this.icalEventToCalendarEvent(event))
-        .filter(event => {
-          // Filter events within the requested time range
-          return event.startTime >= timeMin && event.endTime <= timeMax;
+      // Convert and filter events within the requested time range
+      const events = data.events
+        .map((event: any) => ({
+          ...event,
+          startTime: new Date(event.startTime),
+          endTime: new Date(event.endTime),
+        }))
+        .filter((event: CalendarEvent) => {
+          // Event should start before timeMax and end after timeMin to be in range
+          return event.startTime <= timeMax && event.endTime >= timeMin;
         })
-        .sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+        .sort((a: CalendarEvent, b: CalendarEvent) => a.startTime.getTime() - b.startTime.getTime());
 
+      console.log(`✅ Returning ${events.length} events within requested time range`);
       return events;
     } catch (error) {
-      console.error('Error fetching Google Calendar events:', error);
+      console.error('Error fetching Google Calendar events via proxy:', error);
       throw new Error(`Failed to fetch calendar events: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }

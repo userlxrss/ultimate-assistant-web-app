@@ -8,12 +8,12 @@ interface GoogleOAuthIntegrationProps {
   onDisconnect: () => void;
 }
 
-export const GoogleOAuthIntegration: React.FC<GoogleOAuthIntegrationProps> = ({
+function GoogleOAuthIntegration({
   isConnected,
   user,
   onConnect,
   onDisconnect
-}) => {
+}: GoogleOAuthIntegrationProps) {
   const [isConnecting, setIsConnecting] = useState(false);
 
   const handleConnect = () => {
@@ -186,4 +186,6 @@ export const GoogleOAuthIntegration: React.FC<GoogleOAuthIntegrationProps> = ({
       )}
     </div>
   );
-};
+}
+
+export { GoogleOAuthIntegration };

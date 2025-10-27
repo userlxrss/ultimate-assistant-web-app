@@ -41,7 +41,15 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
       duration: notification.duration || 2500,
     };
 
-    setNotifications(prev => [...prev, newNotification]);
+    setNotifications(prev => {
+      // Limit to maximum 5 notifications to prevent overflow
+      const updated = [...prev, newNotification];
+      if (updated.length > 5) {
+        // Remove oldest notifications
+        return updated.slice(-5);
+      }
+      return updated;
+    });
 
     // Auto-remove notification
     if (newNotification.duration && newNotification.duration > 0) {
@@ -106,7 +114,7 @@ const NotificationContainer: React.FC<{
   clearNotification: (id: string) => void;
 }> = ({ notifications, clearNotification }) => {
   return (
-    <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 space-y-3 pointer-events-none">
+    <div className="fixed top-4 right-4 z-50 space-y-2 pointer-events-none">
       {notifications.map((notification, index) => (
         <NotificationItem
           key={notification.id}
@@ -126,11 +134,19 @@ const NotificationItem: React.FC<{
   index: number;
 }> = ({ notification, onClose, index }) => {
   const [isVisible, setIsVisible] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
 
   useEffect(() => {
     // Trigger entrance animation
     setTimeout(() => setIsVisible(true), 50);
   }, []);
+
+  const handleClose = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      onClose();
+    }, 150); // Small delay for exit animation
+  };
 
   const getIcon = () => {
     switch (notification.type) {
@@ -207,16 +223,12 @@ const NotificationItem: React.FC<{
         max-w-[400px]
         backdrop-blur-xl
         shadow-2xl
-        transform
         transition-all
-        duration-500
+        duration-300
         ease-out
-        ${isVisible ? 'translate-x-0 opacity-100 scale-100' : 'translate-x-full opacity-0 scale-95'}
+        transform
+        ${isVisible && !isClosing ? 'opacity-100 translate-x-0 scale-100' : 'opacity-0 translate-x-full scale-95'}
       `}
-      style={{
-        animationDelay: `${index * 100}ms`,
-        marginBottom: `${index * 8}px`
-      }}
     >
       <div className="flex items-start gap-3">
         {/* Icon */}
@@ -258,15 +270,17 @@ const NotificationItem: React.FC<{
 
         {/* Close button */}
         <button
-          onClick={onClose}
+          onClick={handleClose}
           className={`
             flex-shrink-0
             p-1
             rounded-lg
             ${colors.button}
             ${colors.icon}
-            transition-colors
+            transition-all
             duration-200
+            hover:scale-110
+            active:scale-95
           `}
         >
           <X className="w-4 h-4" />

@@ -17,6 +17,10 @@ export const OAuthSimpleConnect: React.FC<OAuthSimpleConnectProps> = ({
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [serverPort, setServerPort] = useState(3006);
+  const [isConnectingState, setIsConnectingState] = useState<{
+    google: boolean;
+    motion: boolean;
+  }>({ google: false, motion: false });
 
   const { initiateGoogleOAuth, connectMotionApi, disconnectService, isConnecting, clearError } = useOAuth();
 
@@ -77,15 +81,14 @@ export const OAuthSimpleConnect: React.FC<OAuthSimpleConnectProps> = ({
     }
 
     setConnectionError(null);
-    setIsConnecting(prev => ({ ...prev, motion: true }));
+    setIsConnectingState(prev => ({ ...prev, motion: true }));
 
     try {
-      const response = await fetch(`http://localhost:${serverPort}/auth/motion`, {
+      const response = await fetch(`http://localhost:3013/api/motion/tasks`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
         body: JSON.stringify({ apiKey: motionApiKey.trim() })
       });
 
@@ -105,7 +108,7 @@ export const OAuthSimpleConnect: React.FC<OAuthSimpleConnectProps> = ({
     } catch (error) {
       setConnectionError(error instanceof Error ? error.message : 'Failed to connect Motion API');
     } finally {
-      setIsConnecting(prev => ({ ...prev, motion: false }));
+      setIsConnectingState(prev => ({ ...prev, motion: false }));
     }
   };
 

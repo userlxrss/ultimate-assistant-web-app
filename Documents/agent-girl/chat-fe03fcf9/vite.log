@@ -1,0 +1,357 @@
+
+> email-webapp@1.0.0 dev
+> vite
+
+
+  VITE v4.5.14  ready in 233 ms
+
+  ➜  Local:   http://localhost:5177/
+  ➜  Network: http://192.168.1.60:5177/
+  ➜  Network: http://10.5.0.2:5177/
+(node:49477) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+10:50:42 AM [vite] page reload index.html
+10:53:59 AM [vite] Internal server error: /Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/src/components/ContactsApp.tsx: Adjacent JSX elements must be wrapped in an enclosing tag. Did you want a JSX fragment <>...</>? (470:18)
+
+  468 |                     {selectedContact.title}
+  469 |                   </p>
+> 470 |                   <p className="text-gray-600 dark:text-gray-400">
+      |                   ^
+  471 |                     {selectedContact.company}
+  472 |                   </p>
+  473 |                 )}
+  Plugin: vite:react-babel
+  File: /Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/src/components/ContactsApp.tsx:470:18
+  468|                      {selectedContact.title}
+  469|                    </p>
+  470|                    <p className="text-gray-600 dark:text-gray-400">
+     |                    ^
+  471|                      {selectedContact.company}
+  472|                    </p>
+      at constructor (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:367:19)
+      at TypeScriptParserMixin.raise (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:6624:19)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4771:18)
+      at TypeScriptParserMixin.jsxParseElement (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4778:17)
+      at TypeScriptParserMixin.parseExprAtom (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4788:19)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11145:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11130:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11110:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:9890:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10963:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10968:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10945:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10895:21)
+      at /Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:9828:39
+      at TypeScriptParserMixin.tryParse (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:6932:20)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:9828:18)
+      at /Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10864:39
+      at TypeScriptParserMixin.allowInAnd (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:12500:12)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10864:17)
+      at TypeScriptParserMixin.parseMaybeAssignAllowInOrVoidPattern (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:12567:17)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11747:28)
+      at TypeScriptParserMixin.parseExprAtom (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11395:23)
+      at TypeScriptParserMixin.parseExprAtom (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4793:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11145:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11130:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11110:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:9890:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10963:61)
+      at TypeScriptParserMixin.parseExprOpBaseRightExpr (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11050:34)
+      at TypeScriptParserMixin.parseExprOpRightExpr (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11045:21)
+      at TypeScriptParserMixin.parseExprOp (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11011:27)
+      at TypeScriptParserMixin.parseExprOp (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:9365:18)
+      at TypeScriptParserMixin.parseExprOp (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11017:21)
+      at TypeScriptParserMixin.parseExprOp (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:9365:18)
+      at TypeScriptParserMixin.parseExprOps (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10972:17)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10945:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10895:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:9839:20)
+      at TypeScriptParserMixin.parseExpressionBase (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10848:23)
+      at /Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10844:39
+      at TypeScriptParserMixin.allowInAnd (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:12500:12)
+      at TypeScriptParserMixin.parseExpression (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10844:17)
+      at TypeScriptParserMixin.jsxParseExpressionContainer (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4661:31)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4740:36)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4727:32)
+      at TypeScriptParserMixin.jsxParseElement (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4778:17)
+      at TypeScriptParserMixin.parseExprAtom (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4788:19)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11145:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11130:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11110:23)
+/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/src/components/ContactsApp.tsx: Adjacent JSX elements must be wrapped in an enclosing tag. Did you want a JSX fragment <>...</>? (470:18)
+
+  468 |                     {selectedContact.title}
+  469 |                   </p>
+> 470 |                   <p className="text-gray-600 dark:text-gray-400">
+      |                   ^
+  471 |                     {selectedContact.company}
+  472 |                   </p>
+  473 |                 )}
+10:54:14 AM [vite] Internal server error: /Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/src/components/ContactsApp.tsx: Adjacent JSX elements must be wrapped in an enclosing tag. Did you want a JSX fragment <>...</>? (470:18)
+
+  468 |                     {selectedContact.title}
+  469 |                   </p>
+> 470 |                   <p className="text-gray-600 dark:text-gray-400">
+      |                   ^
+  471 |                     {selectedContact.company}
+  472 |                   </p>
+  473 |                 )}
+  Plugin: vite:react-babel
+  File: /Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/src/components/ContactsApp.tsx:470:18
+  468|                      {selectedContact.title}
+  469|                    </p>
+  470|                    <p className="text-gray-600 dark:text-gray-400">
+     |                    ^
+  471|                      {selectedContact.company}
+  472|                    </p>
+      at constructor (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:367:19)
+      at TypeScriptParserMixin.raise (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:6624:19)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4771:18)
+      at TypeScriptParserMixin.jsxParseElement (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4778:17)
+      at TypeScriptParserMixin.parseExprAtom (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4788:19)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11145:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11130:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11110:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:9890:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10963:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10968:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10945:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10895:21)
+      at /Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:9828:39
+      at TypeScriptParserMixin.tryParse (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:6932:20)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:9828:18)
+      at /Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10864:39
+      at TypeScriptParserMixin.allowInAnd (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:12500:12)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10864:17)
+      at TypeScriptParserMixin.parseMaybeAssignAllowInOrVoidPattern (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:12567:17)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11747:28)
+      at TypeScriptParserMixin.parseExprAtom (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11395:23)
+      at TypeScriptParserMixin.parseExprAtom (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4793:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11145:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11130:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11110:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:9890:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10963:61)
+      at TypeScriptParserMixin.parseExprOpBaseRightExpr (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11050:34)
+      at TypeScriptParserMixin.parseExprOpRightExpr (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11045:21)
+      at TypeScriptParserMixin.parseExprOp (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11011:27)
+      at TypeScriptParserMixin.parseExprOp (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:9365:18)
+      at TypeScriptParserMixin.parseExprOp (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11017:21)
+      at TypeScriptParserMixin.parseExprOp (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:9365:18)
+      at TypeScriptParserMixin.parseExprOps (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10972:17)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10945:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10895:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:9839:20)
+      at TypeScriptParserMixin.parseExpressionBase (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10848:23)
+      at /Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10844:39
+      at TypeScriptParserMixin.allowInAnd (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:12500:12)
+      at TypeScriptParserMixin.parseExpression (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10844:17)
+      at TypeScriptParserMixin.jsxParseExpressionContainer (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4661:31)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4740:36)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4727:32)
+      at TypeScriptParserMixin.jsxParseElement (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4778:17)
+      at TypeScriptParserMixin.parseExprAtom (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4788:19)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11145:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11130:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11110:23)
+11:56:15 AM [vite] Internal server error: /Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/src/components/ContactsApp.tsx: Adjacent JSX elements must be wrapped in an enclosing tag. Did you want a JSX fragment <>...</>? (470:18)
+
+  468 |                     {selectedContact.title}
+  469 |                   </p>
+> 470 |                   <p className="text-gray-600 dark:text-gray-400">
+      |                   ^
+  471 |                     {selectedContact.company}
+  472 |                   </p>
+  473 |                 )}
+  Plugin: vite:react-babel
+  File: /Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/src/components/ContactsApp.tsx:470:18
+  468|                      {selectedContact.title}
+  469|                    </p>
+  470|                    <p className="text-gray-600 dark:text-gray-400">
+     |                    ^
+  471|                      {selectedContact.company}
+  472|                    </p>
+      at constructor (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:367:19)
+      at TypeScriptParserMixin.raise (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:6624:19)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4771:18)
+      at TypeScriptParserMixin.jsxParseElement (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4778:17)
+      at TypeScriptParserMixin.parseExprAtom (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4788:19)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11145:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11130:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11110:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:9890:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10963:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10968:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10945:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10895:21)
+      at /Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:9828:39
+      at TypeScriptParserMixin.tryParse (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:6932:20)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:9828:18)
+      at /Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10864:39
+      at TypeScriptParserMixin.allowInAnd (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:12500:12)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10864:17)
+      at TypeScriptParserMixin.parseMaybeAssignAllowInOrVoidPattern (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:12567:17)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11747:28)
+      at TypeScriptParserMixin.parseExprAtom (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11395:23)
+      at TypeScriptParserMixin.parseExprAtom (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4793:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11145:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11130:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11110:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:9890:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10963:61)
+      at TypeScriptParserMixin.parseExprOpBaseRightExpr (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11050:34)
+      at TypeScriptParserMixin.parseExprOpRightExpr (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11045:21)
+      at TypeScriptParserMixin.parseExprOp (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11011:27)
+      at TypeScriptParserMixin.parseExprOp (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:9365:18)
+      at TypeScriptParserMixin.parseExprOp (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11017:21)
+      at TypeScriptParserMixin.parseExprOp (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:9365:18)
+      at TypeScriptParserMixin.parseExprOps (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10972:17)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10945:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10895:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:9839:20)
+      at TypeScriptParserMixin.parseExpressionBase (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10848:23)
+      at /Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10844:39
+      at TypeScriptParserMixin.allowInAnd (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:12500:12)
+      at TypeScriptParserMixin.parseExpression (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10844:17)
+      at TypeScriptParserMixin.jsxParseExpressionContainer (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4661:31)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4740:36)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4727:32)
+      at TypeScriptParserMixin.jsxParseElement (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4778:17)
+      at TypeScriptParserMixin.parseExprAtom (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4788:19)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11145:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11130:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11110:23)
+11:56:34 AM [vite] Internal server error: /Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/src/components/ContactsApp.tsx: Adjacent JSX elements must be wrapped in an enclosing tag. Did you want a JSX fragment <>...</>? (470:18)
+
+  468 |                     {selectedContact.title}
+  469 |                   </p>
+> 470 |                   <p className="text-gray-600 dark:text-gray-400">
+      |                   ^
+  471 |                     {selectedContact.company}
+  472 |                   </p>
+  473 |                 )}
+  Plugin: vite:react-babel
+  File: /Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/src/components/ContactsApp.tsx:470:18
+  468|                      {selectedContact.title}
+  469|                    </p>
+  470|                    <p className="text-gray-600 dark:text-gray-400">
+     |                    ^
+  471|                      {selectedContact.company}
+  472|                    </p>
+      at constructor (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:367:19)
+      at TypeScriptParserMixin.raise (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:6624:19)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4771:18)
+      at TypeScriptParserMixin.jsxParseElement (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4778:17)
+      at TypeScriptParserMixin.parseExprAtom (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4788:19)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11145:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11130:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11110:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:9890:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10963:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10968:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10945:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10895:21)
+      at /Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:9828:39
+      at TypeScriptParserMixin.tryParse (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:6932:20)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:9828:18)
+      at /Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10864:39
+      at TypeScriptParserMixin.allowInAnd (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:12500:12)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10864:17)
+      at TypeScriptParserMixin.parseMaybeAssignAllowInOrVoidPattern (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:12567:17)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11747:28)
+      at TypeScriptParserMixin.parseExprAtom (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11395:23)
+      at TypeScriptParserMixin.parseExprAtom (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4793:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11145:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11130:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11110:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:9890:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10963:61)
+      at TypeScriptParserMixin.parseExprOpBaseRightExpr (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11050:34)
+      at TypeScriptParserMixin.parseExprOpRightExpr (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11045:21)
+      at TypeScriptParserMixin.parseExprOp (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11011:27)
+      at TypeScriptParserMixin.parseExprOp (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:9365:18)
+      at TypeScriptParserMixin.parseExprOp (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11017:21)
+      at TypeScriptParserMixin.parseExprOp (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:9365:18)
+      at TypeScriptParserMixin.parseExprOps (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10972:17)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10945:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10895:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:9839:20)
+      at TypeScriptParserMixin.parseExpressionBase (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10848:23)
+      at /Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10844:39
+      at TypeScriptParserMixin.allowInAnd (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:12500:12)
+      at TypeScriptParserMixin.parseExpression (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10844:17)
+      at TypeScriptParserMixin.jsxParseExpressionContainer (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4661:31)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4740:36)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4727:32)
+      at TypeScriptParserMixin.jsxParseElement (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4778:17)
+      at TypeScriptParserMixin.parseExprAtom (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4788:19)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11145:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11130:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11110:23)
+11:59:05 AM [vite] Internal server error: /Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/src/components/ContactsApp.tsx: Adjacent JSX elements must be wrapped in an enclosing tag. Did you want a JSX fragment <>...</>? (470:18)
+
+  468 |                     {selectedContact.title}
+  469 |                   </p>
+> 470 |                   <p className="text-gray-600 dark:text-gray-400">
+      |                   ^
+  471 |                     {selectedContact.company}
+  472 |                   </p>
+  473 |                 )}
+  Plugin: vite:react-babel
+  File: /Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/src/components/ContactsApp.tsx:470:18
+  468|                      {selectedContact.title}
+  469|                    </p>
+  470|                    <p className="text-gray-600 dark:text-gray-400">
+     |                    ^
+  471|                      {selectedContact.company}
+  472|                    </p>
+      at constructor (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:367:19)
+      at TypeScriptParserMixin.raise (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:6624:19)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4771:18)
+      at TypeScriptParserMixin.jsxParseElement (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4778:17)
+      at TypeScriptParserMixin.parseExprAtom (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4788:19)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11145:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11130:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11110:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:9890:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10963:61)
+      at TypeScriptParserMixin.parseExprOps (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10968:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10945:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10895:21)
+      at /Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:9828:39
+      at TypeScriptParserMixin.tryParse (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:6932:20)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:9828:18)
+      at /Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10864:39
+      at TypeScriptParserMixin.allowInAnd (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:12500:12)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10864:17)
+      at TypeScriptParserMixin.parseMaybeAssignAllowInOrVoidPattern (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:12567:17)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11747:28)
+      at TypeScriptParserMixin.parseExprAtom (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11395:23)
+      at TypeScriptParserMixin.parseExprAtom (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4793:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11145:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11130:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11110:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:9890:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10963:61)
+      at TypeScriptParserMixin.parseExprOpBaseRightExpr (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11050:34)
+      at TypeScriptParserMixin.parseExprOpRightExpr (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11045:21)
+      at TypeScriptParserMixin.parseExprOp (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11011:27)
+      at TypeScriptParserMixin.parseExprOp (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:9365:18)
+      at TypeScriptParserMixin.parseExprOp (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11017:21)
+      at TypeScriptParserMixin.parseExprOp (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:9365:18)
+      at TypeScriptParserMixin.parseExprOps (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10972:17)
+      at TypeScriptParserMixin.parseMaybeConditional (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10945:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10895:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:9839:20)
+      at TypeScriptParserMixin.parseExpressionBase (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10848:23)
+      at /Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10844:39
+      at TypeScriptParserMixin.allowInAnd (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:12500:12)
+      at TypeScriptParserMixin.parseExpression (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:10844:17)
+      at TypeScriptParserMixin.jsxParseExpressionContainer (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4661:31)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4740:36)
+      at TypeScriptParserMixin.jsxParseElementAt (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4727:32)
+      at TypeScriptParserMixin.jsxParseElement (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4778:17)
+      at TypeScriptParserMixin.parseExprAtom (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:4788:19)
+      at TypeScriptParserMixin.parseExprSubscripts (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11145:23)
+      at TypeScriptParserMixin.parseUpdate (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11130:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/Users/larstuesca/Documents/agent-girl/chat-fe03fcf9/node_modules/@babel/parser/lib/index.js:11110:23)

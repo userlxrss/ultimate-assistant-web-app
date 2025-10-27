@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Mail, Link, Check, AlertCircle, RefreshCw, Settings, Calendar, ExternalLink } from 'lucide-react';
 import { realGmailAPI } from '../../utils/realGmailAPI';
 
-export const GmailSettings: React.FC = () => {
+export const GmailSettings: React.FC = React.memo(() => {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [gmailAddress, setGmailAddress] = useState('');
@@ -53,7 +53,7 @@ export const GmailSettings: React.FC = () => {
   };
 
   const handleDisconnect = () => {
-    gmailICalAPI.clearConnection();
+    realGmailAPI.clearConnection();
     setIsConnected(false);
     setEmails([]);
     setStatus('Disconnected from Gmail');
@@ -273,4 +273,5 @@ export const GmailSettings: React.FC = () => {
       )}
     </div>
   );
-};
+});
+GmailSettings.displayName = "GmailSettings";

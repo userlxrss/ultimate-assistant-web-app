@@ -8,9 +8,7 @@ interface OAuthIntegrationProps {
   onServiceConnected?: (service: string) => void;
 }
 
-export const OAuthIntegration: React.FC<OAuthIntegrationProps> = ({
-  onServiceConnected
-}) => {
+function OAuthIntegration({ onServiceConnected }: OAuthIntegrationProps) {
   const [authStatus, setAuthStatus] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { showSuccess, showError, showInfo } = useNotifications();
@@ -38,7 +36,7 @@ export const OAuthIntegration: React.FC<OAuthIntegrationProps> = ({
       window.removeEventListener('service-connected', handleServiceConnected as EventListener);
       window.removeEventListener('service-connection-error', handleServiceConnectionError as EventListener);
     };
-  }, [showSuccess, showError, onServiceConnected]);
+  }, [onServiceConnected]);
 
   const loadAuthStatus = async () => {
     try {
@@ -152,4 +150,6 @@ export const OAuthIntegration: React.FC<OAuthIntegrationProps> = ({
       </div>
     </div>
   );
-};
+}
+
+export { OAuthIntegration };

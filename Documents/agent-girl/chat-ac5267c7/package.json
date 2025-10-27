@@ -10,7 +10,10 @@
     "security-audit": "npm audit --audit-level=moderate",
     "security-fix": "npm audit fix --force",
     "gmail-server": "node gmail-imap-server.cjs",
-    "start-gmail": "chmod +x start-gmail-integration.sh && ./start-gmail-integration.sh"
+    "start-gmail": "chmod +x start-gmail-integration.sh && ./start-gmail-integration.sh",
+    "carddav-bridge": "node working-carddav-bridge.cjs",
+    "start-carddav": "chmod +x start-working-carddav.sh && ./start-working-carddav.sh",
+    "install-carddav-deps": "npm install express cors googleapis node-fetch xml2js"
   },
   "dependencies": {
     "@types/cors": "^2.8.19",
@@ -50,12 +53,14 @@
     "recharts": "^2.8.0",
     "redis": "^5.8.3",
     "winston": "^3.18.3",
+    "xml2js": "^0.6.2",
     "xss": "^1.0.15",
     "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
+    "@types/xml2js": "^0.4.14",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.16",
     "postcss": "^8.4.32",

@@ -37,36 +37,48 @@ class MotionAPIService {
     }
   }
 
-  // Make authenticated API requests
+  // Make authenticated API requests (using proxy to avoid CORS)
   private async makeRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     if (!this.apiKey) {
       throw new Error('Motion API key not configured. Please connect your Motion account in Settings.');
     }
 
-    const url = `${this.baseURL}${endpoint}`;
-    const headers = {
-      'Content-Type': 'application/json',
-      'X-API-Key': this.apiKey,
-      ...options.headers,
-    };
+    // Use our proxy endpoint to avoid CORS issues
+    const proxyUrl = 'http://localhost:3013/api/motion/tasks';
 
     try {
-      const response = await fetch(url, {
-        ...options,
-        headers,
+      console.log('🎯 Making Motion API request via proxy...');
+
+      const response = await fetch(proxyUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          apiKey: this.apiKey
+        })
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Motion API Error (${response.status}): ${errorText}`);
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.message || `Motion API Error (${response.status})`;
+        throw new Error(errorMessage);
       }
 
-      return await response.json();
+      const data = await response.json();
+      console.log(`✅ Motion API proxy response received:`, data);
+
+      if (!data.success) {
+        throw new Error(data.message || 'Motion API request failed');
+      }
+
+      return data;
     } catch (error) {
+      console.error('Motion API proxy error:', error);
       if (error instanceof Error) {
         throw error;
       }
-      throw new Error('Failed to connect to Motion API');
+      throw new Error('Failed to connect to Motion API via proxy');
     }
   }
 
@@ -140,39 +152,12 @@ class MotionAPIService {
     this.operations.push(operation);
 
     try {
-      // Get current user if we don't have their ID yet
-      if (!this.currentUserId) {
-        const userResponse = await this.getCurrentUser();
-        if (!userResponse.success) {
-          throw new Error('Failed to get current user information');
-        }
-      }
-
-      let endpoint = '/tasks';
-      const params = new URLSearchParams();
-
-      if (workspaceId) {
-        params.append('workspaceId', workspaceId);
-      }
-
-      // Add filters to get only tasks assigned to the current user
-      // Use the correct Motion API parameter: assigneeId
-      if (this.currentUserId) {
-        params.append('assigneeId', this.currentUserId);
-      }
-
-      // Filter for tasks that are not completed (optional - remove if you want to see all tasks)
-      // params.append('status', 'not-completed');
-
-      if (params.toString()) {
-        endpoint += `?${params.toString()}`;
-      }
-
       operation.status = 'syncing';
 
-      const response = await this.makeRequest<{ meta: any; tasks: any[] }>(endpoint);
+      // Use our proxy which handles all the Motion API details
+      const response = await this.makeRequest<any>('');
 
-      const tasks = response.tasks.map(task => this.convertMotionTask(task));
+      const tasks = response.data?.tasks || [];
 
       operation.status = 'completed';
 

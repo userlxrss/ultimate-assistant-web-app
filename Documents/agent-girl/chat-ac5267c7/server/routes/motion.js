@@ -20,11 +20,11 @@ const requireMotionAuth = (req, res, next) => {
 router.use(requireMotionAuth);
 
 // Helper function to make authenticated Motion API requests
-const makeMotionRequest = async (endpoint, options = {}) => {
+const makeMotionRequest = async (apiKey, endpoint, options = {}) => {
   const url = `${MOTION_API_BASE_URL}${endpoint}`;
   const config = {
     headers: {
-      'X-API-Key': req.session.motionApiKey,
+      'X-API-Key': apiKey,
       'Content-Type': 'application/json',
       ...options.headers
     },
@@ -49,7 +49,7 @@ const makeMotionRequest = async (endpoint, options = {}) => {
 router.get('/test', async (req, res) => {
   try {
     // Test with a simple API call
-    const response = await makeMotionRequest('/tasks', {
+    const response = await makeMotionRequest(req.session.motionApiKey,req.session.motionApiKey, '/tasks', {
       params: { limit: 1 }
     });
 
@@ -95,7 +95,7 @@ router.get('/tasks', async (req, res) => {
     if (assigneeId) params.assigneeId = assigneeId;
     if (dueDate) params.dueDate = dueDate;
 
-    const response = await makeMotionRequest('/tasks', { params });
+    const response = await makeMotionRequest(req.session.motionApiKey,'/tasks', { params });
 
     res.json({
       tasks: response.tasks || [],
@@ -112,7 +112,7 @@ router.post('/tasks', async (req, res) => {
   try {
     const taskData = req.body;
 
-    const response = await makeMotionRequest('/tasks', {
+    const response = await makeMotionRequest(req.session.motionApiKey,'/tasks', {
       method: 'POST',
       data: taskData
     });
@@ -129,7 +129,7 @@ router.put('/tasks/:id', async (req, res) => {
     const { id } = req.params;
     const taskData = req.body;
 
-    const response = await makeMotionRequest(`/tasks/${id}`, {
+    const response = await makeMotionRequest(req.session.motionApiKey,`/tasks/${id}`, {
       method: 'PUT',
       data: taskData
     });
@@ -145,7 +145,7 @@ router.delete('/tasks/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    await makeMotionRequest(`/tasks/${id}`, {
+    await makeMotionRequest(req.session.motionApiKey,`/tasks/${id}`, {
       method: 'DELETE'
     });
 
@@ -174,7 +174,7 @@ router.get('/projects', async (req, res) => {
 
     if (status) params.status = status;
 
-    const response = await makeMotionRequest('/projects', { params });
+    const response = await makeMotionRequest(req.session.motionApiKey,'/projects', { params });
 
     res.json({
       projects: response.projects || [],
@@ -191,7 +191,7 @@ router.post('/projects', async (req, res) => {
   try {
     const projectData = req.body;
 
-    const response = await makeMotionRequest('/projects', {
+    const response = await makeMotionRequest(req.session.motionApiKey,'/projects', {
       method: 'POST',
       data: projectData
     });
@@ -206,7 +206,7 @@ router.post('/projects', async (req, res) => {
 // Users endpoints
 router.get('/users', async (req, res) => {
   try {
-    const response = await makeMotionRequest('/users');
+    const response = await makeMotionRequest(req.session.motionApiKey,'/users');
 
     res.json({
       users: response.users || []
@@ -220,7 +220,7 @@ router.get('/users', async (req, res) => {
 // Workspace endpoint
 router.get('/workspace', async (req, res) => {
   try {
-    const response = await makeMotionRequest('/workspace');
+    const response = await makeMotionRequest(req.session.motionApiKey,'/workspace');
 
     res.json(response);
   } catch (error) {
@@ -234,9 +234,9 @@ router.get('/sync/status', async (req, res) => {
   try {
     // Get counts from different endpoints
     const [tasksResponse, projectsResponse, workspaceResponse] = await Promise.allSettled([
-      makeMotionRequest('/tasks', { params: { limit: 1 } }),
-      makeMotionRequest('/projects', { params: { limit: 1 } }),
-      makeMotionRequest('/workspace')
+      makeMotionRequest(req.session.motionApiKey,'/tasks', { params: { limit: 1 } }),
+      makeMotionRequest(req.session.motionApiKey,'/projects', { params: { limit: 1 } }),
+      makeMotionRequest(req.session.motionApiKey,'/workspace')
     ]);
 
     const tasksTotal = tasksResponse.status === 'fulfilled' ? tasksResponse.value.total || 0 : 0;

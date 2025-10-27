@@ -47,7 +47,9 @@ export const EmailInbox: React.FC<EmailInboxProps> = ({
     }
   };
 
-  const formatDate = (date: Date) => {
+  const formatDate = (date: Date | undefined) => {
+    if (!date) return 'Unknown';
+
     const now = new Date();
     const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
 

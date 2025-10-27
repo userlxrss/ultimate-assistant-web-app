@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { RefreshCw, Check, AlertCircle, Key, Link, Eye, EyeOff } from 'lucide-react';
+import { authManager } from '../../utils/authManager';
 
 interface MotionOAuthIntegrationProps {
   isConnected: boolean;
@@ -17,6 +18,16 @@ export const MotionOAuthIntegration: React.FC<MotionOAuthIntegrationProps> = ({
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('');
 
+  // Check for persistent Motion session on component mount
+  useEffect(() => {
+    const motionSession = authManager.getMotionSession();
+    if (motionSession && !isConnected) {
+      console.log('🎯 Restoring persistent Motion session');
+      // Auto-connect using the stored API key
+      onConnect(motionSession.apiKey);
+    }
+  }, [isConnected, onConnect]);
+
   const handleConnect = async () => {
     if (!apiKey.trim()) {
       setConnectionStatus('Please enter your Motion API key');
@@ -27,9 +38,15 @@ export const MotionOAuthIntegration: React.FC<MotionOAuthIntegrationProps> = ({
     setConnectionStatus('Connecting to Motion...');
 
     try {
-      await onConnect(apiKey.trim());
+      const trimmedApiKey = apiKey.trim();
+      await onConnect(trimmedApiKey);
+
+      // Save the API key persistently
+      authManager.saveMotionSession(trimmedApiKey);
+
       setConnectionStatus('Successfully connected to Motion!');
       setApiKey('');
+      console.log('🎯 Motion session saved persistently');
     } catch (error) {
       setConnectionStatus(`Connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
@@ -39,7 +56,10 @@ export const MotionOAuthIntegration: React.FC<MotionOAuthIntegrationProps> = ({
 
   const handleDisconnect = () => {
     onDisconnect();
+    // Clear the persistent session
+    authManager.clearMotionSession();
     setConnectionStatus('Disconnected from Motion');
+    console.log('🎯 Motion session cleared');
   };
 
   const copyInstructions = () => {

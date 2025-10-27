@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { CalendarEvent, ConflictResolution } from '../../types/calendar';
 import { generateSampleEvents } from '../../data/calendarData';
 import { useNotifications } from '../NotificationSystem';
+import { authManager } from '../../utils/authManager';
 import { CalendarMonth } from './CalendarMonth';
 import { CalendarDay } from './CalendarDay';
 import { CalendarAgenda } from './CalendarAgenda';
@@ -79,9 +80,11 @@ const CalendarApp: React.FC = () => {
 
   // Sync with Google Calendar
   const syncWithGoogleCalendar = useCallback(async () => {
-    if (!isGoogleConnected) {
-      showError('Not Connected', 'Please connect your Google Calendar in Settings first');
-      return;
+    console.log('📅 Starting Google Calendar sync, current auth status:', isGoogleConnected);
+
+    // Allow sync even if not "connected" since we have multiple auth methods
+    if (!getCalendarAPI().isAuthenticated()) {
+      console.log('📅 Calendar API not authenticated, but attempting sync anyway...');
     }
 
     setIsSyncing(true);
@@ -104,8 +107,33 @@ const CalendarApp: React.FC = () => {
 
   // Check Google Calendar connection on mount
   useEffect(() => {
-    const currentAPI = getCalendarAPI();
-    setIsGoogleConnected(currentAPI.isAuthenticated());
+    // Check AuthManager first
+    const authStatus = authManager.getAuthStatus();
+    console.log('📅 CalendarApp auth check:', authStatus);
+
+    // Priority 1: Check AuthManager for Google session
+    let isConnected = authStatus.google;
+
+    // Priority 2: Check for iCal URL (alternative authentication)
+    if (!isConnected) {
+      const icalUrl = localStorage.getItem('google_calendar_ical_url');
+      if (icalUrl) {
+        isConnected = true;
+        console.log('📅 Using iCal URL authentication');
+      }
+    }
+
+    // Priority 3: Check individual tokens (fallback)
+    if (!isConnected) {
+      const googleToken = localStorage.getItem('google_access_token');
+      if (googleToken) {
+        isConnected = true;
+        console.log('📅 Using individual token authentication');
+      }
+    }
+
+    console.log('📅 Final Google Calendar connection status:', isConnected);
+    setIsGoogleConnected(isConnected);
 
     // Listen for Google Calendar sync events from Settings
     const handleSyncEvent = (event: CustomEvent) => {
