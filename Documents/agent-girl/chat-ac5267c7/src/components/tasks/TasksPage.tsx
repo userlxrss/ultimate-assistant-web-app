@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, CheckCircle, Clock, List, Grid, RotateCcw, Timer, Play, Pause } from 'lucide-react';
 import { Task, TaskFilter } from '../../types/tasks';
 import { filterTasks } from '../../utils/taskUtils';
-import { generateTasks } from '../../utils/dataGenerator';
+import { generateRealTasks, getTodayTasks } from '../../utils/realTaskData';
 import { motionAPI } from '../../utils/motionApi';
 import { useTimer } from '../../contexts/TimerContext';
 import { formatMinutesDisplay, calculateDailyFocusTime, formatTimerDisplay } from '../../utils/timerUtils';
@@ -29,24 +29,31 @@ const TasksPage: React.FC = () => {
 
   const { timerState, addTimeToTimer, markTaskComplete, stopTimer, pauseTimer, resumeTimer } = useTimer();
 
-  // Load initial tasks and sync with Motion if connected
+  // Load initial tasks with smart data source selection
   useEffect(() => {
     const loadTasks = async () => {
+      setSyncStatus('Loading tasks...');
+
       if (motionAPI.hasApiKey()) {
         // Try to load tasks from Motion first
         try {
+          setSyncStatus('Connecting to Motion...');
           const motionTasks = await motionAPI.getTasks();
           if (motionTasks.success && motionTasks.data?.tasks) {
             setTasks(motionTasks.data.tasks);
+            setSyncStatus(`✅ Synced ${motionTasks.data.tasks.length} tasks from Motion`);
             return;
           }
         } catch (error) {
-          console.warn('Failed to load tasks from Motion, using demo data:', error);
+          console.warn('Failed to load tasks from Motion, using realistic data:', error);
+          setSyncStatus('Motion connection failed, using realistic task data');
         }
       }
-      // Fallback to demo tasks
-      const initialTasks = generateTasks(30);
-      setTasks(initialTasks);
+
+      // Use realistic task data instead of dummy data
+      const realTasks = generateRealTasks();
+      setTasks(realTasks);
+      setSyncStatus(`✅ Loaded ${realTasks.length} realistic tasks (connect Motion for live data)`);
     };
 
     loadTasks();
