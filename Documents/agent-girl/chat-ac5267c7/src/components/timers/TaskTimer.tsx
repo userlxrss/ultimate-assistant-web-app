@@ -36,14 +36,14 @@ export const TaskTimer: React.FC<TaskTimerProps> = ({ task, className = '' }) =>
     if (!isActiveTask) return 'text-gray-500';
     if (isPaused) return 'text-yellow-500';
     if (timerState.hasReachedZero) return 'text-orange-500';
-    return 'text-sage-600 dark:text-sage-400';
+    return 'text-green-600 dark:text-green-400';
   };
 
   const getTimerBgColor = () => {
     if (!isActiveTask) return 'bg-gray-100 dark:bg-gray-800';
     if (isPaused) return 'bg-yellow-50 dark:bg-yellow-950/30 border-yellow-200 dark:border-yellow-900/50';
     if (timerState.hasReachedZero) return 'bg-orange-50 dark:bg-orange-950/30 border-orange-200 dark:border-orange-900/50';
-    return 'bg-sage-50 dark:bg-sage-950/30 border-sage-200 dark:border-sage-900/50';
+    return 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-900/50';
   };
 
   const handleTimerAction = (e: React.MouseEvent) => {

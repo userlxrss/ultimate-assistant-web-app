@@ -22,11 +22,7 @@ export const generateRealTasks = (): Task[] => {
       category: 'Communication',
       workspace: 'main',
       duration: 45,
-      subtasks: [
-        { id: 'sub-1-1', title: 'Client follow-ups', completed: false },
-        { id: 'sub-1-2', title: 'Team coordination', completed: true },
-        { id: 'sub-1-3', title: 'Calendar updates', completed: false }
-      ],
+      subtasks: [],
       tags: ['email', 'clients', 'urgent'],
       estimatedTime: 45,
       recurrence: 'daily',
@@ -46,11 +42,7 @@ export const generateRealTasks = (): Task[] => {
       category: 'Sales',
       workspace: 'main',
       duration: 90,
-      subtasks: [
-        { id: 'sub-2-1', title: 'Review budget estimates', completed: false },
-        { id: 'sub-2-2', title: 'Add timeline details', completed: false },
-        { id: 'sub-2-3', title: 'Proofread final version', completed: false }
-      ],
+      subtasks: [],
       tags: ['proposal', 'sales', 'client'],
       estimatedTime: 90,
       recurrence: 'none',
@@ -92,10 +84,7 @@ export const generateRealTasks = (): Task[] => {
       category: 'Documentation',
       workspace: 'main',
       duration: 60,
-      subtasks: [
-        { id: 'sub-4-1', title: 'API documentation updates', completed: false },
-        { id: 'sub-4-2', title: 'User guide revisions', completed: false }
-      ],
+      subtasks: [],
       tags: ['documentation', 'technical', 'sprint'],
       estimatedTime: 60,
       recurrence: 'weekly',
@@ -115,10 +104,7 @@ export const generateRealTasks = (): Task[] => {
       category: 'Development',
       workspace: 'main',
       duration: 45,
-      subtasks: [
-        { id: 'sub-5-1', title: 'Review authentication changes', completed: false },
-        { id: 'sub-5-2', title: 'Check UI component updates', completed: false }
-      ],
+      subtasks: [],
       tags: ['code-review', 'development', 'team'],
       estimatedTime: 45,
       recurrence: 'none',
@@ -138,10 +124,7 @@ export const generateRealTasks = (): Task[] => {
       category: 'HR',
       workspace: 'main',
       duration: 30,
-      subtasks: [
-        { id: 'sub-6-1', title: 'Send calendar invites', completed: false },
-        { id: 'sub-6-2', title: 'Prepare review templates', completed: true }
-      ],
+      subtasks: [],
       tags: ['hr', 'performance', 'planning'],
       estimatedTime: 30,
       recurrence: 'quarterly',
@@ -163,10 +146,7 @@ export const generateRealTasks = (): Task[] => {
       category: 'Organization',
       workspace: 'main',
       duration: 60,
-      subtasks: [
-        { id: 'sub-7-1', title: 'Archive old projects', completed: false },
-        { id: 'sub-7-2', title: 'Create folder structure', completed: false }
-      ],
+      subtasks: [],
       tags: ['organization', 'cleanup', 'maintenance'],
       estimatedTime: 60,
       recurrence: 'monthly',
@@ -186,11 +166,7 @@ export const generateRealTasks = (): Task[] => {
       category: 'Research',
       workspace: 'main',
       duration: 120,
-      subtasks: [
-        { id: 'sub-8-1', title: 'Research testing frameworks', completed: false },
-        { id: 'sub-8-2', title: 'Compare CI/CD tools', completed: false },
-        { id: 'sub-8-3', title: 'Prepare recommendation report', completed: false }
-      ],
+      subtasks: [],
       tags: ['research', 'tools', 'productivity'],
       estimatedTime: 120,
       recurrence: 'none',
@@ -212,11 +188,7 @@ export const generateRealTasks = (): Task[] => {
       category: 'Team',
       workspace: 'main',
       duration: 90,
-      subtasks: [
-        { id: 'sub-9-1', title: 'Survey team preferences', completed: true },
-        { id: 'sub-9-2', title: 'Book venue/activity', completed: false },
-        { id: 'sub-9-3', title: 'Send invitations', completed: false }
-      ],
+      subtasks: [],
       tags: ['team', 'planning', 'event'],
       estimatedTime: 90,
       recurrence: 'quarterly',
@@ -236,11 +208,7 @@ export const generateRealTasks = (): Task[] => {
       category: 'Personal',
       workspace: 'personal',
       duration: 120,
-      subtasks: [
-        { id: 'sub-10-1', title: 'Update project screenshots', completed: false },
-        { id: 'sub-10-2', title: 'Write project descriptions', completed: false },
-        { id: 'sub-10-3', title: 'Test responsive design', completed: false }
-      ],
+      subtasks: [],
       tags: ['portfolio', 'personal', 'development'],
       estimatedTime: 120,
       recurrence: 'none',
