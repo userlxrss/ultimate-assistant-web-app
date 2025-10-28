@@ -2,7 +2,7 @@ export interface Subtask {
   id: string;
   title: string;
   completed: boolean;
-  createdAt: Date;
+  createdAt: Date | string;
 }
 
 export interface Task {
@@ -10,9 +10,9 @@ export interface Task {
   title: string;
   description?: string;
   completed: boolean;
-  createdAt: Date;
-  completedAt?: Date;
-  dueDate?: Date;
+  createdAt: Date | string;
+  completedAt?: Date | string;
+  dueDate?: Date | string;
   priority: 'low' | 'medium' | 'high' | 'urgent';
   status: 'pending' | 'in-progress' | 'completed' | 'cancelled';
   category: string;
@@ -22,12 +22,12 @@ export interface Task {
   tags: string[];
   estimatedTime?: number; // in minutes
   actualTime?: number; // in minutes
-  recurrence?: 'none' | 'daily' | 'weekly' | 'monthly';
-  reminder?: Date;
+  recurrence?: 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly';
+  reminder?: Date | string;
   attachments?: string[];
   dependencies?: string[]; // task IDs
   syncStatus: 'synced' | 'pending' | 'error';
-  lastSyncAt?: Date;
+  lastSyncAt?: Date | string;
   projectId?: string;
   assignee?: string;
   color?: string;
@@ -71,7 +71,7 @@ export interface TaskOperation {
   taskId?: string;
   taskIds?: string[];
   data?: Partial<Task>;
-  timestamp: Date;
+  timestamp: Date | string;
   status: 'pending' | 'syncing' | 'completed' | 'error';
   error?: string;
 }
@@ -79,8 +79,8 @@ export interface TaskOperation {
 export interface TimeBlock {
   id: string;
   taskId: string;
-  startTime: Date;
-  endTime: Date;
+  startTime: Date | string;
+  endTime: Date | string;
   title: string;
   color?: string;
 }

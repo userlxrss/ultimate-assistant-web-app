@@ -11,8 +11,8 @@ class MotionAPIService {
   constructor() {
     // Priority 1: Environment variable (your API key)
     // In Vite, environment variables are accessed via import.meta.env
-    if (import.meta.env.VITE_MOTION_API_KEY) {
-      this.apiKey = import.meta.env.VITE_MOTION_API_KEY;
+    if ((import.meta as any).env?.VITE_MOTION_API_KEY) {
+      this.apiKey = (import.meta as any).env.VITE_MOTION_API_KEY;
       // Store in localStorage for persistence
       if (typeof window !== 'undefined') {
         localStorage.setItem('motion_api_key', this.apiKey);
@@ -209,13 +209,13 @@ class MotionAPIService {
       const motionTaskData = {
         name: taskData.title || 'Untitled Task',
         description: taskData.description,
-        dueDate: taskData.dueDate?.toISOString(),
+        dueDate: typeof taskData.dueDate === 'string' ? taskData.dueDate : taskData.dueDate?.toISOString(),
         priority: taskData.priority?.toUpperCase() || 'MEDIUM',
         duration: taskData.duration || taskData.estimatedTime || 60,
         workspaceId: taskData.workspace,
         labels: taskData.tags || [],
         recurringType: taskData.recurrence !== 'none' ? taskData.recurrence : undefined,
-        reminder: taskData.reminder?.toISOString()
+        reminder: typeof taskData.reminder === 'string' ? taskData.reminder : taskData.reminder?.toISOString()
       };
 
       const response = await this.makeRequest('/tasks', {
@@ -264,14 +264,14 @@ class MotionAPIService {
 
       if (updates.title !== undefined) motionUpdates.name = updates.title;
       if (updates.description !== undefined) motionUpdates.description = updates.description;
-      if (updates.dueDate !== undefined) motionUpdates.dueDate = updates.dueDate.toISOString();
+      if (updates.dueDate !== undefined) motionUpdates.dueDate = typeof updates.dueDate === 'string' ? updates.dueDate : updates.dueDate.toISOString();
       if (updates.priority !== undefined) motionUpdates.priority = updates.priority.toUpperCase();
       // Handle duration/estimatedTime synchronization
       if (updates.duration !== undefined) motionUpdates.duration = updates.duration;
       else if (updates.estimatedTime !== undefined) motionUpdates.duration = updates.estimatedTime;
       if (updates.tags !== undefined) motionUpdates.labels = updates.tags;
       if (updates.recurrence !== undefined) motionUpdates.recurringType = updates.recurrence !== 'none' ? updates.recurrence : undefined;
-      if (updates.reminder !== undefined) motionUpdates.reminder = updates.reminder.toISOString();
+      if (updates.reminder !== undefined) motionUpdates.reminder = typeof updates.reminder === 'string' ? updates.reminder : updates.reminder.toISOString();
 
       const response = await this.makeRequest(`/tasks/${taskId}`, {
         method: 'PATCH',
@@ -432,7 +432,10 @@ class MotionAPIService {
     const recentTime = now.getTime() - 5 * 60 * 1000; // Last 5 minutes
 
     const recentOperations = this.operations.filter(
-      op => op.timestamp.getTime() > recentTime
+      op => {
+        const timestamp = typeof op.timestamp === 'string' ? new Date(op.timestamp).getTime() : op.timestamp.getTime();
+        return timestamp > recentTime;
+      }
     );
 
     return {
@@ -466,7 +469,10 @@ class MotionAPIService {
   // Clear old operations
   clearOldOperations(): void {
     const oneHourAgo = new Date().getTime() - 60 * 60 * 1000;
-    this.operations = this.operations.filter(op => op.timestamp.getTime() > oneHourAgo);
+    this.operations = this.operations.filter(op => {
+      const timestamp = typeof op.timestamp === 'string' ? new Date(op.timestamp).getTime() : op.timestamp.getTime();
+      return timestamp > oneHourAgo;
+    });
   }
 }
 

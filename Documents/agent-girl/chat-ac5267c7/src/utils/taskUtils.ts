@@ -1,5 +1,25 @@
 import { Task, TaskFilter, TaskStats, Subtask, TimeBlock } from '../types/tasks';
 
+// Helper function to safely convert date strings to Date objects
+export const toDate = (date?: Date | string): Date | undefined => {
+  if (!date) return undefined;
+
+  if (date instanceof Date) {
+    return isNaN(date.getTime()) ? undefined : date;
+  }
+
+  const parsedDate = new Date(date);
+  return isNaN(parsedDate.getTime()) ? undefined : parsedDate;
+};
+
+// Helper function to safely format any date input
+export const safeFormatDate = (date?: Date | string, options?: Intl.DateTimeFormatOptions): string => {
+  const dateObj = toDate(date);
+  if (!dateObj) return 'Invalid date';
+
+  return dateObj.toLocaleDateString('en-US', options);
+};
+
 // Generate dummy tasks with realistic data
 export const generateDummyTasks = (): Task[] => {
   const now = new Date();
@@ -248,25 +268,26 @@ export const filterTasks = (tasks: Task[], filter: TaskFilter): Task[] => {
       const weekEnd = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
       const monthEnd = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
 
-      if (!task.dueDate) {
+      const dueDate = toDate(task.dueDate);
+      if (!dueDate) {
         return filter.dateRange === 'no-date';
       }
 
       switch (filter.dateRange) {
         case 'today':
-          if (task.dueDate < today || task.dueDate >= tomorrow) return false;
+          if (dueDate < today || dueDate >= tomorrow) return false;
           break;
         case 'overdue':
-          if (task.dueDate >= today) return false;
+          if (dueDate >= today) return false;
           break;
         case 'upcoming':
-          if (task.dueDate < tomorrow) return false;
+          if (dueDate < tomorrow) return false;
           break;
         case 'week':
-          if (task.dueDate < today || task.dueDate >= weekEnd) return false;
+          if (dueDate < today || dueDate >= weekEnd) return false;
           break;
         case 'month':
-          if (task.dueDate < today || task.dueDate >= monthEnd) return false;
+          if (dueDate < today || dueDate >= monthEnd) return false;
           break;
       }
     }
@@ -307,21 +328,25 @@ export const calculateTaskStats = (tasks: Task[]): TaskStats => {
   const completed = tasks.filter(task => task.completed);
   const incomplete = tasks.filter(task => !task.completed);
 
-  const overdue = incomplete.filter(task =>
-    task.dueDate && task.dueDate < today
-  );
+  const overdue = incomplete.filter(task => {
+    const dueDate = toDate(task.dueDate);
+    return dueDate && dueDate < today;
+  });
 
-  const dueToday = incomplete.filter(task =>
-    task.dueDate && task.dueDate >= today && task.dueDate < new Date(today.getTime() + 24 * 60 * 60 * 1000)
-  );
+  const dueToday = incomplete.filter(task => {
+    const dueDate = toDate(task.dueDate);
+    return dueDate && dueDate >= today && dueDate < new Date(today.getTime() + 24 * 60 * 60 * 1000);
+  });
 
-  const dueThisWeek = incomplete.filter(task =>
-    task.dueDate && task.dueDate >= today && task.dueDate < weekEnd
-  );
+  const dueThisWeek = incomplete.filter(task => {
+    const dueDate = toDate(task.dueDate);
+    return dueDate && dueDate >= today && dueDate < weekEnd;
+  });
 
-  const dueNextWeek = incomplete.filter(task =>
-    task.dueDate && task.dueDate >= weekEnd && task.dueDate < nextWeekEnd
-  );
+  const dueNextWeek = incomplete.filter(task => {
+    const dueDate = toDate(task.dueDate);
+    return dueDate && dueDate >= weekEnd && dueDate < nextWeekEnd;
+  });
 
   const noDueDate = incomplete.filter(task => !task.dueDate);
 
@@ -345,10 +370,16 @@ export const calculateTaskStats = (tasks: Task[]): TaskStats => {
   const completionRate = tasks.length > 0 ? (completed.length / tasks.length) * 100 : 0;
 
   // Calculate average completion time
-  const completedTasks = tasks.filter(task => task.completed && task.createdAt && task.completedAt);
+  const completedTasks = tasks.filter(task => {
+    const createdAt = toDate(task.createdAt);
+    const completedAt = toDate(task.completedAt);
+    return task.completed && createdAt && completedAt;
+  });
   const averageCompletionTime = completedTasks.length > 0
     ? completedTasks.reduce((sum, task) => {
-        const time = (task.completedAt!.getTime() - task.createdAt.getTime()) / (1000 * 60 * 60);
+        const createdAt = toDate(task.createdAt)!;
+        const completedAt = toDate(task.completedAt)!;
+        const time = (completedAt.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
         return sum + time;
       }, 0) / completedTasks.length
     : 0;
@@ -375,22 +406,30 @@ export const calculateTaskStats = (tasks: Task[]): TaskStats => {
 };
 
 // Format task due date for display
-export const formatDueDate = (date?: Date): string => {
+export const formatDueDate = (date?: Date | string): string => {
   if (!date) return 'No due date';
+
+  // Convert string to Date if needed
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+
+  // Check if the date is invalid
+  if (isNaN(dateObj.getTime())) {
+    return 'Invalid date';
+  }
 
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
-  const taskDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const taskDate = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
 
   if (taskDate < today) {
-    return `Overdue (${date.toLocaleDateString()})`;
+    return `Overdue (${dateObj.toLocaleDateString()})`;
   } else if (taskDate.getTime() === today.getTime()) {
-    return `Today at ${date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`;
+    return `Today at ${dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`;
   } else if (taskDate.getTime() === tomorrow.getTime()) {
-    return `Tomorrow at ${date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`;
+    return `Tomorrow at ${dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`;
   } else {
-    return date.toLocaleDateString('en-US', {
+    return dateObj.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
@@ -423,7 +462,11 @@ export const generateTimeBlocks = (tasks: Task[]): TimeBlock[] => {
 
   // Sort tasks by due date and priority
   const sortedTasks = tasks
-    .filter(task => !task.completed && task.dueDate && task.dueDate >= today)
+    .filter(task => {
+      if (task.completed) return false;
+      const dueDate = toDate(task.dueDate);
+      return dueDate && dueDate >= today;
+    })
     .sort((a, b) => {
       // Sort by priority first
       const priorityOrder = { urgent: 0, high: 1, medium: 2, low: 3 };
@@ -431,7 +474,9 @@ export const generateTimeBlocks = (tasks: Task[]): TimeBlock[] => {
       if (priorityDiff !== 0) return priorityDiff;
 
       // Then by due date
-      return a.dueDate!.getTime() - b.dueDate!.getTime();
+      const aDueDate = toDate(a.dueDate)!;
+      const bDueDate = toDate(b.dueDate)!;
+      return aDueDate.getTime() - bDueDate.getTime();
     });
 
   let currentTime = new Date(today.getTime() + 9 * 60 * 60 * 1000); // Start at 9 AM
