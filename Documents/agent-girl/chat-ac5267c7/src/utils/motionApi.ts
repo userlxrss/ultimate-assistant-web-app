@@ -10,14 +10,15 @@ class MotionAPIService {
   // Initialize with API key from environment or localStorage
   constructor() {
     // Priority 1: Environment variable (your API key)
-    if (process.env.REACT_APP_MOTION_API_KEY) {
-      this.apiKey = process.env.REACT_APP_MOTION_API_KEY;
+    // In Vite, environment variables are accessed via import.meta.env
+    if (import.meta.env.VITE_MOTION_API_KEY) {
+      this.apiKey = import.meta.env.VITE_MOTION_API_KEY;
       // Store in localStorage for persistence
       if (typeof window !== 'undefined') {
         localStorage.setItem('motion_api_key', this.apiKey);
       }
     }
-    // Priority 2: Check localStorage (fallback)
+    // Fallback: Check localStorage
     else if (typeof window !== 'undefined') {
       this.apiKey = localStorage.getItem('motion_api_key');
     }
