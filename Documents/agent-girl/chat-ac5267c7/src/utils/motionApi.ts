@@ -7,15 +7,15 @@ class MotionAPIService {
   private operations: TaskOperation[] = [];
   private currentUserId: string | null = null;
 
-  // Initialize with API key from localStorage
+  // Initialize with API key from localStorage or environment
   constructor() {
     if (typeof window !== 'undefined') {
       this.apiKey = localStorage.getItem('motion_api_key');
-      // Temporary: Use the provided API key if not in localStorage
-      if (!this.apiKey) {
-        this.apiKey = 'AARvN4IMgBFo6Jvr5IcBHyk8vjg8Z/3h4aUB58wWW1E=';
-        localStorage.setItem('motion_api_key', this.apiKey);
-      }
+    }
+
+    // Check for environment variable (server-side)
+    if (!this.apiKey && process.env.REACT_APP_MOTION_API_KEY) {
+      this.apiKey = process.env.REACT_APP_MOTION_API_KEY;
     }
   }
 
