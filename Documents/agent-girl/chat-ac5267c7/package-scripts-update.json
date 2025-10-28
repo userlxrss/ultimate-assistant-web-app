@@ -1,6 +1,0 @@
-{
-  "scripts": {
-    "google-contacts": "chmod +x start-google-contacts-server.sh && ./start-google-contacts-server.sh",
-    "google-contacts-oauth": "node google-contacts-oauth-server.cjs"
-  }
-}
