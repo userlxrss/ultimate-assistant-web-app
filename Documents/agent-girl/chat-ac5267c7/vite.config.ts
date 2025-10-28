@@ -13,5 +13,32 @@ export default defineConfig({
         secure: true
       }
     }
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Separate vendor libraries
+          vendor: ['react', 'react-dom'],
+          // Chart libraries - lazy load
+          charts: ['recharts', 'react-chartjs-2', 'chart.js'],
+          // Utility libraries
+          utils: ['axios', 'date-fns', 'lucide-react'],
+          // Google APIs - separate chunk
+          google: ['googleapis'],
+          // Data validation
+          validation: ['zod', 'joi']
+        }
+      }
+    },
+    // Optimize chunks
+    chunkSizeWarningLimit: 1000,
+    // Enable source maps for debugging
+    sourcemap: true
+  },
+  // Optimize dependencies
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'axios', 'date-fns'],
+    exclude: ['recharts', 'chart.js'] // Lazy load chart libraries
   }
 })

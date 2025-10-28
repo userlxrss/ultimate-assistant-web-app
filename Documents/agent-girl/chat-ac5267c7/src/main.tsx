@@ -2,9 +2,10 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
+import { logger } from './utils/logger'
 
-console.log('🚀 main.tsx is loading...');
-console.log('React version:', React.version);
+logger.debug('🚀 main.tsx is loading...');
+logger.debug('React version:', React.version);
 
 // Security: HTML escaping utility to prevent XSS
 const escapeHtml = (unsafe: string): string => {
@@ -98,7 +99,7 @@ const SecureErrorDisplay: React.FC<{ error: Error }> = ({ error }) => {
 
 try {
   const root = ReactDOM.createRoot(document.getElementById('root')!);
-  console.log('✅ React root created successfully');
+  logger.info('✅ React root created successfully');
 
   // Wrap app with error boundary
   root.render(
@@ -109,7 +110,7 @@ try {
     )
   );
 
-  console.log('✅ App rendered successfully');
+  logger.info('✅ App rendered successfully');
 } catch (error) {
   console.error('❌ Error rendering app:', error);
   
