@@ -11,6 +11,11 @@ class MotionAPIService {
   constructor() {
     if (typeof window !== 'undefined') {
       this.apiKey = localStorage.getItem('motion_api_key');
+      // Temporary: Use the provided API key if not in localStorage
+      if (!this.apiKey) {
+        this.apiKey = 'AARvN4IMgBFo6Jvr5IcBHyk8vjg8Z/3h4aUB58wWW1E=';
+        localStorage.setItem('motion_api_key', this.apiKey);
+      }
     }
   }
 
