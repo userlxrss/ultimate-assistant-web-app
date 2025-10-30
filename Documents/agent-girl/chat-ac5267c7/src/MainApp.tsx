@@ -11,32 +11,46 @@ import ContactsApp from './components/contacts/ContactsApp';
 import { SettingsPanelStable } from './components/SettingsStable';
 import { NotificationProvider } from './components/NotificationSystem';
 import { TimerProvider } from './contexts/TimerContext';
-import { OAuthSimpleConnect } from './components/OAuthSimpleConnect';
+import { GoogleAuthSimple } from './components/auth/GoogleAuthSimple';
 import { AuthStatusIndicator } from './components/AuthStatusIndicator';
+import OAuthTestPage from './components/OAuthTestPage';
 
-type ActiveModule = 'dashboard' | 'journal' | 'tasks' | 'calendar' | 'email' | 'contacts' | 'settings' | 'oauth';
+type ActiveModule = 'dashboard' | 'journal' | 'tasks' | 'calendar' | 'email' | 'contacts' | 'settings' | 'oauth' | 'oauth-test';
 
 const MainApp: React.FC = () => {
-  const [activeModule, setActiveModule] = useState<ActiveModule>('contacts');
+  const [activeModule, setActiveModule] = useState<ActiveModule>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   const [dateRange, setDateRange] = useState('30');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userInfo, setUserInfo] = useState<any>(null);
+
+  // Handle authentication success
+  const handleAuthSuccess = useCallback((user: any) => {
+    console.log('✅ Authentication successful:', user);
+    setUserInfo(user);
+    setIsAuthenticated(true);
+    // Redirect to dashboard after successful authentication
+    setActiveModule('dashboard');
+  }, []);
+
+  // Handle authentication error
+  const handleAuthError = useCallback((error: string) => {
+    console.error('❌ Authentication error:', error);
+  }, []);
 
   // Handle service disconnections with stable callbacks
   const handleGmailDisconnect = useCallback(() => {
     console.log('📧 Gmail disconnected from main app');
-    // Could trigger a refresh of the email component or update state
   }, []);
 
   const handleMotionDisconnect = useCallback(() => {
     console.log('🎯 Motion disconnected from main app');
-    // Could trigger a refresh of the tasks component or update state
   }, []);
 
   const handleGoogleDisconnect = useCallback(() => {
     console.log('📅 Google Calendar disconnected from main app');
-    // Could trigger a refresh of the calendar component or update state
   }, []);
 
   const toggleDarkMode = useCallback(() => {
@@ -48,7 +62,6 @@ const MainApp: React.FC = () => {
     const checkAuthStatus = () => {
       const authStatus = authManager.getAuthStatus();
       console.log('🔐 Global auth status check:', authStatus);
-      // This will trigger re-renders in child components
     };
 
     checkAuthStatus();
@@ -63,8 +76,6 @@ const MainApp: React.FC = () => {
     // Listen for tab activation to refresh components if needed
     const handleTabActivation = () => {
       console.log('🔄 Tab activated, checking component refresh needs...');
-
-      // Trigger a custom event that components can listen to
       window.dispatchEvent(new CustomEvent('tabActivated'));
     };
 
@@ -83,16 +94,16 @@ const MainApp: React.FC = () => {
 
   const handleExport = useCallback(() => {
     console.log('📊 Exporting dashboard data...');
-    // Implement export functionality
   }, []);
 
   const navigationItems = [
     { icon: BarChart3, label: 'Dashboard', id: 'dashboard' as ActiveModule },
     { icon: PenSquare, label: 'Journal', id: 'journal' as ActiveModule },
-    { icon: CheckSquare, label: 'Tasks', id: 'tasks' as ActiveModule, badge: 'green' },
-    { icon: Calendar, label: 'Calendar', id: 'calendar' as ActiveModule, badge: 'red' },
+    { icon: CheckSquare, label: 'Tasks', id: 'tasks' as ActiveModule },
+    { icon: Calendar, label: 'Calendar', id: 'calendar' as ActiveModule },
     { icon: Mail, label: 'Email', id: 'email' as ActiveModule },
     { icon: Users, label: 'Contacts', id: 'contacts' as ActiveModule },
+    { icon: Shield, label: 'OAuth Test', id: 'oauth-test' as ActiveModule },
     { icon: Shield, label: 'OAuth', id: 'oauth' as ActiveModule },
     { icon: Settings, label: 'Settings', id: 'settings' as ActiveModule }
   ];
@@ -116,68 +127,108 @@ const MainApp: React.FC = () => {
         return <EmailApp />;
       case 'contacts':
         return <ContactsApp />;
+      case 'oauth-test':
+        return <OAuthTestPage />;
       case 'oauth':
-        return <OAuthSimpleConnect />;
+        return (
+          <div className="p-6">
+            <GoogleAuthSimple
+              onAuthSuccess={handleAuthSuccess}
+              onAuthError={handleAuthError}
+              serverUrl="http://localhost:3006"
+            />
+          </div>
+        );
       case 'settings':
         return (
           <SettingsPanelStable
-            dateRange={dateRange}
             onDateRangeChange={handleDateRangeChange}
+            dateRange={dateRange}
             onExport={handleExport}
+            onGmailDisconnect={handleGmailDisconnect}
+            onMotionDisconnect={handleMotionDisconnect}
+            onGoogleDisconnect={handleGoogleDisconnect}
+            darkMode={darkMode}
+            onToggleDarkMode={toggleDarkMode}
           />
         );
       default:
-        return <ContactsApp />;
+        return (
+          <div className="p-6 text-center">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Module Not Found</h2>
+            <p className="text-gray-600">The requested module could not be loaded.</p>
+          </div>
+        );
     }
-  }, [activeModule, dateRange, handleDateRangeChange, handleExport]);
+  }, [activeModule, handleAuthSuccess, handleAuthError, handleDateRangeChange, dateRange, handleExport, handleGmailDisconnect, handleMotionDisconnect, handleGoogleDisconnect, darkMode, toggleDarkMode]);
 
   return (
     <NotificationProvider>
-      <div className="flex h-screen bg-white">
-        {/* Left Sidebar - EXACTLY like your screenshot */}
-        <aside className="w-64 bg-gray-50 border-r border-gray-200 flex flex-col">
-          {/* Sidebar Header */}
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <h1 className="font-bold text-xl text-gray-900">Productivity Hub</h1>
-              <button className="text-gray-400 hover:text-gray-600 transition-colors">
-                <X className="w-4 h-4" />
-              </button>
+      <div className="flex h-screen bg-gray-50">
+        {/* Sidebar */}
+        <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-white border-r border-gray-200 transition-all duration-300 ease-in-out flex flex-col`}>
+          {/* Logo/Brand */}
+          <div className="p-4 border-b border-gray-200">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">P</span>
+              </div>
+              {sidebarOpen && (
+                <span className="font-semibold text-gray-900">Productivity Hub</span>
+              )}
             </div>
           </div>
 
-          {/* Navigation Items */}
-          <nav className="flex-1 p-4">
-            <div className="space-y-1">
-              {navigationItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = activeModule === item.id;
+          {/* Navigation */}
+          <nav className="flex-1 p-4 space-y-2">
+            {navigationItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeModule === item.id;
 
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => setActiveModule(item.id)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                      isActive
-                        ? 'bg-blue-50 text-blue-600 border border-blue-200'
-                        : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    <div className="relative">
-                      <Icon className="w-5 h-5" />
-                      {item.badge === 'green' && (
-                        <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full"></span>
-                      )}
-                      {item.badge === 'red' && (
-                        <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-                      )}
-                    </div>
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveModule(item.id)}
+                  className={`w-full flex items-center ${sidebarOpen ? 'space-x-3' : 'justify-center'} px-3 py-2 rounded-lg transition-colors ${
+                    isActive
+                      ? 'bg-blue-50 text-blue-600'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  <Icon className="w-5 h-5 flex-shrink-0" />
+                  {sidebarOpen && (
                     <span className="font-medium">{item.label}</span>
-                  </button>
-                );
-              })}
-            </div>
+                  )}
+                  {item.id === 'oauth' && (
+                    <span className="ml-auto">
+                      {isAuthenticated ? (
+                        <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                      ) : (
+                        <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
+                      )}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </nav>
+
+          {/* Auth Status */}
+          {sidebarOpen && (
+            <div className="p-4 border-t border-gray-200">
+              <AuthStatusIndicator />
+            </div>
+          )}
+
+          {/* Sidebar Toggle */}
+          <div className="p-4 border-t border-gray-200">
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="w-full flex items-center justify-center px-3 py-2 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors"
+            >
+              <X className={`w-5 h-5 transform transition-transform ${sidebarOpen ? 'rotate-180' : ''}`} />
+            </button>
+          </div>
         </aside>
 
         {/* Main Content Area */}
@@ -187,7 +238,7 @@ const MainApp: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-1">
-                  Welcome back! 👋
+                  {isAuthenticated ? `Welcome back, ${userInfo?.name || 'User'}! 👋` : 'Welcome! 👋'}
                 </h2>
                 <p className="text-gray-500">
                   {activeModule === 'dashboard' && `Here's your productivity overview for last ${dateRange} days`}
@@ -196,7 +247,8 @@ const MainApp: React.FC = () => {
                   {activeModule === 'calendar' && 'Schedule and organize your events'}
                   {activeModule === 'email' && 'Manage your communications'}
                   {activeModule === 'contacts' && 'Organize your network'}
-                  {activeModule === 'oauth' && 'Connect your services'}
+                  {activeModule === 'oauth-test' && 'Test the OAuth 2.0 authentication system'}
+                  {activeModule === 'oauth' && isAuthenticated ? 'Manage your Google account connections' : 'Connect your Google account'}
                   {activeModule === 'settings' && 'Configure your preferences'}
                 </p>
               </div>
