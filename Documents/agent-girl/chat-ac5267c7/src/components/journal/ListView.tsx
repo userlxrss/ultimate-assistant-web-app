@@ -1,14 +1,58 @@
 import React, { useState } from 'react';
-import { Search, Edit3, Trash2, Calendar, Tag, TrendingUp, Clock } from 'lucide-react';
+import { Search, Edit3, Trash2, Calendar, Tag, TrendingUp, Clock, List, Folder } from 'lucide-react';
 import { ExtendedJournalEntry } from '../../types/journal';
 
 interface ListViewProps {
   entries: ExtendedJournalEntry[];
   onEditEntry: (entry: ExtendedJournalEntry) => void;
   onDeleteEntry: (id: string) => void;
+  expandedMonths?: string[];
+  viewMode?: 'folders' | 'recent';
+  toggleMonth?: (monthYear: string) => void;
+  organizeEntriesByMonth?: () => Record<string, {
+    entries: ExtendedJournalEntry[];
+    avgMood: number | string;
+    totalEntries: number;
+  }>;
+  getMonthEmoji?: (avgMood: number | string) => string;
+  formatEntryDate?: (date: Date) => string;
+  setViewMode?: (viewMode: 'folders' | 'recent') => void;
+  searchQuery?: string;
+  selectedEntries?: Set<string>;
+  selectMode?: boolean;
+  toggleEntrySelection?: (entryId: string) => void;
+  selectAllInMonth?: (entries: ExtendedJournalEntry[]) => void;
+  deselectAllInMonth?: (entries: ExtendedJournalEntry[]) => void;
+  isMonthFullySelected?: (entries: ExtendedJournalEntry[]) => boolean;
+  exportMonthToMD?: (monthYear: string, entries: ExtendedJournalEntry[]) => void;
+  clearSelection?: () => void;
+  exportSelectedToMD?: () => void;
+  setSelectMode?: (selectMode: boolean) => void;
 }
 
-const ListView: React.FC<ListViewProps> = ({ entries, onEditEntry, onDeleteEntry }) => {
+const ListView: React.FC<ListViewProps> = ({
+  entries,
+  onEditEntry,
+  onDeleteEntry,
+  expandedMonths = [],
+  viewMode = 'folders',
+  toggleMonth,
+  organizeEntriesByMonth,
+  getMonthEmoji,
+  formatEntryDate,
+  setViewMode,
+  searchQuery = '',
+  selectedEntries = new Set(),
+  selectMode = false,
+  toggleEntrySelection,
+  selectAllInMonth,
+  deselectAllInMonth,
+  isMonthFullySelected,
+  exportMonthToMD,
+  clearSelection,
+  exportSelectedToMD,
+  setSelectMode
+}) => {
   const [sortBy, setSortBy] = useState<'date' | 'mood' | 'tags'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [expandedEntry, setExpandedEntry] = useState<string | null>(null);
@@ -60,34 +104,72 @@ const ListView: React.FC<ListViewProps> = ({ entries, onEditEntry, onDeleteEntry
     <div className="glass-card">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-          List View ({entries.length} entries)
+          Recent Entries ({entries.length} entries)
         </h2>
 
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-600 dark:text-gray-300">Sort by:</span>
-          {[
-            { key: 'date', label: 'Date', icon: Calendar },
-            { key: 'mood', label: 'Mood', icon: TrendingUp },
-            { key: 'tags', label: 'Tags', icon: Tag }
-          ].map(({ key, label, icon: Icon }) => (
-            <button
-              key={key}
-              onClick={() => toggleSort(key as any)}
-              className={`flex items-center gap-1 px-3 py-1 rounded-lg transition-all duration-200 ${
-                sortBy === key
-                  ? 'bg-sage-500/20 text-sage-600 dark:text-sage-400'
-                  : 'glass-button hover:bg-white/30 text-gray-600 dark:text-gray-300'
-              }`}
-            >
-              <Icon className="w-3 h-3" />
-              <span className="text-sm">{label}</span>
-              {sortBy === key && (
-                <span className="text-xs ml-1">
-                  {sortOrder === 'asc' ? '↑' : '↓'}
-                </span>
+        <div className="flex items-center gap-3">
+          {selectMode ? (
+            <>
+              <button
+                className="action-btn export-btn"
+                onClick={exportSelectedToMD}
+                disabled={selectedEntries.size === 0}
+              >
+                📥 Export ({selectedEntries.size})
+              </button>
+              <button
+                className="action-btn cancel-btn"
+                onClick={clearSelection}
+              >
+                ✕ Cancel
+              </button>
+            </>
+          ) : (
+            <>
+              {entries.length > 0 && (
+                <button
+                  className="action-btn select-btn"
+                  onClick={() => setSelectMode(true)}
+                >
+                  ☑️ Select
+                </button>
               )}
-            </button>
-          ))}
+              <button
+                onClick={() => setViewMode(viewMode === 'folders' ? 'recent' : 'folders')}
+                className="view-toggle"
+              >
+                {viewMode === 'folders' ? '📋 List' : '📁 Folders'}
+              </button>
+            </>
+          )}
+
+          {/* Sort Controls (only show in recent view) */}
+          {viewMode === 'recent' && !selectMode && (
+            <>
+              <span className="text-sm text-gray-600 dark:text-gray-300">Sort:</span>
+              {[
+                { key: 'date', label: 'Date', icon: Calendar },
+                { key: 'mood', label: 'Mood', icon: TrendingUp }
+              ].map(({ key, label, icon: Icon }) => (
+                <button
+                  key={key}
+                  onClick={() => toggleSort(key as any)}
+                  className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-all duration-200 text-xs ${
+                    sortBy === key
+                      ? 'bg-sage-500/20 text-sage-600 dark:text-sage-400'
+                      : 'glass-button hover:bg-white/30 text-gray-600 dark:text-gray-300'
+                  }`}
+                >
+                  <Icon className="w-3 h-3" />
+                  {sortBy === key && (
+                    <span className="ml-1">
+                      {sortOrder === 'asc' ? '↑' : '↓'}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </>
+          )}
         </div>
       </div>
 
@@ -101,9 +183,154 @@ const ListView: React.FC<ListViewProps> = ({ entries, onEditEntry, onDeleteEntry
             Start writing to see your entries here
           </p>
         </div>
+      ) : viewMode === 'folders' ? (
+        /* Month Folders View */
+        <div className="month-folders">
+          {Object.entries(organizeEntriesByMonth())
+            .sort(([a], [b]) => new Date(b).getTime() - new Date(a).getTime())
+            .map(([monthYear, monthData]) => {
+              const isExpanded = expandedMonths.includes(monthYear);
+              const filteredEntries = searchQuery
+                ? monthData.entries.filter(e =>
+                    e.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    e.biggestWin?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    e.learning?.toLowerCase().includes(searchQuery.toLowerCase())
+                  )
+                : monthData.entries;
+
+              if (searchQuery && filteredEntries.length === 0) return null;
+
+              return (
+                <div key={monthYear} className="month-folder">
+                  <div className="month-header-wrapper">
+                    <button
+                      className="month-header"
+                      onClick={() => toggleMonth(monthYear)}
+                    >
+                      <div className="month-info">
+                        <span className="month-emoji">{getMonthEmoji(monthData.avgMood)}</span>
+                        <span className="month-name">{monthYear}</span>
+                        <span className="month-count">({filteredEntries.length})</span>
+                      </div>
+                      <div className="month-actions">
+                        <span className="month-mood">
+                          {monthData.avgMood !== 'N/A' ? `${monthData.avgMood}/10` : 'N/A'}
+                        </span>
+                        <span className={`expand-icon ${isExpanded ? 'expanded' : ''}`}>
+                          ▶
+                        </span>
+                      </div>
+                    </button>
+
+                    <div className="month-tools">
+                      {selectMode && isExpanded && (
+                        <button
+                          className="select-all-btn"
+                          onClick={() => isMonthFullySelected(filteredEntries)
+                            ? deselectAllInMonth(filteredEntries)
+                            : selectAllInMonth(filteredEntries)
+                          }
+                        >
+                          {isMonthFullySelected(filteredEntries) ? '☑️ All' : '☐ All'}
+                        </button>
+                      )}
+                      <button
+                        className="export-month-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          exportMonthToMD(monthYear, filteredEntries);
+                        }}
+                        title="Export entire month"
+                      >
+                        📥
+                      </button>
+                    </div>
+                  </div>
+
+                  {isExpanded && (
+                    <div className="month-entries">
+                      {filteredEntries.map(entry => (
+                        <div
+                          key={entry.id}
+                          className={`entry-item ${selectedEntries.has(entry.id) ? 'selected' : ''}`}
+                        >
+                          {selectMode && (
+                            <div className="entry-checkbox">
+                              <input
+                                type="checkbox"
+                                checked={selectedEntries.has(entry.id)}
+                                onChange={() => toggleEntrySelection(entry.id)}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </div>
+                          )}
+
+                          <div className="entry-content">
+                            <div className="entry-header">
+                              <span className="entry-title">{entry.template || 'Untitled'}</span>
+                              <span className="entry-date">{formatEntryDate(entry.date)}</span>
+                            </div>
+
+                            {entry.content && (
+                              <p className="entry-preview">
+                                {entry.content.substring(0, 80)}{entry.content.length > 80 ? '...' : ''}
+                              </p>
+                            )}
+
+                            {entry.tags && entry.tags.length > 0 && (
+                              <div className="entry-tags">
+                                {entry.tags.slice(0, 3).map((tag, idx) => (
+                                  <span key={idx} className="entry-tag">{tag}</span>
+                                ))}
+                                {entry.tags.length > 3 && (
+                                  <span className="entry-tag">+{entry.tags.length - 3}</span>
+                                )}
+                              </div>
+                            )}
+
+                            <div className="entry-footer">
+                              <div className="entry-meta">
+                                <span className="entry-mood">😊 {entry.mood}</span>
+                                {entry.biggestWin && (
+                                  <span className="entry-win">🏆 Win</span>
+                                )}
+                                {entry.learning && (
+                                  <span className="entry-learning">💡 Learning</span>
+                                )}
+                              </div>
+
+                              {!selectMode && (
+                                <div className="entry-actions">
+                                  <button
+                                    className="btn-entry-action"
+                                    onClick={() => onEditEntry(entry)}
+                                    title="View entry"
+                                  >
+                                    👁️
+                                  </button>
+                                  <button
+                                    className="btn-entry-action"
+                                    onClick={() => onDeleteEntry(entry.id)}
+                                    title="Delete entry"
+                                  >
+                                    🗑️
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+        </div>
       ) : (
+        /* Recent List View */
         <div className="space-y-4">
-          {sortedEntries.map(entry => (
+          {sortedEntries.slice(0, 20).map(entry => (
             <div
               key={entry.id}
               className="glass p-4 rounded-xl hover:bg-white/10 transition-all duration-200"
@@ -235,6 +462,11 @@ const ListView: React.FC<ListViewProps> = ({ entries, onEditEntry, onDeleteEntry
               </div>
             </div>
           ))}
+          {entries.length > 20 && (
+            <div className="text-center py-4 text-sm text-gray-500 dark:text-gray-400">
+              Showing 20 of {entries.length} entries. Use Folders view to see all entries organized by month.
+            </div>
+          )}
         </div>
       )}
     </div>

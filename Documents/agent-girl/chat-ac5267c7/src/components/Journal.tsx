@@ -45,7 +45,7 @@ const Journal: React.FC = () => {
     tags: [],
     template: ''
   });
-  const [view, setView] = useState<'form' | 'calendar' | 'list'>('form');
+  const [view, setView] = useState<'form' | 'calendar' | 'list'>('list'); // Fixed to show month folders by default
   const [isRecording, setIsRecording] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -57,10 +57,24 @@ const Journal: React.FC = () => {
   const [autoSaveTimer, setAutoSaveTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
   const [darkMode, setDarkMode] = useState(false);
 
+  // Month folder state for enhanced ListView
+  const [expandedMonths, setExpandedMonths] = useState<string[]>([]);
+  const [viewMode, setViewMode] = useState<'folders' | 'recent'>('folders');
+
+  // Selection state
+  const [selectedEntries, setSelectedEntries] = useState<Set<string>>(new Set());
+  const [selectMode, setSelectMode] = useState(false);
+
   // Generate 45 realistic entries over 60 days
   useEffect(() => {
     const generatedEntries = generateJournalEntries();
     setEntries(generatedEntries);
+  }, []);
+
+  // Auto-expand current month on mount
+  useEffect(() => {
+    const currentMonth = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
+    setExpandedMonths([currentMonth]);
   }, []);
 
   // Auto-save draft every 30 seconds
@@ -149,6 +163,7 @@ const Journal: React.FC = () => {
         date,
         content: reflections[Math.floor(Math.random() * reflections.length)],
         mood,
+        energy: Math.floor(Math.random() * 10) + 1,
         themes: [tags[Math.floor(Math.random() * tags.length)]],
         insights: ['Important insight about personal growth'],
         biggestWin: wins[Math.floor(Math.random() * wins.length)],
@@ -178,6 +193,7 @@ const Journal: React.FC = () => {
       date: currentEntry.date || new Date(),
       content: currentEntry.reflections || '',
       mood: currentEntry.mood || 7,
+      energy: 7,
       themes: currentEntry.tags || [],
       insights: [currentEntry.learning || ''].filter(Boolean),
       biggestWin: currentEntry.biggestWin,
@@ -266,6 +282,33 @@ const Journal: React.FC = () => {
       template
     }));
     setShowTemplates(false);
+
+    // Full expansion with animation
+    setTimeout(() => {
+      const textareas = document.querySelectorAll('.glass-card textarea') as NodeListOf<HTMLTextAreaElement>;
+      textareas.forEach((textarea, index) => {
+        // Force full height calculation
+        textarea.style.height = 'auto';
+        const fullHeight = textarea.scrollHeight + 12; // Extra buffer
+        textarea.style.height = fullHeight + 'px';
+
+        // Add animation class
+        textarea.classList.add('template-loaded');
+
+        // Focus and scroll to first textarea
+        if (index === 0) {
+          setTimeout(() => {
+            textarea.focus();
+            textarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 100);
+        }
+
+        // Remove animation class
+        setTimeout(() => {
+          textarea.classList.remove('template-loaded');
+        }, 500);
+      });
+    }, 50);
   };
 
   const filteredEntries = useMemo(() => {
@@ -305,6 +348,195 @@ const Journal: React.FC = () => {
     document.documentElement.classList.toggle('dark');
   };
 
+  // Enhanced auto-expand with buffer for full template visibility
+  const handleTextareaAutoExpand = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const textarea = e.target;
+    textarea.style.height = 'auto'; // Reset
+    const newHeight = Math.max(144, textarea.scrollHeight + 8); // Add 8px buffer (144px = 6 rows * 24px)
+    textarea.style.height = newHeight + 'px';
+  };
+
+  // Organize entries by month for folder view
+  const organizeEntriesByMonth = () => {
+    const organized: Record<string, {
+      entries: ExtendedJournalEntry[];
+      avgMood: number | string;
+      totalEntries: number;
+    }> = {};
+
+    entries.forEach(entry => {
+      const date = new Date(entry.date);
+      const monthYear = date.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+      if (!organized[monthYear]) {
+        organized[monthYear] = {
+          entries: [],
+          avgMood: 0,
+          totalEntries: 0
+        };
+      }
+
+      organized[monthYear].entries.push(entry);
+    });
+
+    // Calculate stats for each month
+    Object.keys(organized).forEach(monthYear => {
+      const monthData = organized[monthYear];
+      monthData.totalEntries = monthData.entries.length;
+      monthData.avgMood = monthData.entries.length > 0
+        ? (monthData.entries.reduce((sum, e) => sum + e.mood, 0) / monthData.entries.length).toFixed(1)
+        : 'N/A';
+
+      // Sort entries within month by date (newest first)
+      monthData.entries.sort((a, b) => b.date.getTime() - a.date.getTime());
+    });
+
+    return organized;
+  };
+
+  // Toggle month expansion
+  const toggleMonth = (monthYear: string) => {
+    setExpandedMonths(prev =>
+      prev.includes(monthYear)
+        ? prev.filter(m => m !== monthYear)
+        : [...prev, monthYear]
+    );
+  };
+
+  // Get month emoji based on avg mood
+  const getMonthEmoji = (avgMood: number | string) => {
+    if (avgMood === 'N/A') return '📔';
+    const mood = parseFloat(avgMood as string);
+    if (mood >= 8) return '😊';
+    if (mood >= 6) return '🙂';
+    if (mood >= 4) return '😐';
+    return '😔';
+  };
+
+  // Format date for display
+  const formatEntryDate = (date: Date) => {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    if (date.toDateString() === today.toDateString()) {
+      return 'Today';
+    } else if (date.toDateString() === yesterday.toDateString()) {
+      return 'Yesterday';
+    } else {
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+  };
+
+  // ===== SELECTION FUNCTIONS =====
+
+  const toggleEntrySelection = (entryId: string) => {
+    setSelectedEntries(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(entryId)) {
+        newSet.delete(entryId);
+      } else {
+        newSet.add(entryId);
+      }
+      return newSet;
+    });
+  };
+
+  const selectAllInMonth = (monthEntries: ExtendedJournalEntry[]) => {
+    setSelectedEntries(prev => {
+      const newSet = new Set(prev);
+      monthEntries.forEach(entry => newSet.add(entry.id));
+      return newSet;
+    });
+  };
+
+  const deselectAllInMonth = (monthEntries: ExtendedJournalEntry[]) => {
+    setSelectedEntries(prev => {
+      const newSet = new Set(prev);
+      monthEntries.forEach(entry => newSet.delete(entry.id));
+      return newSet;
+    });
+  };
+
+  const isMonthFullySelected = (monthEntries: ExtendedJournalEntry[]) => {
+    if (monthEntries.length === 0) return false;
+    return monthEntries.every(entry => selectedEntries.has(entry.id));
+  };
+
+  const clearSelection = () => {
+    setSelectedEntries(new Set());
+    setSelectMode(false);
+  };
+
+  // ===== EXPORT FUNCTIONS =====
+
+  const exportToMD = (entriesToExport: ExtendedJournalEntry[], filename: string) => {
+    if (entriesToExport.length === 0) {
+      alert('No entries to export.');
+      return;
+    }
+
+    let markdown = `# Journal Entries\n\n`;
+    markdown += `**Exported:** ${new Date().toLocaleString()}\n`;
+    markdown += `**Total Entries:** ${entriesToExport.length}\n\n`;
+    markdown += `---\n\n`;
+
+    entriesToExport
+      .sort((a, b) => b.date.getTime() - a.date.getTime())
+      .forEach(entry => {
+        markdown += `## ${entry.template || 'Untitled'}\n\n`;
+        markdown += `**Date:** ${entry.date.toLocaleDateString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        })}\n\n`;
+        markdown += `**Mood:** ${entry.mood}/10\n\n`;
+
+        if (entry.tags && entry.tags.length > 0) {
+          markdown += `**Tags:** ${entry.tags.join(', ')}\n\n`;
+        }
+
+        if (entry.content) {
+          markdown += `### 📝 Reflections\n\n${entry.content}\n\n`;
+        }
+
+        if (entry.biggestWin) {
+          markdown += `### 🏆 Biggest Win\n\n${entry.biggestWin}\n\n`;
+        }
+
+        if (entry.learning) {
+          markdown += `### 💡 Learning\n\n${entry.learning}\n\n`;
+        }
+
+        markdown += `---\n\n`;
+      });
+
+    const blob = new Blob([markdown], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportMonthToMD = (monthYear: string, monthEntries: ExtendedJournalEntry[]) => {
+    const filename = `journal-${monthYear.replace(' ', '-').toLowerCase()}.md`;
+    exportToMD(monthEntries, filename);
+  };
+
+  const exportSelectedToMD = () => {
+    const selectedEntriesArray = entries.filter(e => selectedEntries.has(e.id));
+    if (selectedEntriesArray.length === 0) {
+      alert('Please select entries to export.');
+      return;
+    }
+    const filename = `journal-selected-${Date.now()}.md`;
+    exportToMD(selectedEntriesArray, filename);
+    clearSelection();
+  };
+
   return (
     <div className={`min-h-screen ${darkMode ? 'dark' : ''}`}>
       <div className="p-6 space-y-6">
@@ -314,39 +546,55 @@ const Journal: React.FC = () => {
             <div className="flex items-center gap-4">
               <BookOpen className="w-8 h-8 text-sage-600 dark:text-sage-400" />
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Journal</h1>
-                <p className="text-gray-600 dark:text-gray-300">Capture your thoughts and track your journey</p>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Journal 📔</h1>
+                <p className="text-gray-600 dark:text-gray-300">Month Folders Enabled - Switch to List View to see them!</p>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
+              {/* View Toggle Buttons */}
+              <div className="flex bg-white/10 dark:bg-black/20 rounded-xl p-1 backdrop-blur-sm border border-white/20">
+                <button
+                  onClick={() => setView('form')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
+                    view === 'form'
+                      ? 'bg-sage-500 text-white shadow-lg'
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-white/10'
+                  }`}
+                >
+                  <Edit3 className="w-4 h-4" />
+                  Form
+                </button>
+                <button
+                  onClick={() => setView('calendar')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
+                    view === 'calendar'
+                      ? 'bg-sage-500 text-white shadow-lg'
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-white/10'
+                  }`}
+                >
+                  <Calendar className="w-4 h-4" />
+                  Calendar
+                </button>
+                <button
+                  onClick={() => setView('list')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
+                    view === 'list'
+                      ? 'bg-sage-500 text-white shadow-lg'
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-white/10'
+                  }`}
+                >
+                  <List className="w-4 h-4" />
+                  List
+                </button>
+              </div>
+
               <button
                 onClick={toggleDarkMode}
                 className="p-2 rounded-xl hover:bg-white/10 dark:hover:bg-white/5 transition-colors duration-200"
               >
                 {darkMode ? <Sun className="w-5 h-5 text-gray-600 dark:text-gray-400" /> : <Moon className="w-5 h-5 text-gray-600 dark:text-gray-400" />}
               </button>
-
-              <div className="flex bg-white/10 dark:bg-white/5 rounded-xl p-1">
-                {[
-                  { id: 'form', icon: Edit3, label: 'Write' },
-                  { id: 'calendar', icon: Calendar, label: 'Calendar' },
-                  { id: 'list', icon: List, label: 'List' }
-                ].map(({ id, icon: Icon, label }) => (
-                  <button
-                    key={id}
-                    onClick={() => setView(id as any)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
-                      view === id
-                        ? 'bg-sage-500 text-white'
-                        : 'text-gray-600 dark:text-gray-300 hover:bg-white/10'
-                    }`}
-                  >
-                    <Icon className="w-4 h-4" />
-                    <span className="hidden sm:inline">{label}</span>
-                  </button>
-                ))}
-              </div>
             </div>
           </div>
         </div>
@@ -513,10 +761,15 @@ const Journal: React.FC = () => {
                     <div className="relative">
                       <textarea
                         value={currentEntry.reflections || ''}
-                        onChange={(e) => setCurrentEntry(prev => ({ ...prev, reflections: e.target.value }))}
+                        onChange={(e) => {
+                          setCurrentEntry(prev => ({ ...prev, reflections: e.target.value }));
+                          handleTextareaAutoExpand(e);
+                        }}
+                        onInput={handleTextareaAutoExpand}
                         placeholder="How was your day? What's on your mind?"
                         rows={6}
                         className="w-full px-4 py-3 rounded-xl glass-button focus:outline-none focus:ring-2 focus:ring-sage-500 resize-none"
+                        style={{ minHeight: '144px', maxHeight: '800px' }}
                       />
                       <button
                         onMouseDown={startVoiceRecording}
@@ -531,6 +784,12 @@ const Journal: React.FC = () => {
                       >
                         {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
                       </button>
+                    </div>
+                    <div className="text-right mt-1">
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        {(currentEntry.reflections || '').length} characters
+                        {(currentEntry.reflections || '').length > 0 && ` · ${Math.ceil((currentEntry.reflections || '').split(' ').filter(w => w).length / 200)} min read`}
+                      </span>
                     </div>
                   </div>
 
@@ -616,6 +875,24 @@ const Journal: React.FC = () => {
             entries={filteredEntries}
             onEditEntry={editEntry}
             onDeleteEntry={deleteEntry}
+            expandedMonths={expandedMonths}
+            viewMode={viewMode}
+            toggleMonth={toggleMonth}
+            organizeEntriesByMonth={organizeEntriesByMonth}
+            getMonthEmoji={getMonthEmoji}
+            formatEntryDate={formatEntryDate}
+            setViewMode={setViewMode}
+            searchQuery={searchQuery}
+            selectedEntries={selectedEntries}
+            selectMode={selectMode}
+            toggleEntrySelection={toggleEntrySelection}
+            selectAllInMonth={selectAllInMonth}
+            deselectAllInMonth={deselectAllInMonth}
+            isMonthFullySelected={isMonthFullySelected}
+            exportMonthToMD={exportMonthToMD}
+            clearSelection={clearSelection}
+            exportSelectedToMD={exportSelectedToMD}
+            setSelectMode={setSelectMode}
           />
         )}
       </div>

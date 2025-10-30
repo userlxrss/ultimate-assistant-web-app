@@ -65,3 +65,688 @@
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-sage-500/50 dark:bg-sage-400/50;
 }
+
+/* Font Size Classes */
+html.font-small {
+  font-size: 14px;
+}
+
+html.font-medium {
+  font-size: 16px;
+}
+
+html.font-large {
+  font-size: 18px;
+}
+
+html.font-extra-large {
+  font-size: 20px;
+}
+
+/* Compact Mode - Reduces spacing */
+html.compact-mode .stat-card {
+  padding: 16px !important;
+}
+
+html.compact-mode .quick-action-card {
+  padding: 16px !important;
+}
+
+html.compact-mode .app-card {
+  padding: 16px 20px !important;
+}
+
+html.compact-mode .appearance-card {
+  padding: 20px !important;
+}
+
+html.compact-mode .profile-form-card,
+html.compact-mode .profile-header-card {
+  padding: 24px !important;
+}
+
+html.compact-mode .settings-page {
+  padding: 32px 48px !important;
+}
+
+html.compact-mode h1 {
+  font-size: 28px !important;
+}
+
+html.compact-mode h2 {
+  font-size: 20px !important;
+}
+
+html.compact-mode h3 {
+  font-size: 16px !important;
+}
+
+html.compact-mode .section-title {
+  margin-bottom: 16px !important;
+}
+
+html.compact-mode .section-subtitle {
+  margin-bottom: 20px !important;
+}
+
+html.compact-mode .card-header-small h4 {
+  margin-bottom: 4px !important;
+}
+
+html.compact-mode .card-header-small p {
+  margin-bottom: 12px !important;
+}
+
+html.compact-mode .form-group {
+  margin-bottom: 16px !important;
+}
+
+html.compact-mode .form-actions {
+  margin-top: 16px !important;
+  padding-top: 16px !important;
+}
+
+/* ===== MONTH FOLDERS ANIMATIONS ===== */
+@keyframes expandMonth {
+  from {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    max-height: 5000px;
+    transform: translateY(0);
+  }
+}
+
+@keyframes collapseMonth {
+  from {
+    opacity: 1;
+    max-height: 5000px;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes templateLoaded {
+  0% {
+    opacity: 0.7;
+    transform: translateY(4px);
+    box-shadow: 0 0 0 0 rgba(134, 163, 184, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(134, 163, 184, 0.1);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    box-shadow: 0 0 0 0 rgba(134, 163, 184, 0);
+  }
+}
+
+/* Month folder styles */
+.month-folder {
+  @apply glass overflow-hidden transition-all duration-300;
+}
+
+.month-folder:hover {
+  @apply bg-white/30 dark:bg-white/20;
+  box-shadow: 0 8px 32px rgba(134, 163, 184, 0.15);
+}
+
+.month-header {
+  @apply w-full transition-all duration-200;
+}
+
+.month-header:hover {
+  @apply bg-white/10 dark:bg-white/5;
+}
+
+.month-entries {
+  animation: expandMonth 0.4s ease-out;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Enhanced textarea styles */
+textarea.auto-expand {
+  transition: height 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+textarea.template-loaded {
+  animation: templateLoaded 0.5s ease-out;
+  @apply border-sage-500;
+  box-shadow: 0 0 0 4px rgba(134, 163, 184, 0.15) !important;
+}
+
+/* Character count styles */
+.char-count {
+  @apply text-xs text-gray-500 dark:text-gray-400 text-right mt-1;
+}
+
+/* Line clamp utility for better content truncation */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Enhanced month folder hover effects */
+.month-folder .month-entries > div:hover {
+  @apply bg-white/10 dark:bg-white/5;
+}
+
+/* Smooth expand/collapse transitions */
+.month-entries {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced focus states for accessibility */
+.month-header:focus-visible {
+  @apply outline-none ring-2 ring-sage-500/50 ring-offset-2 ring-offset-transparent;
+}
+
+/* Improved visual hierarchy */
+.month-folder .month-header .font-semibold {
+  @apply text-gray-900 dark:text-white;
+}
+
+/* Better spacing and responsive design */
+@media (max-width: 640px) {
+  .month-header {
+    @apply p-3;
+  }
+
+  .month-entries > div {
+    @apply p-3;
+  }
+}
+
+/* Dark mode enhancements */
+.dark .month-folder {
+  @apply border-white/10;
+}
+
+.dark .month-folder:hover {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.dark .month-entries {
+  border-top-color: rgba(255, 255, 255, 0.05);
+}
+
+/* ===== SELECTION MODE STYLES ===== */
+.recent-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.dark .recent-header {
+  border-bottom-color: #334155;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.action-btn {
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 150ms ease;
+  border: 1px solid;
+}
+
+.select-btn {
+  background: #F9FAFB;
+  color: #64748B;
+  border-color: #E5E7EB;
+}
+
+.select-btn:hover {
+  background: #3B82F6;
+  color: white;
+  border-color: #3B82F6;
+}
+
+.export-btn {
+  background: #10B981;
+  color: white;
+  border-color: #10B981;
+}
+
+.export-btn:hover {
+  background: #059669;
+}
+
+.export-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cancel-btn {
+  background: #EF4444;
+  color: white;
+  border-color: #EF4444;
+}
+
+.cancel-btn:hover {
+  background: #DC2626;
+}
+
+.view-toggle {
+  padding: 5px 12px;
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748B;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.view-toggle:hover {
+  background: #3B82F6;
+  color: white;
+  border-color: #3B82F6;
+}
+
+.dark .action-btn,
+.dark .view-toggle {
+  background: #0F172A;
+  border-color: #334155;
+  color: #94A3B8;
+}
+
+.dark .select-btn:hover,
+.dark .view-toggle:hover {
+  background: #3B82F6;
+  color: white;
+}
+
+/* ===== ENHANCED MONTH FOLDERS ===== */
+.month-folders {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.month-folder {
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 10px;
+  overflow: hidden;
+  transition: all 200ms ease;
+}
+
+.dark .month-folder {
+  background: #0F172A;
+  border-color: #334155;
+}
+
+.month-folder:hover {
+  border-color: #3B82F6;
+  box-shadow: 0 2px 8px rgba(59,130,246,0.1);
+}
+
+.month-header-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-right: 8px;
+}
+
+.month-header {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.month-header:hover {
+  background: rgba(59,130,246,0.05);
+}
+
+.month-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.month-emoji {
+  font-size: 20px;
+}
+
+.month-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.dark .month-name {
+  color: #F8FAFC;
+}
+
+.month-count {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94A3B8;
+}
+
+.month-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.month-mood {
+  font-size: 11px;
+  font-weight: 600;
+  color: #3B82F6;
+  padding: 3px 8px;
+  background: rgba(59,130,246,0.1);
+  border-radius: 5px;
+}
+
+.expand-icon {
+  font-size: 10px;
+  color: #94A3B8;
+  transition: transform 200ms ease;
+}
+
+.expand-icon.expanded {
+  transform: rotate(90deg);
+}
+
+/* Month Tools */
+.month-tools {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.select-all-btn {
+  padding: 4px 8px;
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #64748B;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.select-all-btn:hover {
+  background: #3B82F6;
+  color: white;
+  border-color: #3B82F6;
+}
+
+.export-month-btn {
+  padding: 4px 8px;
+  background: #10B981;
+  border: 1px solid #10B981;
+  border-radius: 5px;
+  font-size: 14px;
+  color: white;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.export-month-btn:hover {
+  background: #059669;
+  transform: scale(1.05);
+}
+
+/* Month Entries */
+.month-entries {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 12px 12px;
+  background: white;
+  animation: expandMonth 300ms ease;
+}
+
+.dark .month-entries {
+  background: #1E293B;
+}
+
+/* ===== ENTRY ITEM WITH CHECKBOX ===== */
+.entry-item {
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px;
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.dark .entry-item {
+  background: #0F172A;
+  border-color: #334155;
+}
+
+.entry-item:hover {
+  border-color: #3B82F6;
+}
+
+.entry-item.selected {
+  background: #EFF6FF;
+  border-color: #3B82F6;
+}
+
+.dark .entry-item.selected {
+  background: rgba(59,130,246,0.1);
+}
+
+.entry-checkbox {
+  display: flex;
+  align-items: flex-start;
+  padding-top: 2px;
+}
+
+.entry-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #3B82F6;
+}
+
+.entry-content {
+  flex: 1;
+}
+
+.entry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.entry-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.dark .entry-title {
+  color: #F8FAFC;
+}
+
+.entry-date {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94A3B8;
+}
+
+.entry-preview {
+  font-size: 12px;
+  color: #64748B;
+  line-height: 1.4;
+  margin: 6px 0;
+}
+
+.dark .entry-preview {
+  color: #94A3B8;
+}
+
+.entry-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 6px 0;
+}
+
+.entry-tag {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  background: #EFF6FF;
+  color: #1E40AF;
+  border-radius: 4px;
+}
+
+.dark .entry-tag {
+  background: rgba(59,130,246,0.15);
+  color: #93C5FD;
+}
+
+.entry-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #F1F5F9;
+}
+
+.dark .entry-footer {
+  border-top-color: #334155;
+}
+
+.entry-meta {
+  display: flex;
+  gap: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748B;
+}
+
+.dark .entry-meta {
+  color: #94A3B8;
+}
+
+.entry-mood,
+.entry-win,
+.entry-learning {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.entry-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.btn-entry-action {
+  padding: 4px 6px;
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 150ms ease;
+}
+
+.btn-entry-action:hover {
+  background: #F1F5F9;
+  transform: scale(1.1);
+}
+
+.dark .btn-entry-action:hover {
+  background: #334155;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 640px) {
+  .month-header {
+    padding: 10px 12px;
+  }
+
+  .entry-item {
+    padding: 8px 10px;
+  }
+
+  .header-actions {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .action-btn,
+  .view-toggle {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+}
+
+/* ===== ACCESSIBILITY ===== */
+.month-header:focus-visible {
+  outline: none;
+  ring: 2px solid #3B82F6;
+  ring-offset: 2px;
+}
+
+.entry-checkbox input:focus-visible {
+  outline: 2px solid #3B82F6;
+  outline-offset: 2px;
+}
+
+/* ===== DARK MODE ENHANCEMENTS ===== */
+.dark .month-folder {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.dark .month-folder:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.dark .select-all-btn {
+  background: #1E293B;
+  border-color: #334155;
+}
+
+.dark .export-month-btn:hover {
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.dark .entry-item {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.dark .entry-item:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
