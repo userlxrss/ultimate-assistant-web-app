@@ -5,6 +5,7 @@ import { formatDueDate } from '../../utils/taskUtils';
 import { safeRender } from '../../utils/safeRender';
 import { motionAPI } from '../../utils/motionApi';
 import { useSafeTimer } from '../../hooks/useSafeTimer';
+import HtmlRenderer from './HtmlRenderer';
 
 // Helper function to format date
 const formatDate = (date: Date) => {
@@ -22,6 +23,7 @@ interface TaskDetailModalProps {
   onEdit: (task: Task) => void;
   onDelete: (taskId: string) => void;
   onToggleComplete: (task: Task) => void;
+  onUpdate: (task: Task) => void;
 }
 
 
@@ -31,7 +33,8 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   onClose,
   onEdit,
   onDelete,
-  onToggleComplete
+  onToggleComplete,
+  onUpdate
 }) => {
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
@@ -141,7 +144,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
       };
 
       // Update the task locally immediately for instant UI feedback
-      onToggleComplete(updatedTask);
+      onUpdate(updatedTask);
 
       // Auto-start timer when status changes to "In Progress"
       if (newStatus === 'in-progress' && task.duration && task.duration > 0) {
@@ -313,13 +316,16 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
           {/* Description */}
           {task.description && (
             <div className="mb-6">
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
                 <FileText className="w-4 h-4" />
                 Description
               </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-                {safeRender(task.description)}
-              </p>
+              <div className="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
+                <HtmlRenderer
+                  html={task.description}
+                  className="text-sm text-gray-700 dark:text-gray-300"
+                />
+              </div>
             </div>
           )}
 
@@ -434,6 +440,32 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                     #{safeRender(tag)}
                   </span>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* Description */}
+          {task.description && (
+            <div className="mb-6">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                <FileText className="w-4 h-4" />
+                Description
+              </h3>
+              <div className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                {safeRender(task.description)}
+              </div>
+            </div>
+          )}
+
+          {/* Notes */}
+          {task.notes && (
+            <div className="mb-6">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                <FileText className="w-4 h-4" />
+                Notes
+              </h3>
+              <div className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                {safeRender(task.notes)}
               </div>
             </div>
           )}

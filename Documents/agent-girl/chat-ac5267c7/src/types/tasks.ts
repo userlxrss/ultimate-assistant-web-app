@@ -9,6 +9,7 @@ export interface Task {
   id: string;
   title: string;
   description?: string;
+  notes?: string;
   completed: boolean;
   createdAt: Date | string;
   completedAt?: Date | string;

@@ -14,9 +14,25 @@ interface TaskItemProps {
   onEdit: (task: Task) => void;
   onToggleComplete: (task: Task) => void;
   onViewDetails: (task: Task) => void;
+  // Active task widget integration props
+  isTimerRunning?: boolean;
+  activeTask?: Task | null;
+  timerSeconds?: number;
+  onStartTaskTimer?: (task: Task) => void;
 }
 
-const TaskItem: React.FC<TaskItemProps> = ({ task, onUpdate, onDelete, onEdit, onToggleComplete, onViewDetails }) => {
+const TaskItem: React.FC<TaskItemProps> = ({
+  task,
+  onUpdate,
+  onDelete,
+  onEdit,
+  onToggleComplete,
+  onViewDetails,
+  isTimerRunning = false,
+  activeTask = null,
+  timerSeconds = 0,
+  onStartTaskTimer
+}) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
   const [syncStatus, setSyncStatus] = useState<string>('');
@@ -26,6 +42,8 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onUpdate, onDelete, onEdit, o
   const { timerState, startTimer, pauseTimer, resumeTimer, stopTimer, getActiveTaskId } = useSafeTimer();
 
   const isTaskActive = timerState.taskId === task.id;
+  // Check if this task is active in the sophisticated widget system
+  const isActiveInWidget = isTimerRunning && activeTask && activeTask.id === task.id;
   const isActiveTask = getActiveTaskId() === task.id;
   const taskDuration = task.estimatedTime || task.duration;
   const estimatedDurationMs = taskDuration ? taskDuration * 60 * 1000 : 0;
@@ -81,17 +99,17 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onUpdate, onDelete, onEdit, o
     const categoryLower = (typeof category === 'string' ? category : String(category || '')).toLowerCase();
 
     if (categoryLower.includes('work') || categoryLower.includes('project') || categoryLower.includes('business')) {
-      return <Briefcase className="w-4 h-4" />;
+      return <Briefcase className="w-3.5 h-3.5" />;
     } else if (categoryLower.includes('code') || categoryLower.includes('development') || categoryLower.includes('programming')) {
-      return <Code className="w-4 h-4" />;
+      return <Code className="w-3.5 h-3.5" />;
     } else if (categoryLower.includes('design') || categoryLower.includes('creative') || categoryLower.includes('art')) {
-      return <Palette className="w-4 h-4" />;
+      return <Palette className="w-3.5 h-3.5" />;
     } else if (categoryLower.includes('team') || categoryLower.includes('meeting') || categoryLower.includes('collaboration')) {
-      return <Users className="w-4 h-4" />;
+      return <Users className="w-3.5 h-3.5" />;
     } else if (categoryLower.includes('personal') || categoryLower.includes('life')) {
-      return <Star className="w-4 h-4" />;
+      return <Star className="w-3.5 h-3.5" />;
     } else {
-      return <Target className="w-4 h-4" />;
+      return <Target className="w-3.5 h-3.5" />;
     }
   };
 
@@ -237,6 +255,14 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onUpdate, onDelete, onEdit, o
     }
   };
 
+  // Handle starting timer with sophisticated widget system
+  const handleStartWidgetTimer = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onStartTaskTimer) {
+      onStartTaskTimer(task);
+    }
+  };
+
   const getTimerDisplay = () => {
     const displayDuration = task.estimatedTime || task.duration;
 
@@ -314,66 +340,64 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onUpdate, onDelete, onEdit, o
   return (
     <div
       onClick={handleCardClick}
-      className={`group relative bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-lg p-3 mb-2 transition-all duration-200 hover:bg-white/80 dark:hover:bg-gray-800/80 border ${priorityConfig.border} cursor-pointer ${
+      className={`group relative bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-lg py-2 px-3 mb-1.5 transition-all duration-200 hover:bg-white/80 dark:hover:bg-gray-800/80 border ${priorityConfig.border} cursor-pointer ${
         task.completed ? 'opacity-60 scale-[0.98]' : ''
       }`}
     >
-      {/* Compact Task Content */}
-      <div className="flex items-start gap-2">
+      {/* Compact Task Content - Single Row Layout */}
+      <div className="flex items-center gap-2 min-h-[48px]">
         {/* Compact Checkbox */}
         <button
           onClick={(e) => handleToggleComplete(e)}
           disabled={isCompleting}
-          className={`w-4 h-4 rounded border flex items-center justify-center transition-all duration-150 hover:scale-105 ${
+          className={`w-3.5 h-3.5 rounded border flex items-center justify-center transition-all duration-150 hover:scale-105 flex-shrink-0 ${
             task.completed
               ? `bg-gray-800 dark:bg-white border-gray-800 dark:border-white`
               : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-400'
           } ${isCompleting ? 'animate-pulse' : ''}`}
         >
-          {task.completed && <Check className="w-2.5 h-2.5 text-white dark:text-gray-800" />}
+          {task.completed && <Check className="w-2 h-2 text-white dark:text-gray-800" />}
         </button>
 
         {/* Task Type Icon - Smaller */}
-        <div className={`p-1 rounded ${priorityConfig.bgLight} transition-colors duration-150`}>
+        <div className={`p-1 rounded ${priorityConfig.bgLight} transition-colors duration-150 flex-shrink-0`}>
           <div className={`${priorityConfig.text} opacity-70`}>
             {getTaskTypeIcon(task.category)}
           </div>
         </div>
 
         {/* Task Title - More Compact */}
-        <div className="flex-1 min-w-0">
-          <h3 className={`text-sm font-medium text-gray-900 dark:text-white truncate ${
+        <div className="flex-1 min-w-0 mr-2">
+          <h3 className={`text-sm font-medium text-gray-900 dark:text-white truncate leading-tight ${
             task.completed ? 'line-through opacity-60' : ''
           }`}>
             {typeof task.title === 'string' ? task.title : String(task.title || 'Untitled Task')}
           </h3>
-
-          {/* Timer Display */}
-          <div className="mt-1">
-            <button
-              onClick={handleTimerControl}
-              className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium transition-all duration-200 ${getTimerDisplay().bgColor} ${getTimerDisplay().color} hover:opacity-80`}
-            >
-              {isTaskActive ? (
-                timerState.isPaused ? <Play className="w-3 h-3" /> : <Pause className="w-3 h-3" />
-              ) : (
-                <Timer className="w-3 h-3" />
-              )}
-              <span className="font-mono">
-                {getTimerDisplay().text}
-              </span>
-              {isTaskActive && !timerState.isPaused && (
-                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-              )}
-            </button>
-          </div>
         </div>
 
-        {/* Compact Information Bar */}
-        <div className="flex flex-col items-end gap-1 flex-shrink-0">
-          {/* Due Date - Smaller */}
+        {/* Compact Metadata Row - All in one line */}
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          {/* Timer Display - Compact */}
+          <button
+            onClick={handleTimerControl}
+            className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium transition-all duration-200 ${getTimerDisplay().bgColor} ${getTimerDisplay().color} hover:opacity-80 flex-shrink-0`}
+          >
+            {isTaskActive ? (
+              timerState.isPaused ? <Play className="w-3 h-3" /> : <Pause className="w-3 h-3" />
+            ) : (
+              <Timer className="w-3 h-3" />
+            )}
+            <span className="font-mono text-xs">
+              {getTimerDisplay().text.replace('⏱️ ', '').replace('⏸️ PAUSED ', '').replace('⚠️ ', '')}
+            </span>
+            {isTaskActive && !timerState.isPaused && (
+              <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+            )}
+          </button>
+
+          {/* Due Date - Compact */}
           {task.dueDate && (
-            <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-gray-100 dark:bg-gray-700/50">
+            <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-gray-100 dark:bg-gray-700/50 flex-shrink-0">
               <Calendar className="w-3 h-3 text-gray-500 dark:text-gray-400" />
               <span className="text-xs text-gray-600 dark:text-gray-300">
                 {formatDueDate(task.dueDate)}
@@ -381,48 +405,50 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onUpdate, onDelete, onEdit, o
             </div>
           )}
 
-          {/* Priority and Progress Row */}
-          <div className="flex items-center gap-1">
-            {/* Compact Priority Badge */}
-            <div className={`flex items-center gap-1 px-2 py-1 rounded-md ${priorityConfig.bgLight} ${priorityConfig.text}`}>
-              {priorityConfig.icon}
-              <span className="text-xs font-medium">
-                {priorityConfig.label}
-              </span>
-            </div>
-
-            {/* Status Badge */}
-            <div
-              className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium ${statusConfig.bgLight} ${statusConfig.text}`}
-              title="Task status"
-            >
-              {statusConfig.icon}
-              <span className="font-medium">
-                {statusConfig.label}
-              </span>
-            </div>
-
-            {/* Compact Progress */}
-            {totalSubtasks > 0 && (
-              <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-gray-100 dark:bg-gray-700/50">
-                <div className="w-12 h-1 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gray-400 dark:bg-gray-300 transition-all duration-300"
-                    style={{ width: `${(completedSubtasks / totalSubtasks) * 100}%` }}
-                  />
-                </div>
-                <span className="text-xs text-gray-500 dark:text-gray-400">
-                  {completedSubtasks}/{totalSubtasks}
-                </span>
-              </div>
-            )}
-
-            {/* Task Timer */}
-            <TaskTimer task={task} />
+          {/* Compact Priority Badge */}
+          <div className={`flex items-center gap-1 px-2 py-1 rounded-md ${priorityConfig.bgLight} ${priorityConfig.text} flex-shrink-0`}>
+            {priorityConfig.icon}
+            <span className="text-xs font-medium">
+              {priorityConfig.label.charAt(0)}
+            </span>
           </div>
 
+          {/* Start Timer Button - Show for tasks not already being tracked in widget */}
+          {(!isTimerRunning || (activeTask && activeTask.id !== task.id)) && onStartTaskTimer && (
+            <button
+              onClick={handleStartWidgetTimer}
+              className="px-2 py-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-xs font-medium rounded-lg transition-all duration-200 flex items-center gap-1 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 flex-shrink-0"
+              title="Start tracking time with sophisticated timer"
+            >
+              <Play className="w-3 h-3" />
+            </button>
+          )}
+
+          {/* Active Timer Indicator - Show for currently tracked task in widget */}
+          {isActiveInWidget && (
+            <div className="px-2 py-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs font-medium rounded-lg flex items-center gap-1 animate-pulse shadow-md flex-shrink-0">
+              <div className="w-1.5 h-1.5 bg-white rounded-full animate-ping"></div>
+              {Math.floor(timerSeconds / 60)}:{(timerSeconds % 60).toString().padStart(2, '0')}
+            </div>
+          )}
+
+          {/* Compact Progress - Only if subtasks exist */}
+          {totalSubtasks > 0 && (
+            <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-gray-100 dark:bg-gray-700/50 flex-shrink-0">
+              <div className="w-8 h-1 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gray-400 dark:bg-gray-300 transition-all duration-300"
+                  style={{ width: `${(completedSubtasks / totalSubtasks) * 100}%` }}
+                />
+              </div>
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                {completedSubtasks}/{totalSubtasks}
+              </span>
+            </div>
+          )}
+
           {/* Action Buttons - Compact */}
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex-shrink-0">
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -478,7 +504,8 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onUpdate, onDelete, onEdit, o
           </button>
         </div>
       )}
-    </div>
+
+      </div>
   );
 };
 

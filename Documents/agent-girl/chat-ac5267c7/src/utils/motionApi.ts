@@ -1,35 +1,80 @@
 import { Task, MotionAPIResponse, TaskOperation } from '../types/tasks';
 
-// Real Motion API Integration
+// Real Motion API Integration with Persistent Authentication
 class MotionAPIService {
   private baseURL = 'https://api.usemotion.com/v1';
   private apiKey: string | null = null;
   private operations: TaskOperation[] = [];
   private currentUserId: string | null = null;
 
-  // Initialize with API key from environment or localStorage
+  // Initialize with persistent authentication
   constructor() {
-    // Priority 1: Environment variable (your API key)
-    // In Vite, environment variables are accessed via import.meta.env
-    if ((import.meta as any).env?.VITE_MOTION_API_KEY) {
-      this.apiKey = (import.meta as any).env.VITE_MOTION_API_KEY;
-      // Store in localStorage for persistence
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('motion_api_key', this.apiKey);
+    this.initializeConnection();
+  }
+
+  // Initialize connection with persistent storage
+  private async initializeConnection() {
+    console.log('🔑 Motion API: Initializing persistent connection...');
+
+    // Check if we have a stored connection
+    try {
+      if (typeof window !== 'undefined' && window.storage) {
+        const savedApiKey = await window.storage.get('motion-api-key');
+        const isConnected = await window.storage.get('motion-connected');
+
+        if (savedApiKey?.value && isConnected?.value) {
+          this.apiKey = savedApiKey.value;
+          console.log('✅ Motion API: Loaded API key from persistent storage');
+        } else {
+          console.log('📦 Motion API: No saved connection found');
+        }
       }
+    } catch (error) {
+      console.log('⚠️ Motion API: Persistent storage not available, using fallback');
+      // Fallback to hardcoded API key
+      this.apiKey = 'AARvN4IMgBFo6Jvr5IcBHyk8vjg8Z/3h4aUB58wWW1E=';
     }
-    // Fallback: Check localStorage
-    else if (typeof window !== 'undefined') {
-      this.apiKey = localStorage.getItem('motion_api_key');
+
+    console.log('🔑 Motion API: Final API key status:', !!this.apiKey);
+  }
+
+  // Connect to Motion with persistent authentication
+  async connectToMotion(): Promise<boolean> {
+    const apiKey = 'AARvN4IMgBFo6Jvr5IcBHyk8vjg8Z/3h4aUB58wWW1E=';
+
+    try {
+      // Test connection
+      const response = await fetch(`${this.baseURL}/tasks`, {
+        headers: {
+          'X-API-Key': apiKey,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        // Save connection persistently
+        if (typeof window !== 'undefined' && window.storage) {
+          await window.storage.set('motion-api-key', apiKey, false); // Personal storage
+          await window.storage.set('motion-connected', 'true', false);
+          await window.storage.set('motion-user-data', JSON.stringify({ connected: true, connectedAt: new Date().toISOString() }), false);
+        }
+
+        this.apiKey = apiKey;
+        console.log('✅ Motion API: Connected and saved persistently');
+        return true;
+      } else {
+        console.error('❌ Motion API: Connection failed');
+        return false;
+      }
+    } catch (error) {
+      console.error('❌ Motion API: Connection error:', error);
+      return false;
     }
   }
 
-  // Set API key
+  // Set API key (legacy method)
   setApiKey(key: string): void {
     this.apiKey = key;
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('motion_api_key', key);
-    }
     // Reset current user ID when API key changes
     this.currentUserId = null;
   }
@@ -39,78 +84,97 @@ class MotionAPIService {
     return !!this.apiKey;
   }
 
-  // Clear API key
-  clearApiKey(): void {
-    this.apiKey = null;
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('motion_api_key');
+  // Disconnect from Motion
+  async disconnectMotion(): Promise<void> {
+    try {
+      if (typeof window !== 'undefined' && window.storage) {
+        await window.storage.delete('motion-api-key');
+        await window.storage.delete('motion-connected');
+        await window.storage.delete('motion-user-data');
+      }
+    } catch (error) {
+      console.error('Failed to clear Motion connection:', error);
     }
+
+    this.apiKey = null;
+    this.currentUserId = null;
   }
 
-  // Make authenticated API requests (using proxy to avoid CORS)
+  // Make authenticated API requests directly to Motion API
   private async makeRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     if (!this.apiKey) {
-      throw new Error('Motion API key not configured. Please connect your Motion account in Settings.');
+      throw new Error('Motion API key not configured. Please connect to Motion first.');
     }
 
-    // Use our proxy endpoint to avoid CORS issues
-    const proxyUrl = 'http://localhost:3013/api/motion/tasks';
+    const url = `${this.baseURL}${endpoint}`;
 
     try {
-      console.log('🎯 Making Motion API request via proxy...');
+      console.log(`🎯 Making Motion API request to: ${url}`);
 
-      const response = await fetch(proxyUrl, {
-        method: 'POST',
+      const response = await fetch(url, {
+        method: options.method || 'GET',
         headers: {
+          'X-API-Key': this.apiKey,
           'Content-Type': 'application/json',
+          ...options.headers,
         },
-        body: JSON.stringify({
-          apiKey: this.apiKey
-        })
+        body: options.body,
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        const errorMessage = errorData.message || `Motion API Error (${response.status})`;
+        const errorMessage = errorData.message || errorData.error || `Motion API Error (${response.status})`;
         throw new Error(errorMessage);
       }
 
       const data = await response.json();
-      console.log(`✅ Motion API proxy response received:`, data);
-
-      if (!data.success) {
-        throw new Error(data.message || 'Motion API request failed');
-      }
+      console.log(`✅ Motion API response received:`, data);
 
       return data;
     } catch (error) {
-      console.error('Motion API proxy error:', error);
+      console.error('Motion API error:', error);
       if (error instanceof Error) {
         throw error;
       }
-      throw new Error('Failed to connect to Motion API via proxy');
+      throw new Error('Failed to connect to Motion API');
     }
   }
 
   // Convert Motion task to our Task format
   private convertMotionTask(motionTask: any): Task {
+    // Handle string dates from Motion API
+    const parseDate = (dateInput: any): Date | undefined => {
+      if (!dateInput) return undefined;
+      if (typeof dateInput === 'string') {
+        return new Date(dateInput);
+      }
+      if (dateInput instanceof Date) {
+        return dateInput;
+      }
+      return new Date(dateInput);
+    };
+
+    // Map Motion's status object to string status
+    const motionStatus = motionTask.status?.name || motionTask.status || 'Todo';
+
     return {
       id: motionTask.id || `motion_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       title: motionTask.name || 'Untitled Task',
       description: motionTask.description || '',
-      completed: motionTask.status === 'Completed',
-      createdAt: new Date(motionTask.startDate || motionTask.createdAt || Date.now()),
-      dueDate: motionTask.dueDate ? new Date(motionTask.dueDate) : undefined,
+      notes: motionTask.notes || motionTask.comment || motionTask.details || '', // Include multiple possible note fields
+      completed: motionStatus === 'Completed',
+      createdAt: parseDate(motionTask.createdTime) || parseDate(motionTask.startDate) || new Date(),
+      dueDate: parseDate(motionTask.dueDate),
       priority: this.mapPriority(motionTask.priority),
-      status: this.mapStatus(motionTask.status),
-      category: motionTask.labels?.[0] || 'Work',
-      workspace: motionTask.workspaceId,
+      status: this.mapStatus(motionStatus),
+      category: motionTask.labels?.[0]?.name || motionTask.labels?.[0] || 'Work',
+      workspace: motionTask.workspace?.id || motionTask.workspaceId,
       duration: motionTask.duration || 60,
       subtasks: [], // Motion doesn't have subtasks in the same way
-      tags: motionTask.labels || [],
+      tags: motionTask.labels?.map((label: any) => label.name || label) || [],
       estimatedTime: motionTask.estimatedTime || motionTask.duration || 60, // Use duration as fallback for estimatedTime
       recurrence: this.mapRecurrence(motionTask.recurringType),
-      reminder: motionTask.reminder ? new Date(motionTask.reminder) : undefined,
+      reminder: motionTask.reminder ? parseDate(motionTask.reminder) : undefined,
       syncStatus: 'synced',
       lastSyncAt: new Date()
     };
@@ -164,24 +228,41 @@ class MotionAPIService {
     try {
       operation.status = 'syncing';
 
-      // Use our proxy which handles all the Motion API details
-      const response = await this.makeRequest<any>('');
+      // Fetch tasks directly from Motion API
+      const endpoint = workspaceId ? `/tasks?workspaceId=${workspaceId}` : '/tasks';
+      const response = await this.makeRequest<any>(endpoint);
 
-      const tasks = response.data?.tasks || [];
+      console.log('🎯 Motion API response received:', response);
+      console.log('🎯 Raw tasks from Motion:', response?.length || 0);
+
+      // Handle different response formats
+      const rawTasks = Array.isArray(response) ? response : response.tasks || [];
+
+      // Convert Motion tasks to our Task format
+      const convertedTasks = rawTasks.map((motionTask: any) => {
+        console.log('🔄 Converting task:', motionTask.name || motionTask.title || 'Untitled Task');
+        return this.convertMotionTask(motionTask);
+      });
+
+      console.log(`✅ Converted ${convertedTasks.length} tasks from Motion`);
 
       operation.status = 'completed';
 
       return {
         success: true,
         data: {
-          tasks,
-          meta: response.meta
+          tasks: convertedTasks,
+          meta: {
+            total: convertedTasks.length,
+            fetched: new Date().toISOString()
+          }
         },
-        message: `Successfully fetched ${tasks.length} tasks assigned to you from Motion`
+        message: `Successfully fetched ${convertedTasks.length} tasks from Motion`
       };
     } catch (error) {
       operation.status = 'error';
       operation.error = error instanceof Error ? error.message : 'Unknown error';
+      console.error('❌ Motion API error:', error);
 
       return {
         success: false,
