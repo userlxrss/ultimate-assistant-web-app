@@ -11,6 +11,7 @@ interface TimerContextType {
   stopTimer: () => void;
   addTimeToTimer: (minutes: number) => void;
   markTaskComplete: () => void;
+  resetTimeUpNotification: () => void;
   isTimerActive: () => boolean;
   getActiveTaskId: () => string | null;
 }
@@ -41,6 +42,7 @@ type TimerAction =
   | { type: 'ADD_TIME'; payload: number }
   | { type: 'UPDATE_ELAPSED_TIME'; payload: number }
   | { type: 'MARK_REACHED_ZERO' }
+  | { type: 'RESET_REACHED_ZERO' }
   | { type: 'UPDATE_STATS'; payload: Partial<TimerStats> }
   | { type: 'LOAD_SAVED_STATE'; payload: TimerState };
 
@@ -104,6 +106,12 @@ const timerReducer = (state: TimerState, action: TimerAction): TimerState => {
       return {
         ...state,
         hasReachedZero: true
+      };
+
+    case 'RESET_REACHED_ZERO':
+      return {
+        ...state,
+        hasReachedZero: false
       };
 
     case 'LOAD_SAVED_STATE':
@@ -199,6 +207,10 @@ export const TimerProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     stopTimer();
   }, [stopTimer]);
 
+  const resetTimeUpNotification = useCallback(() => {
+    dispatch({ type: 'RESET_REACHED_ZERO' });
+  }, []);
+
   const isTimerActive = useCallback(() => {
     return timerState.isRunning && !timerState.isPaused;
   }, [timerState.isRunning, timerState.isPaused]);
@@ -216,6 +228,7 @@ export const TimerProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     stopTimer,
     addTimeToTimer,
     markTaskComplete,
+    resetTimeUpNotification,
     isTimerActive,
     getActiveTaskId
   };

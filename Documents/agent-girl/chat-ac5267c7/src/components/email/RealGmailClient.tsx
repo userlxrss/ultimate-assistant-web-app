@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, Send, RefreshCw, Check, AlertCircle, Trash2, Star, Link, Settings, User, Lock, Eye, EyeOff, LogOut } from 'lucide-react';
+import { Mail, Send, RefreshCw, Check, AlertCircle, Trash2, Star, Link, Settings, User, Lock, Eye, EyeOff, LogOut, Reply } from 'lucide-react';
 import { Email } from '../../../types/email';
 import { authManager } from '../../utils/authManager';
+import { EmailComposer } from './EmailComposer';
 
 export const RealGmailClient: React.FC = () => {
   const [emails, setEmails] = useState<Email[]>([]);
@@ -15,30 +16,24 @@ export const RealGmailClient: React.FC = () => {
   const [error, setError] = useState<string>('');
   const [isComposing, setIsComposing] = useState(false);
   const [composeData, setComposeData] = useState({ to: '', subject: '', body: '', cc: '', bcc: '' });
+  const [isReplying, setIsReplying] = useState(false);
+  const [replyToEmail, setReplyToEmail] = useState<Email | null>(null);
 
   useEffect(() => {
-    // First, try to migrate old sessions
-    const oldGmailSession = localStorage.getItem('gmail_session');
-    if (oldGmailSession && !authManager.getGmailSession()) {
-      console.log('🔄 Migrating old Gmail session...');
-      try {
-        const session = JSON.parse(oldGmailSession);
-        authManager.saveGmailSession(session.sessionId, session.email);
-        localStorage.removeItem('gmail_session');
-        console.log('✅ Gmail session migrated successfully');
-      } catch (error) {
-        console.error('❌ Gmail session migration failed:', error);
-      }
-    }
-
-    // Load saved session using auth manager
+    // Try to restore existing Gmail session
     const gmailSession = authManager.getGmailSession();
     if (gmailSession) {
-      console.log('📧 Restoring persistent Gmail session for:', gmailSession.email);
+      console.log('📧 Restoring Gmail session for:', gmailSession.email);
       setSessionId(gmailSession.sessionId);
       setGmailAddress(gmailSession.email);
       setIsAuthenticated(true);
-      loadEmails();
+
+      // Load emails after a short delay to ensure server is ready
+      setTimeout(() => {
+        loadEmails();
+      }, 1000);
+    } else {
+      console.log('📧 No existing Gmail session found - authentication required');
     }
   }, []);
 
@@ -122,9 +117,9 @@ export const RealGmailClient: React.FC = () => {
 
     try {
       console.log('🔐 Attempting Gmail authentication for:', gmailAddress);
-      console.log('📡 Sending request to: http://localhost:3012/api/gmail/authenticate');
+      console.log('📡 Sending request to: http://localhost:3050/api/gmail/authenticate');
 
-      const response = await fetch('http://localhost:3012/api/gmail/authenticate', {
+      const response = await fetch('http://localhost:3050/api/gmail/authenticate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -174,23 +169,32 @@ export const RealGmailClient: React.FC = () => {
       return;
     }
 
-    console.log('📧 Loading emails with session:', sessionId);
+    console.log('📧 Loading real emails from Gmail with session:', sessionId);
     setIsLoading(true);
     setError('');
 
+    // Fetch real emails directly (no mock data)
     try {
-      const url = `http://localhost:3012/api/gmail/emails/${sessionId}?limit=50`;
-      console.log('📡 Fetching emails from:', url);
+      const url = `http://localhost:3050/api/gmail/emails/${sessionId}?limit=50`;
+      console.log('📡 Fetching real emails from:', url);
 
       const response = await fetch(url);
       console.log('📬 Email response status:', response.status);
+
+      if (response.status === 401) {
+        // Session expired or invalid - clear it and require re-authentication
+        console.log('🔐 Session expired (401), clearing session and requiring re-authentication');
+        clearSession();
+        setError('Your Gmail session has expired. Please authenticate again.');
+        return;
+      }
 
       if (!response.ok) {
         throw new Error(`Failed to fetch emails: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log('📬 Email data received:', data);
+      console.log('📬 Real email data received:', data);
       console.log('📬 Number of emails:', data.emails?.length || 0);
 
       if (data.error) {
@@ -198,26 +202,44 @@ export const RealGmailClient: React.FC = () => {
       }
 
       const emailList = data.emails || [];
-      console.log('📧 Setting emails state with:', emailList.length, 'emails');
-      setEmails(emailList);
-      console.log('✅ Emails loaded successfully! Current email count:', emailList.length);
-
-      // Log the first email for verification
       if (emailList.length > 0) {
-        console.log('📧 First email subject:', emailList[0].subject);
-        console.log('📧 First email from:', emailList[0].from?.name || emailList[0].from?.email);
+        console.log('📧 Real emails loaded successfully:', emailList.length, 'emails');
+
+        // Add snippets to emails by fetching first 200 characters
+        const emailsWithSnippets = emailList.map(email => ({
+          ...email,
+          snippet: email.snippet || 'Click to view email content...'
+        }));
+
+        setEmails(emailsWithSnippets);
+        console.log('✅ Real email list loaded! Current email count:', emailsWithSnippets.length);
+
+        // Log the first email for verification
+        console.log('📧 First email subject:', emailsWithSnippets[0].subject);
+        console.log('📧 First email from:', emailsWithSnippets[0].from?.name || emailsWithSnippets[0].from?.email);
+      } else {
+        console.log('📧 No emails found in inbox');
+        setEmails([]);
       }
     } catch (err) {
-      console.error('❌ Failed to load Gmail:', err);
-      setError('Failed to load Gmail emails. Please check your connection and try again.');
+      console.error('❌ Failed to load real emails:', err);
+      if (err instanceof Error && err.message.includes('401')) {
+        clearSession();
+        setError('Your Gmail session has expired. Please authenticate again.');
+      } else {
+        setError('Failed to load emails. Please check your connection and try again.');
+      }
+      setEmails([]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSendEmail = async () => {
-    if (!composeData.to || !composeData.subject || !composeData.body) {
-      setError('Please fill in all required fields');
+  
+  
+  const handleSendEmail = async (emailData: any) => {
+    if (!sessionId) {
+      setError('Please authenticate with Gmail first');
       return;
     }
 
@@ -225,17 +247,18 @@ export const RealGmailClient: React.FC = () => {
     setError('');
 
     try {
-      const response = await fetch(`http://localhost:3012/api/gmail/send/${sessionId}`, {
+      const response = await fetch(`http://localhost:3050/api/gmail/send/${sessionId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          to: composeData.to,
-          subject: composeData.subject,
-          body: composeData.body,
-          cc: composeData.cc || undefined,
-          bcc: composeData.bcc || undefined
+          to: emailData.to.map((addr: any) => addr.email).join(','),
+          subject: emailData.subject,
+          body: emailData.body,
+          cc: emailData.cc && emailData.cc.length > 0 ? emailData.cc.map((addr: any) => addr.email).join(',') : undefined,
+          bcc: emailData.bcc && emailData.bcc.length > 0 ? emailData.bcc.map((addr: any) => addr.email).join(',') : undefined,
+          replyTo: emailData.replyTo
         })
       });
 
@@ -246,6 +269,8 @@ export const RealGmailClient: React.FC = () => {
       }
 
       setIsComposing(false);
+      setIsReplying(false);
+      setReplyToEmail(null);
       setComposeData({ to: '', subject: '', body: '', cc: '', bcc: '' });
       showSuccess('Email sent successfully!');
       loadEmails(); // Refresh inbox
@@ -258,11 +283,23 @@ export const RealGmailClient: React.FC = () => {
     }
   };
 
+  const handleReply = () => {
+    if (selectedEmail) {
+      setReplyToEmail(selectedEmail);
+      setIsReplying(true);
+    }
+  };
+
+  const handleCancelReply = () => {
+    setIsReplying(false);
+    setReplyToEmail(null);
+  };
+
   const handleToggleRead = async (emailId: string, currentReadStatus: boolean) => {
     if (!sessionId) return;
 
     try {
-      const response = await fetch(`http://localhost:3012/api/gmail/email/${sessionId}/${emailId}/read`, {
+      const response = await fetch(`http://localhost:3050/api/gmail/email/${sessionId}/${emailId}/read`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -287,7 +324,7 @@ export const RealGmailClient: React.FC = () => {
     if (!sessionId) return;
 
     try {
-      const response = await fetch(`http://localhost:3012/api/gmail/email/${sessionId}/${emailId}/star`, {
+      const response = await fetch(`http://localhost:3050/api/gmail/email/${sessionId}/${emailId}/star`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -316,7 +353,7 @@ export const RealGmailClient: React.FC = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:3012/api/gmail/email/${sessionId}/${emailId}`, {
+      const response = await fetch(`http://localhost:3050/api/gmail/email/${sessionId}/${emailId}`, {
         method: 'DELETE'
       });
 
@@ -694,18 +731,28 @@ export const RealGmailClient: React.FC = () => {
                     <button
                       onClick={() => handleToggleRead(selectedEmail.id, selectedEmail.isRead)}
                       className="p-2 hover:bg-gray-100/50 dark:hover:bg-gray-700/50 rounded-lg transition-colors"
+                      title="Mark as read/unread"
                     >
                       <Mail className={`w-4 h-4 ${selectedEmail.isRead ? 'text-gray-400' : 'text-blue-500'}`} />
                     </button>
                     <button
                       onClick={() => handleToggleStar(selectedEmail.id, selectedEmail.isStarred)}
                       className="p-2 hover:bg-gray-100/50 dark:hover:bg-gray-700/50 rounded-lg transition-colors"
+                      title="Star/Unstar"
                     >
                       <Star className={`w-4 h-4 ${selectedEmail.isStarred ? 'text-yellow-500 fill-current' : 'text-gray-400'}`} />
                     </button>
                     <button
+                      onClick={handleReply}
+                      className="p-2 hover:bg-gray-100/50 dark:hover:bg-gray-700/50 rounded-lg transition-colors"
+                      title="Reply"
+                    >
+                      <Reply className="w-4 h-4 text-blue-500" />
+                    </button>
+                    <button
                       onClick={() => handleDelete(selectedEmail.id)}
                       className="p-2 hover:bg-gray-100/50 dark:hover:bg-gray-700/50 rounded-lg transition-colors"
+                      title="Delete"
                     >
                       <Trash2 className="w-4 h-4 text-red-500" />
                     </button>
@@ -716,6 +763,19 @@ export const RealGmailClient: React.FC = () => {
                   <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
                     {selectedEmail.body}
                   </p>
+                </div>
+
+                {/* Quick Reply Section */}
+                <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleReply}
+                      className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2"
+                    >
+                      <Reply className="w-4 h-4" />
+                      Reply
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -732,6 +792,19 @@ export const RealGmailClient: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Email Composer for Reply */}
+      {isReplying && replyToEmail && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+            <EmailComposer
+              onSend={handleSendEmail}
+              onCancel={handleCancelReply}
+              replyToEmail={replyToEmail}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

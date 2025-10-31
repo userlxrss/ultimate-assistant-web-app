@@ -25,7 +25,7 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
   );
   const [body, setBody] = useState<string>(
     replyToEmail
-      ? `\n\n---\nOn ${replyToEmail.date.toLocaleDateString()}, ${replyToEmail.from.name || replyToEmail.from.email} wrote:\n> ${replyToEmail.body.replace(/\n/g, '\n> ')}`
+      ? `\n\n---\nOn ${new Date(replyToEmail.date).toLocaleDateString()}, ${replyToEmail.from.name || replyToEmail.from.email} wrote:\n> ${(replyToEmail.body || '').replace(/\n/g, '\n> ')}`
       : ''
   );
   const [showCc, setShowCc] = useState(false);

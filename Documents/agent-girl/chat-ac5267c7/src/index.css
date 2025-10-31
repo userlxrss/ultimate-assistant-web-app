@@ -189,6 +189,22 @@ html.compact-mode .form-actions {
   }
 }
 
+/* Modal animation */
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-enter {
+  animation: modalSlideIn 0.3s ease-out;
+}
+
 /* Month folder styles */
 .month-folder {
   @apply glass overflow-hidden transition-all duration-300;
@@ -360,6 +376,12 @@ textarea.template-loaded {
 }
 
 .view-toggle:hover {
+  background: #3B82F6;
+  color: white;
+  border-color: #3B82F6;
+}
+
+.view-toggle.active {
   background: #3B82F6;
   color: white;
   border-color: #3B82F6;
@@ -749,4 +771,447 @@ textarea.template-loaded {
 
 .dark .entry-item:hover {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* ===== TASK DESCRIPTION HTML RENDERING ===== */
+.task-description {
+  line-height: 1.6;
+  color: #374151;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.dark .task-description {
+  color: #D1D5DB;
+}
+
+/* Paragraph styling */
+.task-description p {
+  margin-bottom: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.task-description p:first-child {
+  margin-top: 0;
+}
+
+.task-description p:last-child {
+  margin-bottom: 0;
+}
+
+/* Text formatting */
+.task-description strong,
+.task-description b {
+  font-weight: 600;
+  color: #111827;
+}
+
+.dark .task-description strong,
+.dark .task-description b {
+  color: #F9FAFB;
+}
+
+.task-description em,
+.task-description i {
+  font-style: italic;
+}
+
+/* Headers */
+.task-description h1,
+.task-description h2,
+.task-description h3,
+.task-description h4,
+.task-description h5,
+.task-description h6 {
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: #111827;
+}
+
+.dark .task-description h1,
+.dark .task-description h2,
+.dark .task-description h3,
+.dark .task-description h4,
+.dark .task-description h5,
+.dark .task-description h6 {
+  color: #F9FAFB;
+}
+
+.task-description h1 { font-size: 1.5rem; }
+.task-description h2 { font-size: 1.25rem; }
+.task-description h3 { font-size: 1.125rem; }
+.task-description h4 { font-size: 1rem; }
+.task-description h5 { font-size: 0.875rem; }
+.task-description h6 { font-size: 0.75rem; }
+
+/* Lists */
+.task-description ul,
+.task-description ol {
+  margin-left: 1.5rem;
+  margin-bottom: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.task-description li {
+  margin-bottom: 0.25rem;
+}
+
+.task-description ul li {
+  list-style-type: disc;
+}
+
+.task-description ol li {
+  list-style-type: decimal;
+}
+
+/* Horizontal rule */
+.task-description hr {
+  margin: 1.5rem 0;
+  border: none;
+  border-top: 1px solid #E5E7EB;
+}
+
+.dark .task-description hr {
+  border-top-color: #374151;
+}
+
+/* Links */
+.task-description a {
+  color: #3B82F6;
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.task-description a:hover {
+  color: #1D4ED8;
+}
+
+/* Code blocks */
+.task-description code {
+  background-color: #F3F4F6;
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  font-size: 0.875em;
+  color: #D1D5DB;
+}
+
+.dark .task-description code {
+  background-color: #374151;
+  color: #E5E7EB;
+}
+
+.task-description pre {
+  background-color: #F3F4F6;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+.dark .task-description pre {
+  background-color: #1F2937;
+}
+
+.task-description pre code {
+  background-color: transparent;
+  padding: 0;
+}
+
+/* Blockquotes */
+.task-description blockquote {
+  border-left: 4px solid #3B82F6;
+  padding-left: 1rem;
+  margin: 1rem 0;
+  font-style: italic;
+  color: #6B7280;
+}
+
+.dark .task-description blockquote {
+  color: #9CA3AF;
+}
+
+/* Tables */
+.task-description table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+.task-description th,
+.task-description td {
+  border: 1px solid #E5E7EB;
+  padding: 0.5rem;
+  text-align: left;
+}
+
+.dark .task-description th,
+.dark .task-description td {
+  border-color: #374151;
+}
+
+.task-description th {
+  background-color: #F9FAFB;
+  font-weight: 600;
+}
+
+.dark .task-description th {
+  background-color: #1F2937;
+}
+
+/* Images */
+.task-description img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+/* Responsive adjustments for task descriptions */
+@media (max-width: 640px) {
+  .task-description {
+    font-size: 0.875rem;
+  }
+
+  .task-description h1 { font-size: 1.25rem; }
+  .task-description h2 { font-size: 1.125rem; }
+  .task-description h3 { font-size: 1rem; }
+
+  .task-description ul,
+  .task-description ol {
+    margin-left: 1rem;
+  }
+}
+
+/* ===== TASK NOTIFICATIONS & MODAL ANIMATIONS ===== */
+
+/* Slide in from right animation */
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Scale in animation */
+@keyframes scale-in {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-scale-in {
+  animation: scale-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Fade in animation */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+/* Checkmark draw animation */
+@keyframes check-draw {
+  from {
+    stroke-dashoffset: 100;
+    stroke-dasharray: 100;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+    stroke-dasharray: 100;
+    opacity: 1;
+  }
+}
+
+.animate-check-draw {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: check-draw 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.2s forwards;
+}
+
+/* Progress bar animation */
+@keyframes progress-bar {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+.animate-progress-bar {
+  animation: progress-bar 4s linear forwards;
+}
+
+/* Pulse animation */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Bounce in animation for completion */
+@keyframes bounce-in {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-bounce-in {
+  animation: bounce-in 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* Slide up animation */
+@keyframes slide-up {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+/* Task checkbox animation */
+@keyframes checkbox-check {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-checkbox-check {
+  animation: checkbox-check 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* Loading spinner animation */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Button press animation */
+@keyframes button-press {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.active:active {
+  animation: button-press 0.15s ease-out;
+}
+
+/* Notification enter animations for multiple notifications */
+@keyframes notification-stack-enter {
+  from {
+    transform: translateX(100%) translateY(-10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0) translateY(0);
+    opacity: 1;
+  }
+}
+
+.notification-stack-enter {
+  animation: notification-stack-enter 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Shake animation for errors */
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-2px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(2px);
+  }
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+/* Success glow animation */
+@keyframes success-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(34, 197, 94, 0);
+  }
+}
+
+.animate-success-glow {
+  animation: success-glow 1s ease-out;
 }

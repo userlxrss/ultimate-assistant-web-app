@@ -6,6 +6,14 @@ import { getTrendIcon, getTrendColor, calculateTrend } from '../utils/helpers';
 interface DashboardStatsProps {
   stats: DashboardStats;
   previousStats?: Partial<DashboardStats>;
+  periodComparisons?: {
+    taskCompletion: { value: number; trend: 'up' | 'down' };
+    journalEntries: { value: number; trend: 'up' | 'down' };
+    emailActivity: { value: number; trend: 'up' | 'down' };
+    events: { value: number; trend: 'up' | 'down' };
+    contacts: { value: number; trend: 'up' | 'down' };
+  };
+  dateRange?: string;
 }
 
 const StatCard: React.FC<{
@@ -14,9 +22,10 @@ const StatCard: React.FC<{
   change?: number;
   icon: React.ReactNode;
   color: string;
-}> = ({ title, value, change, icon, color }) => {
-  const trend = change !== undefined ? calculateTrend(change, Math.abs(change) - (change > 0 ? change : -change)) : 'stable';
-  const changeColor = change !== undefined ? (change > 0 ? 'text-green-500' : change < 0 ? 'text-red-500' : 'text-gray-500') : '';
+  subtitle?: string;
+}> = ({ title, value, change, icon, color, subtitle }) => {
+  const trend = change !== undefined && change !== 0 ? calculateTrend(change, Math.abs(change) - (change > 0 ? change : -change)) : 'stable';
+  const changeColor = change !== undefined && change !== 0 ? (change > 0 ? 'text-green-500' : change < 0 ? 'text-red-500' : 'text-gray-500') : '';
 
   return (
     <div className="stat-card group cursor-pointer">
@@ -24,7 +33,10 @@ const StatCard: React.FC<{
         <div className="flex-1">
           <p className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">{title}</p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{value}</p>
-          {change !== undefined && (
+          {subtitle && (
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{subtitle}</p>
+          )}
+          {change !== undefined && change !== 0 && (
             <div className="flex items-center gap-1">
               <span className={`text-sm font-medium ${changeColor}`}>
                 {getTrendIcon(trend)} {Math.abs(change)}%
@@ -41,39 +53,48 @@ const StatCard: React.FC<{
   );
 };
 
-export const DashboardStatsComponent: React.FC<DashboardStatsProps> = ({ stats, previousStats }) => {
-  const taskCompletionRate = Math.round((stats.completedTasks / stats.totalTasks) * 100);
-  const previousCompletionRate = previousStats ? Math.round((previousStats.completedTasks! / previousStats.totalTasks!) * 100) : 0;
+export const DashboardStatsComponent: React.FC<DashboardStatsProps> = ({ stats, previousStats, periodComparisons, dateRange }) => {
+  const taskCompletionRate = stats.totalTasks > 0 ? Math.round((stats.completedTasks / stats.totalTasks) * 100) : 0;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       <StatCard
         title="Task Completion Rate"
         value={`${taskCompletionRate}%`}
-        change={previousStats ? taskCompletionRate - previousCompletionRate : undefined}
+        change={periodComparisons?.taskCompletion.value && periodComparisons.taskCompletion.value !== 0
+          ? (periodComparisons.taskCompletion.trend === 'up' ? periodComparisons.taskCompletion.value : -periodComparisons.taskCompletion.value)
+          : undefined}
+        subtitle={stats.totalTasks === 0 ? "Create tasks to track completion" : `${stats.completedTasks}/${stats.totalTasks} completed`}
         icon={<CheckCircle className="w-6 h-6 text-white" />}
-        color="bg-gradient-to-br from-sage-500 to-sage-600"
+        color="bg-gradient-to-br from-green-500 to-green-600"
       />
       <StatCard
         title="Total Journal Entries"
         value={stats.totalJournalEntries}
-        change={previousStats ? stats.totalJournalEntries - previousStats.totalJournalEntries! : undefined}
+        change={periodComparisons?.journalEntries.value && periodComparisons.journalEntries.value !== 0
+          ? (periodComparisons.journalEntries.trend === 'up' ? periodComparisons.journalEntries.value : -periodComparisons.journalEntries.value)
+          : undefined}
+        subtitle={stats.totalJournalEntries === 0 ? "Start journaling to see insights" : `Last ${dateRange} days`}
         icon={<BookOpen className="w-6 h-6 text-white" />}
-        color="bg-gradient-to-br from-soft-lavender-500 to-soft-lavender-600"
+        color="bg-gradient-to-br from-blue-500 to-blue-600"
       />
       <StatCard
         title="Email Activity"
         value={stats.totalEmails}
-        change={previousStats ? stats.totalEmails - previousStats.totalEmails! : undefined}
+        change={periodComparisons?.emailActivity.value && periodComparisons.emailActivity.value !== 0
+          ? (periodComparisons.emailActivity.trend === 'up' ? periodComparisons.emailActivity.value : -periodComparisons.emailActivity.value)
+          : undefined}
+        subtitle={stats.totalEmails === 0 ? "No email activity yet" : `Last ${dateRange} days`}
         icon={<Mail className="w-6 h-6 text-white" />}
-        color="bg-gradient-to-br from-dusty-blue-500 to-dusty-blue-600"
+        color="bg-gradient-to-br from-purple-500 to-purple-600"
       />
       <StatCard
         title="Total Contacts"
-        value={stats.totalContacts}
-        change={previousStats ? stats.totalContacts - previousStats.totalContacts! : undefined}
+        value="N/A"
+        change={undefined}
+        subtitle="Contacts temporarily unavailable"
         icon={<Users className="w-6 h-6 text-white" />}
-        color="bg-gradient-to-br from-purple-500 to-purple-600"
+        color="bg-gradient-to-br from-gray-400 to-gray-500 opacity-50"
       />
     </div>
   );

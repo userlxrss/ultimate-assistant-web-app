@@ -57,9 +57,9 @@ const Journal: React.FC = () => {
   const [autoSaveTimer, setAutoSaveTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
   const [darkMode, setDarkMode] = useState(false);
 
-  // Month folder state for enhanced ListView
-  const [expandedMonths, setExpandedMonths] = useState<string[]>([]);
+  // Month folder state for modal-based folder system
   const [viewMode, setViewMode] = useState<'folders' | 'recent'>('folders');
+  const [activeFolder, setActiveFolder] = useState<string | null>(null);
 
   // Selection state
   const [selectedEntries, setSelectedEntries] = useState<Set<string>>(new Set());
@@ -71,11 +71,21 @@ const Journal: React.FC = () => {
     setEntries(generatedEntries);
   }, []);
 
-  // Auto-expand current month on mount
-  useEffect(() => {
-    const currentMonth = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
-    setExpandedMonths([currentMonth]);
-  }, []);
+  // Modal folder functions
+  const openFolder = (monthYear: string) => {
+    setActiveFolder(monthYear);
+  };
+
+  const closeFolder = () => {
+    setActiveFolder(null);
+  };
+
+  const exportMonthAsMarkdown = (monthYear: string) => {
+    const monthData = organizeEntriesByMonth()[monthYear];
+    if (monthData) {
+      exportMonthToMD(monthYear, monthData.entries);
+    }
+  };
 
   // Auto-save draft every 30 seconds
   useEffect(() => {
@@ -188,6 +198,12 @@ const Journal: React.FC = () => {
   };
 
   const saveEntry = () => {
+    if (editingEntry === 'view') {
+      // Don't save when in view mode
+      setEditingEntry(null);
+      return;
+    }
+
     const entry: ExtendedJournalEntry = {
       id: currentEntry.id || `journal-${Date.now()}`,
       date: currentEntry.date || new Date(),
@@ -230,6 +246,12 @@ const Journal: React.FC = () => {
   const editEntry = (entry: ExtendedJournalEntry) => {
     setCurrentEntry(entry);
     setEditingEntry(entry.id);
+    setView('form');
+  };
+
+  const viewEntry = (entry: ExtendedJournalEntry) => {
+    setCurrentEntry(entry);
+    setEditingEntry('view'); // Use a special value to indicate view mode
     setView('form');
   };
 
@@ -394,15 +416,7 @@ const Journal: React.FC = () => {
     return organized;
   };
 
-  // Toggle month expansion
-  const toggleMonth = (monthYear: string) => {
-    setExpandedMonths(prev =>
-      prev.includes(monthYear)
-        ? prev.filter(m => m !== monthYear)
-        : [...prev, monthYear]
-    );
-  };
-
+  
   // Get month emoji based on avg mood
   const getMonthEmoji = (avgMood: number | string) => {
     if (avgMood === 'N/A') return '📔';
@@ -693,7 +707,8 @@ const Journal: React.FC = () => {
               <div className="glass-card">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                    {editingEntry ? 'Edit Entry' : 'New Entry'}
+                    {editingEntry === 'view' ? 'View Entry' :
+                     editingEntry ? 'Edit Entry' : 'New Entry'}
                   </h2>
                   <div className="flex items-center gap-2">
                     <button
@@ -705,10 +720,15 @@ const Journal: React.FC = () => {
                     </button>
                     <button
                       onClick={saveEntry}
-                      className="flex items-center gap-2 px-4 py-2 bg-sage-500 text-white rounded-lg hover:bg-sage-600 transition-colors duration-200"
+                      disabled={editingEntry === 'view'}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors duration-200 ${
+                        editingEntry === 'view'
+                          ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                          : 'bg-sage-500 text-white hover:bg-sage-600'
+                      }`}
                     >
                       <Save className="w-4 h-4" />
-                      <span>Save</span>
+                      <span>{editingEntry === 'view' ? 'View Mode' : 'Save'}</span>
                     </button>
                   </div>
                 </div>
@@ -729,7 +749,12 @@ const Journal: React.FC = () => {
                       type="date"
                       value={currentEntry.date?.toISOString().split('T')[0] || ''}
                       onChange={(e) => setCurrentEntry(prev => ({ ...prev, date: new Date(e.target.value) }))}
-                      className="w-full px-4 py-2 rounded-xl glass-button focus:outline-none focus:ring-2 focus:ring-sage-500"
+                      disabled={editingEntry === 'view'}
+                      className={`w-full px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-sage-500 ${
+                        editingEntry === 'view'
+                          ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
+                          : 'glass-button'
+                      }`}
                     />
                   </div>
 
@@ -745,7 +770,8 @@ const Journal: React.FC = () => {
                         max="10"
                         value={currentEntry.mood || 7}
                         onChange={(e) => setCurrentEntry(prev => ({ ...prev, mood: parseInt(e.target.value) }))}
-                        className="flex-1"
+                        disabled={editingEntry === 'view'}
+                        className={`flex-1 ${editingEntry === 'view' ? 'cursor-not-allowed opacity-50' : ''}`}
                       />
                       <span className="text-2xl">😊</span>
                       <span className="text-lg font-semibold text-sage-600 dark:text-sage-400 min-w-[3ch]">
@@ -768,7 +794,12 @@ const Journal: React.FC = () => {
                         onInput={handleTextareaAutoExpand}
                         placeholder="How was your day? What's on your mind?"
                         rows={6}
-                        className="w-full px-4 py-3 rounded-xl glass-button focus:outline-none focus:ring-2 focus:ring-sage-500 resize-none"
+                        disabled={editingEntry === 'view'}
+                        className={`w-full px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-sage-500 resize-none ${
+                          editingEntry === 'view'
+                            ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
+                            : 'glass-button'
+                        }`}
                         style={{ minHeight: '144px', maxHeight: '800px' }}
                       />
                       <button
@@ -803,7 +834,12 @@ const Journal: React.FC = () => {
                         value={currentEntry.biggestWin || ''}
                         onChange={(e) => setCurrentEntry(prev => ({ ...prev, biggestWin: e.target.value }))}
                         placeholder="What went really well today?"
-                        className="w-full px-4 py-2 rounded-xl glass-button focus:outline-none focus:ring-2 focus:ring-sage-500"
+                        disabled={editingEntry === 'view'}
+                        className={`w-full px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-sage-500 ${
+                          editingEntry === 'view'
+                            ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
+                            : 'glass-button'
+                        }`}
                       />
                     </div>
 
@@ -816,7 +852,12 @@ const Journal: React.FC = () => {
                         value={currentEntry.learning || ''}
                         onChange={(e) => setCurrentEntry(prev => ({ ...prev, learning: e.target.value }))}
                         placeholder="What did you learn?"
-                        className="w-full px-4 py-2 rounded-xl glass-button focus:outline-none focus:ring-2 focus:ring-sage-500"
+                        disabled={editingEntry === 'view'}
+                        className={`w-full px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-sage-500 ${
+                          editingEntry === 'view'
+                            ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
+                            : 'glass-button'
+                        }`}
                       />
                     </div>
                   </div>
@@ -874,10 +915,13 @@ const Journal: React.FC = () => {
           <ListView
             entries={filteredEntries}
             onEditEntry={editEntry}
+            onViewEntry={viewEntry}
             onDeleteEntry={deleteEntry}
-            expandedMonths={expandedMonths}
+            activeFolder={activeFolder}
             viewMode={viewMode}
-            toggleMonth={toggleMonth}
+            openFolder={openFolder}
+            closeFolder={closeFolder}
+            exportMonthAsMarkdown={exportMonthAsMarkdown}
             organizeEntriesByMonth={organizeEntriesByMonth}
             getMonthEmoji={getMonthEmoji}
             formatEntryDate={formatEntryDate}

@@ -30,6 +30,17 @@ const JournalSimple: React.FC = () => {
   const [expandedMonths, setExpandedMonths] = useState([]);
   const [selectedEntries, setSelectedEntries] = useState(new Set());
 
+  // Modal state for month entries
+  const [showMonthModal, setShowMonthModal] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState(null);
+  const [selectedMonthEntries, setSelectedMonthEntries] = useState([]);
+  const [editingEntry, setEditingEntry] = useState(null);
+  const [viewingEntry, setViewingEntry] = useState(null);
+
+  // Custom delete confirmation modal state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [entryToDelete, setEntryToDelete] = useState(null);
+
   // Month folders functions
   const toggleMonth = (monthYear) => {
     setExpandedMonths(prev =>
@@ -37,6 +48,82 @@ const JournalSimple: React.FC = () => {
         ? prev.filter(m => m !== monthYear)
         : [...prev, monthYear]
     );
+  };
+
+  // Modal functions
+  const openMonthModal = (monthYear, monthData) => {
+    setSelectedMonth(monthYear);
+    setSelectedMonthEntries(monthData.entries);
+    setShowMonthModal(true);
+  };
+
+  const closeMonthModal = () => {
+    setShowMonthModal(false);
+    setSelectedMonth(null);
+    setSelectedMonthEntries([]);
+    setEditingEntry(null);
+    setViewingEntry(null);
+  };
+
+  const handleViewEntry = (entry) => {
+    setViewingEntry(entry);
+    setEditingEntry(null);
+  };
+
+  const handleEditEntry = (entry) => {
+    setEditingEntry(entry);
+    setViewingEntry(null);
+  };
+
+  const handleDeleteEntry = (entry) => {
+    setEntryToDelete(entry);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteEntry = () => {
+    if (!entryToDelete) return;
+
+    const updatedEntries = entries.filter(e => e.id !== entryToDelete.id);
+    setEntries(updatedEntries);
+    localStorage.setItem('journalEntries', JSON.stringify(updatedEntries));
+
+    // Update the modal entries
+    setSelectedMonthEntries(prev => prev.filter(e => e.id !== entryToDelete.id));
+
+    // Close modals if this was the last entry
+    if (selectedMonthEntries.length <= 1) {
+      closeMonthModal();
+    }
+
+    // Close delete modal and clear state
+    setShowDeleteModal(false);
+    setEntryToDelete(null);
+    setEditingEntry(null);
+    setViewingEntry(null);
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setEntryToDelete(null);
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingEntry) return;
+
+    const updatedEntries = entries.map(e =>
+      e.id === editingEntry.id ? editingEntry : e
+    );
+
+    setEntries(updatedEntries);
+    localStorage.setItem('journalEntries', JSON.stringify(updatedEntries));
+
+    // Update the modal entries
+    setSelectedMonthEntries(prev =>
+      prev.map(e => e.id === editingEntry.id ? editingEntry : e)
+    );
+
+    setEditingEntry(null);
+    alert('Entry updated successfully!');
   };
 
   const organizeEntriesByMonth = () => {
@@ -360,7 +447,7 @@ const JournalSimple: React.FC = () => {
 
   return (
     <>
-      <style jsx>{`
+      <style>{`
         /* ========== JOURNAL PAGE - COMPACT & SOPHISTICATED ========== */
 
         .journal-page {
@@ -1258,6 +1345,598 @@ const JournalSimple: React.FC = () => {
         .dark .btn-entry-action:hover {
           background: #334155;
         }
+
+        /* ===== MODAL STYLES ===== */
+        .modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+          backdrop-filter: blur(4px);
+        }
+
+        .modal {
+          background: white;
+          border-radius: 16px;
+          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+          max-width: 800px;
+          width: 90%;
+          max-height: 80vh;
+          display: flex;
+          flex-direction: column;
+          animation: modalSlideIn 300ms ease;
+        }
+
+        .dark .modal {
+          background: #1E293B;
+          border: 1px solid #334155;
+        }
+
+        @keyframes modalSlideIn {
+          from {
+            opacity: 0;
+            transform: translateY(-20px) scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+
+        .modal-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 24px 24px 16px;
+          border-bottom: 1px solid #E5E7EB;
+        }
+
+        .dark .modal-header {
+          border-bottom-color: #334155;
+        }
+
+        .modal-title {
+          font-size: 20px;
+          font-weight: 700;
+          color: #0F172A;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .dark .modal-title {
+          color: #F8FAFC;
+        }
+
+        .modal-close {
+          background: transparent;
+          border: none;
+          padding: 8px;
+          border-radius: 8px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #64748B;
+          transition: all 150ms ease;
+        }
+
+        .modal-close:hover {
+          background: #F1F5F9;
+          color: #0F172A;
+        }
+
+        .dark .modal-close {
+          color: #94A3B8;
+        }
+
+        .dark .modal-close:hover {
+          background: #334155;
+          color: #F8FAFC;
+        }
+
+        .modal-content {
+          flex: 1;
+          overflow-y: auto;
+          padding: 24px;
+        }
+
+        .modal-entry-list {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .modal-entry-item {
+          background: #F9FAFB;
+          border: 1px solid #E5E7EB;
+          border-radius: 12px;
+          padding: 16px;
+          transition: all 200ms ease;
+          cursor: pointer;
+        }
+
+        .dark .modal-entry-item {
+          background: #0F172A;
+          border-color: #334155;
+        }
+
+        .modal-entry-item:hover {
+          border-color: #3B82F6;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+        }
+
+        .modal-entry-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 8px;
+        }
+
+        .modal-entry-title {
+          font-size: 16px;
+          font-weight: 600;
+          color: #0F172A;
+        }
+
+        .dark .modal-entry-title {
+          color: #F8FAFC;
+        }
+
+        .modal-entry-date {
+          font-size: 12px;
+          color: #64748B;
+          font-weight: 500;
+        }
+
+        .modal-entry-preview {
+          font-size: 14px;
+          color: #64748B;
+          line-height: 1.5;
+          margin-bottom: 12px;
+        }
+
+        .dark .modal-entry-preview {
+          color: #94A3B8;
+        }
+
+        .modal-entry-footer {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding-top: 12px;
+          border-top: 1px solid #E5E7EB;
+        }
+
+        .dark .modal-entry-footer {
+          border-top-color: #334155;
+        }
+
+        .modal-entry-meta {
+          display: flex;
+          gap: 12px;
+          font-size: 12px;
+          color: #64748B;
+        }
+
+        .dark .modal-entry-meta {
+          color: #94A3B8;
+        }
+
+        .modal-entry-actions {
+          display: flex;
+          gap: 4px;
+        }
+
+        .modal-btn-action {
+          padding: 6px 10px;
+          background: white;
+          border: 1px solid #E5E7EB;
+          border-radius: 6px;
+          font-size: 12px;
+          cursor: pointer;
+          transition: all 150ms ease;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+
+        .modal-btn-action:hover {
+          background: #3B82F6;
+          color: white;
+          border-color: #3B82F6;
+        }
+
+        .dark .modal-btn-action {
+          background: #1E293B;
+          border-color: #334155;
+          color: #94A3B8;
+        }
+
+        .dark .modal-btn-action:hover {
+          background: #3B82F6;
+          color: white;
+        }
+
+        .modal-btn-action.delete:hover {
+          background: #EF4444;
+          border-color: #EF4444;
+        }
+
+        /* Entry View/Edit Modal */
+        .entry-modal {
+          max-width: 600px;
+        }
+
+        .entry-form-field {
+          margin-bottom: 16px;
+        }
+
+        .entry-form-field label {
+          display: block;
+          font-size: 12px;
+          font-weight: 600;
+          color: #475569;
+          margin-bottom: 6px;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        .dark .entry-form-field label {
+          color: #94A3B8;
+        }
+
+        .entry-form-field input,
+        .entry-form-field textarea {
+          width: 100%;
+          padding: 10px 14px;
+          background: #F9FAFB;
+          border: 1px solid #E5E7EB;
+          border-radius: 8px;
+          font-size: 14px;
+          color: #0F172A;
+          font-family: inherit;
+          transition: all 150ms ease;
+        }
+
+        .dark .entry-form-field input,
+        .dark .entry-form-field textarea {
+          background: #0F172A;
+          border-color: #334155;
+          color: #F8FAFC;
+        }
+
+        .entry-form-field input:focus,
+        .entry-form-field textarea:focus {
+          outline: none;
+          border-color: #3B82F6;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
+        }
+
+        .entry-form-field textarea {
+          resize: vertical;
+          min-height: 100px;
+          line-height: 1.5;
+        }
+
+        .modal-actions {
+          display: flex;
+          gap: 8px;
+          justify-content: flex-end;
+          padding: 16px 24px;
+          border-top: 1px solid #E5E7EB;
+        }
+
+        .dark .modal-actions {
+          border-top-color: #334155;
+        }
+
+        .btn-modal {
+          padding: 8px 16px;
+          border-radius: 8px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 150ms ease;
+          border: none;
+        }
+
+        .btn-modal-primary {
+          background: #3B82F6;
+          color: white;
+        }
+
+        .btn-modal-primary:hover {
+          background: #2563EB;
+        }
+
+        .btn-modal-secondary {
+          background: #F1F5F9;
+          color: #64748B;
+        }
+
+        .btn-modal-secondary:hover {
+          background: #E2E8F0;
+        }
+
+        .dark .btn-modal-secondary {
+          background: #334155;
+          color: #94A3B8;
+        }
+
+        .dark .btn-modal-secondary:hover {
+          background: #475569;
+        }
+
+        .btn-modal-danger {
+          background: #EF4444;
+          color: white;
+        }
+
+        .btn-modal-danger:hover {
+          background: #DC2626;
+        }
+
+        .month-folder-header {
+          cursor: pointer;
+          transition: all 200ms ease;
+        }
+
+        .month-folder-header:hover {
+          background: #F1F5F9;
+        }
+
+        .dark .month-folder-header:hover {
+          background: #334155;
+        }
+
+        /* ===== CUSTOM DELETE MODAL STYLES ===== */
+        .delete-modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.6);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 2000;
+          backdrop-filter: blur(8px);
+          animation: fadeInBackdrop 300ms ease;
+        }
+
+        @keyframes fadeInBackdrop {
+          from {
+            opacity: 0;
+            backdrop-filter: blur(0px);
+          }
+          to {
+            opacity: 1;
+            backdrop-filter: blur(8px);
+          }
+        }
+
+        .delete-modal {
+          background: white;
+          border-radius: 20px;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05);
+          max-width: 420px;
+          width: 90%;
+          animation: modalSlideUpScale 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+          overflow: hidden;
+        }
+
+        .dark .delete-modal {
+          background: #1E293B;
+          border: 1px solid #334155;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+        }
+
+        @keyframes modalSlideUpScale {
+          from {
+            opacity: 0;
+            transform: translateY(30px) scale(0.9);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+
+        .delete-modal-header {
+          padding: 32px 32px 24px;
+          text-align: center;
+          background: linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%);
+          border-bottom: 1px solid #FCA5A5;
+        }
+
+        .dark .delete-modal-header {
+          background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.15) 100%);
+          border-bottom-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .delete-icon {
+          width: 64px;
+          height: 64px;
+          margin: 0 auto 20px;
+          background: linear-gradient(135deg, #FCA5A5 0%, #F87171 100%);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          animation: pulseIcon 2s infinite;
+        }
+
+        .dark .delete-icon {
+          background: linear-gradient(135deg, rgba(239, 68, 68, 0.3) 0%, rgba(220, 38, 38, 0.4) 100%);
+        }
+
+        @keyframes pulseIcon {
+          0%, 100% {
+            transform: scale(1);
+            opacity: 1;
+          }
+          50% {
+            transform: scale(1.05);
+            opacity: 0.8;
+          }
+        }
+
+        .delete-icon svg {
+          width: 32px;
+          height: 32px;
+          color: #DC2626;
+        }
+
+        .dark .delete-icon svg {
+          color: #F87171;
+        }
+
+        .delete-modal-title {
+          font-size: 20px;
+          font-weight: 700;
+          color: #991B1B;
+          margin-bottom: 8px;
+          letter-spacing: -0.02em;
+        }
+
+        .dark .delete-modal-title {
+          color: #FCA5A5;
+        }
+
+        .delete-modal-subtitle {
+          font-size: 14px;
+          color: #7F1D1D;
+          line-height: 1.5;
+          font-weight: 500;
+        }
+
+        .dark .delete-modal-subtitle {
+          color: #FCA5A5;
+          opacity: 0.8;
+        }
+
+        .delete-modal-body {
+          padding: 24px 32px 32px;
+          text-align: center;
+        }
+
+        .delete-entry-preview {
+          background: #FEF2F2;
+          border: 1px solid #FCA5A5;
+          border-radius: 12px;
+          padding: 16px;
+          margin-bottom: 24px;
+          text-align: left;
+        }
+
+        .dark .delete-entry-preview {
+          background: rgba(239, 68, 68, 0.1);
+          border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .delete-preview-title {
+          font-size: 14px;
+          font-weight: 600;
+          color: #991B1B;
+          margin-bottom: 4px;
+        }
+
+        .dark .delete-preview-title {
+          color: #FCA5A5;
+        }
+
+        .delete-preview-date {
+          font-size: 12px;
+          color: #7F1D1D;
+          opacity: 0.7;
+        }
+
+        .dark .delete-preview-date {
+          color: #FCA5A5;
+          opacity: 0.6;
+        }
+
+        .delete-modal-text {
+          font-size: 14px;
+          color: #6B7280;
+          line-height: 1.6;
+          margin-bottom: 24px;
+        }
+
+        .dark .delete-modal-text {
+          color: #9CA3AF;
+        }
+
+        .delete-modal-actions {
+          display: flex;
+          gap: 12px;
+          justify-content: center;
+        }
+
+        .btn-cancel-delete {
+          padding: 12px 24px;
+          background: white;
+          color: #6B7280;
+          border: 2px solid #E5E7EB;
+          border-radius: 12px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 200ms ease;
+          min-width: 120px;
+        }
+
+        .btn-cancel-delete:hover {
+          background: #F9FAFB;
+          border-color: #D1D5DB;
+          color: #4B5563;
+          transform: translateY(-1px);
+        }
+
+        .dark .btn-cancel-delete {
+          background: #374151;
+          border-color: #4B5563;
+          color: #D1D5DB;
+        }
+
+        .dark .btn-cancel-delete:hover {
+          background: #4B5563;
+          border-color: #6B7280;
+          color: #F3F4F6;
+        }
+
+        .btn-confirm-delete {
+          padding: 12px 24px;
+          background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+          color: white;
+          border: none;
+          border-radius: 12px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 200ms ease;
+          min-width: 120px;
+          box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-confirm-delete:hover {
+          background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+          transform: translateY(-2px);
+          box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-confirm-delete:active {
+          transform: translateY(0);
+        }
       `}</style>
 
       <div className="journal-page">
@@ -1564,8 +2243,8 @@ const JournalSimple: React.FC = () => {
                     .map(([monthYear, monthData]) => (
                       <div key={monthYear} className="month-folder">
                         <div
-                          className="month-header"
-                          onClick={() => toggleMonth(monthYear)}
+                          className="month-header month-folder-header"
+                          onClick={() => openMonthModal(monthYear, monthData)}
                         >
                           <div className="month-info">
                             <span className="month-emoji">{getMonthEmoji(monthData.avgMood)}</span>
@@ -1576,54 +2255,12 @@ const JournalSimple: React.FC = () => {
                               </div>
                             </div>
                           </div>
-                          <div className={`month-toggle ${expandedMonths.includes(monthYear) ? 'expanded' : ''}`}>
+                          <div className="month-toggle">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                               <polyline points="6 9 12 15 18 9"></polyline>
                             </svg>
                           </div>
                         </div>
-
-                        {expandedMonths.includes(monthYear) && (
-                          <div className="month-entries">
-                            {monthData.entries
-                              .filter(e =>
-                                !searchQuery ||
-                                e.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                                e.reflections?.toLowerCase().includes(searchQuery.toLowerCase())
-                              )
-                              .map(entry => (
-                                <div key={entry.id} className="entry-item">
-                                  <div className="entry-header">
-                                    <span className="entry-title">{entry.title || 'Untitled'}</span>
-                                    <span className="entry-date">{new Date(entry.date).toLocaleDateString()}</span>
-                                  </div>
-                                  {entry.reflections && (
-                                    <p className="entry-preview">
-                                      {entry.reflections.substring(0, 80)}{entry.reflections.length > 80 ? '...' : ''}
-                                    </p>
-                                  )}
-                                  <div className="entry-footer">
-                                    <div className="entry-meta">
-                                      <span className="entry-mood">😊 {entry.mood}</span>
-                                      <span className="entry-energy">⚡ {entry.energy}</span>
-                                    </div>
-                                    <div className="entry-actions">
-                                      <button className="btn-entry-action" title="View">👁️</button>
-                                      <button className="btn-entry-action" title="Edit">✏️</button>
-                                      <button className="btn-entry-action" title="Delete" onClick={() => {
-                                        if (window.confirm('Delete this entry?')) {
-                                          const updatedEntries = entries.filter(e => e.id !== entry.id);
-                                          setEntries(updatedEntries);
-                                          localStorage.setItem('journalEntries', JSON.stringify(updatedEntries));
-                                        }
-                                      }}>🗑️</button>
-                                    </div>
-                                  </div>
-                                </div>
-                              ))
-                            }
-                          </div>
-                        )}
                       </div>
                     ))}
                 </div>
@@ -1633,6 +2270,257 @@ const JournalSimple: React.FC = () => {
           </div>
 
         </div>
+
+        {/* Month Entries Modal */}
+        {showMonthModal && (
+          <div className="modal-overlay" onClick={closeMonthModal}>
+            <div className="modal" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2 className="modal-title">
+                  <span>{getMonthEmoji(selectedMonthEntries.reduce((sum, e) => sum + (e.mood || 0), 0) / selectedMonthEntries.length)}</span>
+                  {selectedMonth}
+                </h2>
+                <button className="modal-close" onClick={closeMonthModal}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+
+              <div className="modal-content">
+                <div className="modal-entry-list">
+                  {selectedMonthEntries
+                    .filter(e =>
+                      !searchQuery ||
+                      e.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      e.reflections?.toLowerCase().includes(searchQuery.toLowerCase())
+                    )
+                    .map(entry => (
+                      <div key={entry.id} className="modal-entry-item">
+                        <div className="modal-entry-header">
+                          <span className="modal-entry-title">{entry.title || 'Untitled'}</span>
+                          <span className="modal-entry-date">{new Date(entry.date).toLocaleDateString()}</span>
+                        </div>
+                        {entry.reflections && (
+                          <p className="modal-entry-preview">
+                            {entry.reflections.substring(0, 120)}{entry.reflections.length > 120 ? '...' : ''}
+                          </p>
+                        )}
+                        <div className="modal-entry-footer">
+                          <div className="modal-entry-meta">
+                            <span>😊 {entry.mood}</span>
+                            <span>⚡ {entry.energy}</span>
+                          </div>
+                          <div className="modal-entry-actions">
+                            <button
+                              className="modal-btn-action"
+                              onClick={() => handleViewEntry(entry)}
+                            >
+                              👁️ View
+                            </button>
+                            <button
+                              className="modal-btn-action"
+                              onClick={() => handleEditEntry(entry)}
+                            >
+                              ✏️ Edit
+                            </button>
+                            <button
+                              className="modal-btn-action delete"
+                              onClick={() => handleDeleteEntry(entry)}
+                            >
+                              🗑️ Delete
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Entry View/Edit Modal */}
+        {(viewingEntry || editingEntry) && (
+          <div className="modal-overlay" onClick={() => setViewingEntry(null) || setEditingEntry(null)}>
+            <div className={`modal entry-modal`} onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2 className="modal-title">
+                  {editingEntry ? '✏️ Edit Entry' : '👁️ View Entry'}
+                </h2>
+                <button className="modal-close" onClick={() => setViewingEntry(null) || setEditingEntry(null)}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+
+              <div className="modal-content">
+                {(editingEntry || viewingEntry) && (
+                  <>
+                    <div className="entry-form-field">
+                      <label>Title</label>
+                      <input
+                        type="text"
+                        value={(editingEntry || viewingEntry).title || ''}
+                        onChange={(e) => editingEntry && setEditingEntry({...editingEntry, title: e.target.value})}
+                        disabled={!editingEntry}
+                        placeholder="Entry title..."
+                      />
+                    </div>
+
+                    <div className="entry-form-field">
+                      <label>Date</label>
+                      <input
+                        type="date"
+                        value={(editingEntry || viewingEntry).date || ''}
+                        onChange={(e) => editingEntry && setEditingEntry({...editingEntry, date: e.target.value})}
+                        disabled={!editingEntry}
+                      />
+                    </div>
+
+                    <div className="entry-form-field">
+                      <label>Mood ({(editingEntry || viewingEntry).mood}/10)</label>
+                      <input
+                        type="range"
+                        min="1"
+                        max="10"
+                        value={(editingEntry || viewingEntry).mood || 5}
+                        onChange={(e) => editingEntry && setEditingEntry({...editingEntry, mood: parseInt(e.target.value)})}
+                        disabled={!editingEntry}
+                      />
+                    </div>
+
+                    <div className="entry-form-field">
+                      <label>Energy ({(editingEntry || viewingEntry).energy}/10)</label>
+                      <input
+                        type="range"
+                        min="1"
+                        max="10"
+                        value={(editingEntry || viewingEntry).energy || 5}
+                        onChange={(e) => editingEntry && setEditingEntry({...editingEntry, energy: parseInt(e.target.value)})}
+                        disabled={!editingEntry}
+                      />
+                    </div>
+
+                    <div className="entry-form-field">
+                      <label>Reflections</label>
+                      <textarea
+                        value={(editingEntry || viewingEntry).reflections || ''}
+                        onChange={(e) => editingEntry && setEditingEntry({...editingEntry, reflections: e.target.value})}
+                        disabled={!editingEntry}
+                        placeholder="How was your day? What's on your mind?"
+                        rows={5}
+                      />
+                    </div>
+
+                    <div className="entry-form-field">
+                      <label>Gratitude</label>
+                      <textarea
+                        value={(editingEntry || viewingEntry).gratitude || ''}
+                        onChange={(e) => editingEntry && setEditingEntry({...editingEntry, gratitude: e.target.value})}
+                        disabled={!editingEntry}
+                        placeholder="What are you grateful for?"
+                        rows={4}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="modal-actions">
+                <button className="btn-modal btn-modal-secondary" onClick={() => setViewingEntry(null) || setEditingEntry(null)}>
+                  Close
+                </button>
+                {editingEntry && (
+                  <>
+                    <button
+                      className="btn-modal btn-modal-danger"
+                      onClick={() => {
+                        handleDeleteEntry(editingEntry);
+                        setEditingEntry(null);
+                      }}
+                    >
+                      Delete
+                    </button>
+                    <button className="btn-modal btn-modal-primary" onClick={handleSaveEdit}>
+                      Save Changes
+                    </button>
+                  </>
+                )}
+                {viewingEntry && (
+                  <button
+                    className="btn-modal btn-modal-primary"
+                    onClick={() => handleEditEntry(viewingEntry)}
+                  >
+                    Edit
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Custom Delete Confirmation Modal */}
+        {showDeleteModal && entryToDelete && (
+          <div className="delete-modal-overlay" onClick={cancelDelete}>
+            <div className="delete-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="delete-modal-header">
+                <div className="delete-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M3 6h18"/>
+                    <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/>
+                    <path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                    <line x1="10" y1="11" x2="10" y2="17"/>
+                    <line x1="14" y1="11" x2="14" y2="17"/>
+                  </svg>
+                </div>
+                <h3 className="delete-modal-title">
+                  Are you sure you want to delete this entry?
+                </h3>
+                <p className="delete-modal-subtitle">
+                  This action cannot be undone. Your journal entry will be permanently removed.
+                </p>
+              </div>
+
+              <div className="delete-modal-body">
+                <div className="delete-entry-preview">
+                  <div className="delete-preview-title">{entryToDelete.title || 'Untitled Entry'}</div>
+                  <div className="delete-preview-date">
+                    {new Date(entryToDelete.date).toLocaleDateString('en-US', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </div>
+                </div>
+
+                <p className="delete-modal-text">
+                  Take a moment to reflect. This entry contains your thoughts and memories from this day.
+                  Once deleted, it cannot be recovered.
+                </p>
+
+                <div className="delete-modal-actions">
+                  <button
+                    className="btn-cancel-delete"
+                    onClick={cancelDelete}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="btn-confirm-delete"
+                    onClick={confirmDeleteEntry}
+                  >
+                    Delete Entry
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     </>

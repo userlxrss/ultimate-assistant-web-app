@@ -1,8 +1,8 @@
 import React from 'react';
-import { RealGmailClient } from './components/email/RealGmailClient';
+import SophisticatedEmailClient from './components/email/SophisticatedEmailClient';
 
 const EmailApp: React.FC = () => {
-  return <RealGmailClient />;
+  return <SophisticatedEmailClient />;
 };
 
 export default EmailApp;

@@ -23,7 +23,7 @@ const tokens = new Map();
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:5174'],
+  origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176'],
   credentials: true
 }));
 app.use(express.json());
@@ -73,7 +73,36 @@ app.get('/api/auth/status', (req, res) => {
   });
 });
 
-// Start Google OAuth
+// API endpoint to start Google OAuth (for the frontend)
+app.get('/api/auth/google', async (req, res) => {
+  try {
+    const state = crypto.randomBytes(16).toString('hex');
+    req.session.oauthState = state;
+
+    const authUrl = oauth2Client.generateAuthUrl({
+      access_type: 'offline',
+      scope: ['https://www.googleapis.com/auth/gmail.readonly', 'https://www.googleapis.com/auth/calendar.readonly', 'https://www.googleapis.com/auth/contacts.readonly'],
+      state: state,
+      prompt: 'consent'
+    });
+
+    console.log(`🔗 Generating OAuth URL for frontend`);
+    res.json({
+      success: true,
+      authUrl: authUrl,
+      state: state
+    });
+  } catch (error) {
+    console.error('OAuth API error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to generate authentication URL',
+      details: error.message
+    });
+  }
+});
+
+// Start Google OAuth (redirect version)
 app.get('/auth/google', async (req, res) => {
   try {
     const state = crypto.randomBytes(16).toString('hex');
@@ -179,6 +208,24 @@ app.get('/oauth-callback', (req, res) => {
   `;
 
   res.send(html);
+});
+
+// Logout endpoint
+app.post('/api/auth/logout', (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('Session destroy error:', err);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to logout'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Logged out successfully'
+    });
+  });
 });
 
 // Disconnect

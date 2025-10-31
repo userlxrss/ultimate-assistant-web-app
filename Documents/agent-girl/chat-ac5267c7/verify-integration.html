@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gmail Integration Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .success { color: #22c55e; }
+        .error { color: #ef4444; }
+        .info { color: #3b82f6; }
+        .loading { color: #f59e0b; }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Gmail Integration Verification</h1>
+
+    <div class="test-container">
+        <h2>📊 System Status</h2>
+        <div id="system-status">Checking system...</div>
+    </div>
+
+    <div class="test-container">
+        <h2>🔐 Gmail Authentication Test</h2>
+        <button onclick="testGmailAuth()">Test Gmail Authentication</button>
+        <div id="auth-status">Click to test authentication</div>
+    </div>
+
+    <div class="test-container">
+        <h2>📧 Email Fetch Test</h2>
+        <button onclick="testEmailFetch()" id="fetch-btn" disabled>Test Email Fetch</button>
+        <div id="email-status">Authentication required first</div>
+        <div id="email-preview"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>📋 Session Management</h2>
+        <button onclick="clearSessions()">Clear All Sessions</button>
+        <button onclick="showSessions()">Show Current Sessions</button>
+        <div id="session-status"></div>
+        <pre id="session-details"></pre>
+    </div>
+
+    <div class="test-container">
+        <h2>🌐 Frontend Integration</h2>
+        <p><strong>Development Server:</strong> <a href="http://localhost:5173" target="_blank">http://localhost:5173</a></p>
+        <p><strong>Gmail Server:</strong> <a href="http://localhost:3012/health" target="_blank">http://localhost:3012/health</a></p>
+        <button onclick="testFrontendConnection()">Test Frontend Connection</button>
+        <div id="frontend-status"></div>
+    </div>
+
+    <script>
+        let currentSessionId = null;
+        let currentEmail = null;
+
+        // Check system status
+        async function checkSystemStatus() {
+            const status = document.getElementById('system-status');
+            let html = '<ul>';
+
+            try {
+                // Check Gmail server
+                const gmailResponse = await fetch('http://localhost:3012/health');
+                if (gmailResponse.ok) {
+                    const gmailData = await gmailResponse.json();
+                    html += `<li class="success">✅ Gmail Server: ${gmailData.status} (${gmailData.service})</li>`;
+                } else {
+                    html += `<li class="error">❌ Gmail Server: Not responding</li>`;
+                }
+            } catch (error) {
+                html += `<li class="error">❌ Gmail Server: Connection failed</li>`;
+            }
+
+            // Check if frontend is accessible
+            try {
+                const frontendResponse = await fetch('http://localhost:5173');
+                html += `<li class="success">✅ Frontend Server: Running on port 5173</li>`;
+            } catch (error) {
+                html += `<li class="error">❌ Frontend Server: Not accessible</li>`;
+            }
+
+            // Check localStorage availability
+            try {
+                localStorage.setItem('test', 'test');
+                localStorage.removeItem('test');
+                html += `<li class="success">✅ Local Storage: Available</li>`;
+            } catch (error) {
+                html += `<li class="error">❌ Local Storage: Not available</li>`;
+            }
+
+            html += '</ul>';
+            status.innerHTML = html;
+        }
+
+        // Test Gmail authentication
+        async function testGmailAuth() {
+            const status = document.getElementById('auth-status');
+            const fetchBtn = document.getElementById('fetch-btn');
+
+            status.innerHTML = '<span class="loading">🔄 Testing authentication...</span>';
+
+            try {
+                const response = await fetch('http://localhost:3012/api/gmail/authenticate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'tuescalarina3@gmail.com',
+                        appPassword: 'ehsdovndpswpnsqz'
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    currentSessionId = data.sessionId;
+                    currentEmail = data.email;
+
+                    status.innerHTML = `<span class="success">✅ Authentication successful!</span><br>
+                    <strong>Email:</strong> ${data.email}<br>
+                    <strong>Session ID:</strong> ${data.sessionId}`;
+
+                    fetchBtn.disabled = false;
+                    document.getElementById('email-status').innerHTML = 'Ready to fetch emails';
+
+                    // Save session to localStorage
+                    const sessions = {
+                        gmail: {
+                            sessionId: data.sessionId,
+                            email: data.email,
+                            createdAt: Date.now()
+                        }
+                    };
+                    localStorage.setItem('productivity_hub_auth', JSON.stringify(sessions));
+                } else {
+                    status.innerHTML = `<span class="error">❌ Authentication failed:</span> ${data.message}`;
+                }
+            } catch (error) {
+                status.innerHTML = `<span class="error">❌ Authentication error:</span> ${error.message}`;
+            }
+        }
+
+        // Test email fetching
+        async function testEmailFetch() {
+            const status = document.getElementById('email-status');
+            const preview = document.getElementById('email-preview');
+
+            if (!currentSessionId) {
+                status.innerHTML = '<span class="error">❌ No session available. Please authenticate first.</span>';
+                return;
+            }
+
+            status.innerHTML = '<span class="loading">🔄 Fetching emails...</span>';
+            preview.innerHTML = '';
+
+            try {
+                const response = await fetch(`http://localhost:3012/api/gmail/emails/${currentSessionId}?limit=5`);
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    status.innerHTML = `<span class="success">✅ Fetched ${data.emails.length} emails</span>`;
+
+                    let previewHtml = '<h4>📧 Recent Emails:</h4><ul>';
+                    data.emails.forEach(email => {
+                        const fromName = email.from?.name || email.from?.email || 'Unknown';
+                        const subject = email.subject || '(No subject)';
+                        const date = new Date(email.date).toLocaleString();
+                        const readStatus = email.isRead ? '📖' : '🔵';
+
+                        previewHtml += `<li>
+                            ${readStatus} <strong>${fromName}</strong><br>
+                            <em>${subject}</em><br>
+                            <small>${date}</small>
+                        </li>`;
+                    });
+                    previewHtml += '</ul>';
+                    preview.innerHTML = previewHtml;
+                } else {
+                    status.innerHTML = `<span class="error">❌ Failed to fetch emails:</span> ${data.error || data.message}`;
+                }
+            } catch (error) {
+                status.innerHTML = `<span class="error">❌ Email fetch error:</span> ${error.message}`;
+            }
+        }
+
+        // Clear sessions
+        function clearSessions() {
+            localStorage.removeItem('productivity_hub_auth');
+            currentSessionId = null;
+            currentEmail = null;
+            document.getElementById('fetch-btn').disabled = true;
+            document.getElementById('auth-status').innerHTML = 'Sessions cleared';
+            document.getElementById('email-status').innerHTML = 'Authentication required first';
+            document.getElementById('session-status').innerHTML = '<span class="success">✅ All sessions cleared</span>';
+            document.getElementById('session-details').textContent = '';
+        }
+
+        // Show sessions
+        function showSessions() {
+            const stored = localStorage.getItem('productivity_hub_auth');
+            const statusDiv = document.getElementById('session-status');
+            const detailsDiv = document.getElementById('session-details');
+
+            if (stored) {
+                try {
+                    const sessions = JSON.parse(stored);
+                    statusDiv.innerHTML = '<span class="info">📋 Sessions found in localStorage</span>';
+                    detailsDiv.textContent = JSON.stringify(sessions, null, 2);
+                } catch (error) {
+                    statusDiv.innerHTML = '<span class="error">❌ Error reading sessions</span>';
+                    detailsDiv.textContent = '';
+                }
+            } else {
+                statusDiv.innerHTML = '<span class="info">📋 No sessions found</span>';
+                detailsDiv.textContent = '';
+            }
+        }
+
+        // Test frontend connection
+        async function testFrontendConnection() {
+            const status = document.getElementById('frontend-status');
+            status.innerHTML = '<span class="loading">🔄 Testing frontend connection...</span>';
+
+            try {
+                const response = await fetch('http://localhost:5173');
+                if (response.ok) {
+                    status.innerHTML = '<span class="success">✅ Frontend is accessible at http://localhost:5173</span>';
+                } else {
+                    status.innerHTML = `<span class="error">❌ Frontend returned status: ${response.status}</span>`;
+                }
+            } catch (error) {
+                status.innerHTML = `<span class="error">❌ Frontend connection failed: ${error.message}</span>`;
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkSystemStatus();
+
+            // Check for existing sessions
+            const stored = localStorage.getItem('productivity_hub_auth');
+            if (stored) {
+                try {
+                    const sessions = JSON.parse(stored);
+                    if (sessions.gmail) {
+                        currentSessionId = sessions.gmail.sessionId;
+                        currentEmail = sessions.gmail.email;
+                        document.getElementById('fetch-btn').disabled = false;
+                        document.getElementById('auth-status').innerHTML = `
+                            <span class="info">📋 Existing session found:</span><br>
+                            <strong>Email:</strong> ${sessions.gmail.email}<br>
+                            <strong>Session ID:</strong> ${sessions.gmail.sessionId}
+                        `;
+                        document.getElementById('email-status').innerHTML = 'Ready to fetch emails';
+                    }
+                } catch (error) {
+                    console.error('Error parsing stored sessions:', error);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

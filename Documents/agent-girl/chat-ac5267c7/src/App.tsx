@@ -41,6 +41,86 @@ function App() {
   return (
     <ErrorBoundary>
       <div className="App">
+        <style>{`
+          /* Profile Dropdown Animations */
+          .profile-dropdown-enter {
+            animation: dropdownSlideIn 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+          }
+
+          @keyframes dropdownSlideIn {
+            from {
+              opacity: 0;
+              transform: translateY(-10px) scale(0.95);
+              transform-origin: top right;
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0) scale(1);
+              transform-origin: top right;
+            }
+          }
+
+          .profile-dropdown-exit {
+            animation: dropdownSlideOut 150ms ease-in-out;
+          }
+
+          @keyframes dropdownSlideOut {
+            from {
+              opacity: 1;
+              transform: translateY(0) scale(1);
+              transform-origin: top right;
+            }
+            to {
+              opacity: 0;
+              transform: translateY(-10px) scale(0.95);
+              transform-origin: top right;
+            }
+          }
+
+          /* Enhanced hover states for dropdown items */
+          .profile-dropdown-item {
+            position: relative;
+            overflow: hidden;
+          }
+
+          .profile-dropdown-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.5s;
+          }
+
+          .profile-dropdown-item:hover::before {
+            left: 100%;
+          }
+
+          /* Profile button active state */
+          .profile-button-active {
+            position: relative;
+          }
+
+          .profile-button-active::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 0.75rem;
+            background: linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(99,102,241,0.1) 100%);
+            animation: pulseActive 2s infinite;
+          }
+
+          @keyframes pulseActive {
+            0%, 100% {
+              opacity: 1;
+            }
+            50% {
+              opacity: 0.5;
+            }
+          }
+        `}</style>
         <Suspense fallback={<LoadingSpinner />}>
           <MainApp />
         </Suspense>

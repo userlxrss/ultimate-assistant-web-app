@@ -5,10 +5,13 @@ import { ExtendedJournalEntry } from '../../types/journal';
 interface ListViewProps {
   entries: ExtendedJournalEntry[];
   onEditEntry: (entry: ExtendedJournalEntry) => void;
+  onViewEntry?: (entry: ExtendedJournalEntry) => void;
   onDeleteEntry: (id: string) => void;
-  expandedMonths?: string[];
+  activeFolder?: string | null;
   viewMode?: 'folders' | 'recent';
-  toggleMonth?: (monthYear: string) => void;
+  openFolder?: (monthYear: string) => void;
+  closeFolder?: () => void;
+  exportMonthAsMarkdown?: (monthYear: string) => void;
   organizeEntriesByMonth?: () => Record<string, {
     entries: ExtendedJournalEntry[];
     avgMood: number | string;
@@ -33,10 +36,13 @@ interface ListViewProps {
 const ListView: React.FC<ListViewProps> = ({
   entries,
   onEditEntry,
+  onViewEntry,
   onDeleteEntry,
-  expandedMonths = [],
+  activeFolder = null,
   viewMode = 'folders',
-  toggleMonth,
+  openFolder,
+  closeFolder,
+  exportMonthAsMarkdown,
   organizeEntriesByMonth,
   getMonthEmoji,
   formatEntryDate,
@@ -134,8 +140,8 @@ const ListView: React.FC<ListViewProps> = ({
                   ☑️ Select
                 </button>
               )}
-              <button
-                onClick={() => setViewMode(viewMode === 'folders' ? 'recent' : 'folders')}
+                            <button
+                onClick={() => setViewMode && setViewMode(viewMode === 'folders' ? 'recent' : 'folders')}
                 className="view-toggle"
               >
                 {viewMode === 'folders' ? '📋 List' : '📁 Folders'}
@@ -184,149 +190,159 @@ const ListView: React.FC<ListViewProps> = ({
           </p>
         </div>
       ) : viewMode === 'folders' ? (
-        /* Month Folders View */
-        <div className="month-folders">
-          {Object.entries(organizeEntriesByMonth())
-            .sort(([a], [b]) => new Date(b).getTime() - new Date(a).getTime())
-            .map(([monthYear, monthData]) => {
-              const isExpanded = expandedMonths.includes(monthYear);
-              const filteredEntries = searchQuery
-                ? monthData.entries.filter(e =>
-                    e.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    e.biggestWin?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    e.learning?.toLowerCase().includes(searchQuery.toLowerCase())
-                  )
-                : monthData.entries;
+        /* Modal-based Month Folders View */
+        <>
+          <div className="month-folders">
+            {Object.entries(organizeEntriesByMonth())
+              .sort(([a], [b]) => new Date(b).getTime() - new Date(a).getTime())
+              .map(([monthYear, monthData]) => {
+                const filteredEntries = searchQuery
+                  ? monthData.entries.filter(e =>
+                      e.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      e.biggestWin?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      e.learning?.toLowerCase().includes(searchQuery.toLowerCase())
+                    )
+                  : monthData.entries;
 
-              if (searchQuery && filteredEntries.length === 0) return null;
+                if (searchQuery && filteredEntries.length === 0) return null;
 
-              return (
-                <div key={monthYear} className="month-folder">
-                  <div className="month-header-wrapper">
-                    <button
-                      className="month-header"
-                      onClick={() => toggleMonth(monthYear)}
-                    >
-                      <div className="month-info">
-                        <span className="month-emoji">{getMonthEmoji(monthData.avgMood)}</span>
-                        <span className="month-name">{monthYear}</span>
-                        <span className="month-count">({filteredEntries.length})</span>
+                return (
+                  <button
+                    key={monthYear}
+                    onClick={() => openFolder && openFolder(monthYear)}
+                    className="w-full text-left p-4 bg-white dark:bg-gray-800 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 border border-gray-200 dark:border-gray-600 shadow-sm hover:shadow-md"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{getMonthEmoji(monthData.avgMood)}</span>
+                        <div>
+                          <h3 className="font-semibold text-gray-900 dark:text-white">{monthYear}</h3>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            {filteredEntries.length} entries • Avg mood: {monthData.avgMood}/10
+                          </p>
+                        </div>
                       </div>
-                      <div className="month-actions">
-                        <span className="month-mood">
-                          {monthData.avgMood !== 'N/A' ? `${monthData.avgMood}/10` : 'N/A'}
-                        </span>
-                        <span className={`expand-icon ${isExpanded ? 'expanded' : ''}`}>
-                          ▶
-                        </span>
+                      <div className="text-gray-400 dark:text-gray-500">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
                       </div>
-                    </button>
+                    </div>
+                  </button>
+                );
+              })}
+          </div>
 
-                    <div className="month-tools">
-                      {selectMode && isExpanded && (
-                        <button
-                          className="select-all-btn"
-                          onClick={() => isMonthFullySelected(filteredEntries)
-                            ? deselectAllInMonth(filteredEntries)
-                            : selectAllInMonth(filteredEntries)
-                          }
-                        >
-                          {isMonthFullySelected(filteredEntries) ? '☑️ All' : '☐ All'}
-                        </button>
-                      )}
-                      <button
-                        className="export-month-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          exportMonthToMD(monthYear, filteredEntries);
-                        }}
-                        title="Export entire month"
-                      >
-                        📥
-                      </button>
+          {/* Modal Overlay */}
+          {activeFolder && (
+            <div
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+              onClick={closeFolder}
+            >
+              <div
+                className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden transform transition-all duration-300 scale-100 opacity-100 modal-enter"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Modal Header */}
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{getMonthEmoji(organizeEntriesByMonth()[activeFolder]?.avgMood || 'N/A')}</span>
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-900 dark:text-white">{activeFolder}</h2>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {organizeEntriesByMonth()[activeFolder]?.entries.length || 0} entries
+                      </p>
                     </div>
                   </div>
+                  <button
+                    onClick={closeFolder}
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
+                  >
+                    <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
 
-                  {isExpanded && (
-                    <div className="month-entries">
-                      {filteredEntries.map(entry => (
-                        <div
-                          key={entry.id}
-                          className={`entry-item ${selectedEntries.has(entry.id) ? 'selected' : ''}`}
-                        >
-                          {selectMode && (
-                            <div className="entry-checkbox">
-                              <input
-                                type="checkbox"
-                                checked={selectedEntries.has(entry.id)}
-                                onChange={() => toggleEntrySelection(entry.id)}
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                            </div>
+                {/* Modal Content - Entries List */}
+                <div className="overflow-y-auto max-h-[50vh] space-y-3 mb-6">
+                  {organizeEntriesByMonth()[activeFolder]?.entries.map(entry => (
+                    <div key={entry.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-200">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h4 className="font-medium text-gray-900 dark:text-white">
+                              {entry.template || 'Untitled Entry'}
+                            </h4>
+                            <span className="text-sm text-gray-500 dark:text-gray-400">
+                              {formatEntryDate(entry.date)}
+                            </span>
+                          </div>
+
+                          {entry.content && (
+                            <p className="text-sm text-gray-600 dark:text-gray-300 mb-2 line-clamp-2">
+                              {entry.content.substring(0, 120)}{entry.content.length > 120 ? '...' : ''}
+                            </p>
                           )}
 
-                          <div className="entry-content">
-                            <div className="entry-header">
-                              <span className="entry-title">{entry.template || 'Untitled'}</span>
-                              <span className="entry-date">{formatEntryDate(entry.date)}</span>
-                            </div>
-
-                            {entry.content && (
-                              <p className="entry-preview">
-                                {entry.content.substring(0, 80)}{entry.content.length > 80 ? '...' : ''}
-                              </p>
+                          <div className="flex items-center gap-4 text-sm">
+                            <span className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
+                              😊 {entry.mood}/10
+                            </span>
+                            {entry.biggestWin && (
+                              <span className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
+                                🏆 Win
+                              </span>
                             )}
-
-                            {entry.tags && entry.tags.length > 0 && (
-                              <div className="entry-tags">
-                                {entry.tags.slice(0, 3).map((tag, idx) => (
-                                  <span key={idx} className="entry-tag">{tag}</span>
-                                ))}
-                                {entry.tags.length > 3 && (
-                                  <span className="entry-tag">+{entry.tags.length - 3}</span>
-                                )}
-                              </div>
+                            {entry.learning && (
+                              <span className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
+                                💡 Learning
+                              </span>
                             )}
-
-                            <div className="entry-footer">
-                              <div className="entry-meta">
-                                <span className="entry-mood">😊 {entry.mood}</span>
-                                {entry.biggestWin && (
-                                  <span className="entry-win">🏆 Win</span>
-                                )}
-                                {entry.learning && (
-                                  <span className="entry-learning">💡 Learning</span>
-                                )}
-                              </div>
-
-                              {!selectMode && (
-                                <div className="entry-actions">
-                                  <button
-                                    className="btn-entry-action"
-                                    onClick={() => onEditEntry(entry)}
-                                    title="View entry"
-                                  >
-                                    👁️
-                                  </button>
-                                  <button
-                                    className="btn-entry-action"
-                                    onClick={() => onDeleteEntry(entry.id)}
-                                    title="Delete entry"
-                                  >
-                                    🗑️
-                                  </button>
-                                </div>
-                              )}
-                            </div>
                           </div>
                         </div>
-                      ))}
+
+                        <div className="flex items-center gap-2 ml-4">
+                          <button
+                            onClick={() => onViewEntry && onViewEntry(entry)}
+                            className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200"
+                            title="View entry"
+                          >
+                            👁️
+                          </button>
+                          <button
+                            onClick={() => onEditEntry(entry)}
+                            className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200"
+                            title="Edit entry"
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            onClick={() => onDeleteEntry(entry.id)}
+                            className="p-2 hover:bg-red-100 dark:hover:bg-red-900 rounded-lg transition-colors duration-200 text-red-500"
+                            title="Delete entry"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                  )}
+                  ))}
                 </div>
-              );
-            })}
-        </div>
+
+                {/* Modal Footer - Export Button */}
+                <button
+                  onClick={() => {
+                    exportMonthAsMarkdown && exportMonthAsMarkdown(activeFolder);
+                  }}
+                  className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors duration-200 flex items-center justify-center gap-2"
+                >
+                  📥 Export {activeFolder} as Markdown
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       ) : (
         /* Recent List View */
         <div className="space-y-4">

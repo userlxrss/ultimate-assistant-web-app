@@ -12,12 +12,24 @@ export default defineConfig({
     })
   ],
   server: {
+    port: 5173,
+    host: true,
     proxy: {
       '/calendar-proxy': {
         target: 'https://calendar.google.com',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/calendar-proxy/, ''),
         secure: true
+      },
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/auth': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
       }
     },
     // 🚀 Development optimizations

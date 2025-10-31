@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Gmail Session</title>
+</head>
+<body>
+    <h1>Clearing Gmail Session...</h1>
+    <script>
+        localStorage.removeItem('productivity_hub_auth');
+        console.log('✅ Gmail session cleared from localStorage');
+        alert('Gmail session cleared! You can now authenticate fresh.');
+        window.close();
+    </script>
+</body>
+</html>
