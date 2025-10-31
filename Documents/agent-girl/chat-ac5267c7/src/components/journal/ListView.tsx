@@ -30,6 +30,7 @@ interface ListViewProps {
   exportMonthToMD?: (monthYear: string, entries: ExtendedJournalEntry[]) => void;
   clearSelection?: () => void;
   exportSelectedToMD?: () => void;
+  exportAllToMD?: (entries: ExtendedJournalEntry[]) => void;
   setSelectMode?: (selectMode: boolean) => void;
 }
 
@@ -57,6 +58,7 @@ const ListView: React.FC<ListViewProps> = ({
   exportMonthToMD,
   clearSelection,
   exportSelectedToMD,
+  exportAllToMD,
   setSelectMode
 }) => {
   const [sortBy, setSortBy] = useState<'date' | 'mood' | 'tags'>('date');
@@ -133,14 +135,26 @@ const ListView: React.FC<ListViewProps> = ({
           ) : (
             <>
               {entries.length > 0 && (
-                <button
-                  className="action-btn select-btn"
-                  onClick={() => setSelectMode(true)}
-                >
-                  ☑️ Select
-                </button>
+                <>
+                  <button
+                    className="action-btn export-btn"
+                    onClick={() => {
+                      if (exportAllToMD) {
+                        exportAllToMD(entries);
+                      }
+                    }}
+                  >
+                    📥 Export All
+                  </button>
+                  <button
+                    className="action-btn select-btn"
+                    onClick={() => setSelectMode(true)}
+                  >
+                    ☑️ Select
+                  </button>
+                </>
               )}
-                            <button
+              <button
                 onClick={() => setViewMode && setViewMode(viewMode === 'folders' ? 'recent' : 'folders')}
                 className="view-toggle"
               >
@@ -206,12 +220,9 @@ const ListView: React.FC<ListViewProps> = ({
 
                 if (searchQuery && filteredEntries.length === 0) return null;
 
+                console.log(`🔥 RENDERING MONTH: ${monthYear} with ${filteredEntries.length} entries`);
                 return (
-                  <button
-                    key={monthYear}
-                    onClick={() => openFolder && openFolder(monthYear)}
-                    className="w-full text-left p-4 bg-white dark:bg-gray-800 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 border border-gray-200 dark:border-gray-600 shadow-sm hover:shadow-md"
-                  >
+                  <div key={monthYear} className="w-full p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-600 shadow-sm hover:shadow-md transition-all duration-200">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <span className="text-2xl">{getMonthEmoji(monthData.avgMood)}</span>
@@ -222,13 +233,16 @@ const ListView: React.FC<ListViewProps> = ({
                           </p>
                         </div>
                       </div>
-                      <div className="text-gray-400 dark:text-gray-500">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <button
+                        onClick={() => openFolder && openFolder(monthYear)}
+                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
+                      >
+                        <svg className="w-5 h-5 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>
-                      </div>
+                      </button>
                     </div>
-                  </button>
+                  </div>
                 );
               })}
           </div>
@@ -238,9 +252,13 @@ const ListView: React.FC<ListViewProps> = ({
             <div
               className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
               onClick={closeFolder}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="modal-title"
+              data-modal="journal-month-entries"
             >
               <div
-                className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden transform transition-all duration-300 scale-100 opacity-100 modal-enter"
+                className="relative bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden transform transition-all duration-300 scale-100 opacity-100 modal-enter"
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Modal Header */}
@@ -248,20 +266,36 @@ const ListView: React.FC<ListViewProps> = ({
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">{getMonthEmoji(organizeEntriesByMonth()[activeFolder]?.avgMood || 'N/A')}</span>
                     <div>
-                      <h2 className="text-xl font-bold text-gray-900 dark:text-white">{activeFolder}</h2>
+                      <h2 id="modal-title" className="text-xl font-bold text-gray-900 dark:text-white">{activeFolder}</h2>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
                         {organizeEntriesByMonth()[activeFolder]?.entries.length || 0} entries
                       </p>
                     </div>
                   </div>
-                  <button
-                    onClick={closeFolder}
-                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
-                  >
-                    <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        exportMonthAsMarkdown && exportMonthAsMarkdown(activeFolder);
+                      }}
+                      className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 flex items-center gap-2"
+                      title={`Export ${activeFolder} entries as Markdown`}
+                      aria-label={`Export ${activeFolder} entries as Markdown`}
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      Export MD
+                    </button>
+                    <button
+                      onClick={closeFolder}
+                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
+                      aria-label="Close modal"
+                    >
+                      <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Modal Content - Entries List */}
@@ -330,16 +364,7 @@ const ListView: React.FC<ListViewProps> = ({
                   ))}
                 </div>
 
-                {/* Modal Footer - Export Button */}
-                <button
-                  onClick={() => {
-                    exportMonthAsMarkdown && exportMonthAsMarkdown(activeFolder);
-                  }}
-                  className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors duration-200 flex items-center justify-center gap-2"
-                >
-                  📥 Export {activeFolder} as Markdown
-                </button>
-              </div>
+                </div>
             </div>
           )}
         </>

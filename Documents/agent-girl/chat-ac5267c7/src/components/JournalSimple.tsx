@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { JournalStorage } from '../utils/journalStorage';
 import { ExtendedJournalEntry } from '../types/journal';
+import { JournalDataRecovery } from '../utils/journalDataRecovery';
 
 const JournalSimple: React.FC = () => {
   // Add state for journal
@@ -164,45 +165,8 @@ const JournalSimple: React.FC = () => {
     return '😢';
   };
 
-  // Generate test entries for demo
+  // Auto-expand current month only - NO AUTO-GENERATION OF ENTRIES
   useEffect(() => {
-    const generateTestEntries = () => {
-      const testEntries = [];
-      const today = new Date();
-      const reflections = [
-        "Had a productive morning meeting with the team. The new project proposal was well-received and I feel optimistic about our direction.",
-        "Struggled with focus today, but managed to complete the quarterly report. Need to work on time management.",
-        "Great conversation with a mentor today. Learned so much about leadership and career growth.",
-        "Feeling grateful for the support of my colleagues. We really pulled together to meet the deadline.",
-        "Tried a new approach to problem-solving and it paid off. Innovation requires patience."
-      ];
-
-      for (let i = 0; i < 15; i++) {
-        const daysAgo = Math.floor(Math.random() * 30);
-        const date = new Date(today);
-        date.setDate(date.getDate() - daysAgo);
-
-        testEntries.push({
-          id: `test-${i}`,
-          date: date.toISOString().split('T')[0],
-          title: `Journal Entry ${i + 1}`,
-          mood: Math.floor(Math.random() * 10) + 1,
-          energy: Math.floor(Math.random() * 10) + 1,
-          reflections: reflections[Math.floor(Math.random() * reflections.length)],
-          gratitude: "Today I'm grateful for good health and supportive friends.",
-          timestamp: date.toISOString()
-        });
-      }
-      return testEntries;
-    };
-
-    // Set test entries if no entries exist
-    if (entries.length === 0) {
-      const testEntries = generateTestEntries();
-      setEntries(testEntries);
-    }
-
-    // Auto-expand current month
     const currentMonth = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
     setExpandedMonths([currentMonth]);
   }, []);
@@ -236,10 +200,17 @@ const JournalSimple: React.FC = () => {
 
       setEntries(prev => [newEntry, ...prev]);
 
-      // Save to localStorage
+      // Save to localStorage with persistence verification
       const savedEntries = JSON.parse(localStorage.getItem('journalEntries') || '[]');
       savedEntries.unshift(newEntry);
       localStorage.setItem('journalEntries', JSON.stringify(savedEntries));
+
+      // Verify the save was successful
+      const verifyEntries = JSON.parse(localStorage.getItem('journalEntries') || '[]');
+      if (verifyEntries.length !== savedEntries.length) {
+        console.warn('⚠️ Save verification failed, retrying...');
+        localStorage.setItem('journalEntries', JSON.stringify(savedEntries));
+      }
 
       // Reset form
       setJournalEntry({
@@ -349,12 +320,124 @@ const JournalSimple: React.FC = () => {
     }
   };
 
-  // Load entries on mount
-  useEffect(() => {
-    const saved = localStorage.getItem('journalEntries');
-    if (saved) {
-      setEntries(JSON.parse(saved));
+  // Export month entries to Markdown
+  const exportMonthToMD = (monthYear, monthEntries) => {
+    if (!monthEntries || monthEntries.length === 0) {
+      alert('No entries found for this month');
+      return;
     }
+
+    let markdown = `# 📔 Journal Entries - ${monthYear}\n\n`;
+    markdown += `**Total Entries:** ${monthEntries.length}\n\n`;
+    markdown += `---\n\n`;
+
+    monthEntries
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .forEach((entry, index) => {
+        const date = new Date(entry.date);
+        const formattedDate = date.toLocaleDateString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+        const formattedTime = date.toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+
+        markdown += `## ${entry.title || 'Untitled'}\n\n`;
+        markdown += `**Date:** ${formattedDate} at ${formattedTime}\n\n`;
+
+        if (entry.mood !== undefined || entry.energy !== undefined) {
+          markdown += `**Mood:** ${entry.mood || 'N/A'}/10 | **Energy:** ${entry.energy || 'N/A'}/10\n\n`;
+        }
+
+        if (entry.reflections) {
+          markdown += `### 📝 Reflections\n\n${entry.reflections}\n\n`;
+        }
+
+        if (entry.gratitude) {
+          markdown += `### 💖 Gratitude\n\n${entry.gratitude}\n\n`;
+        }
+
+        if (entry.tags && entry.tags.length > 0) {
+          markdown += `**Tags:** ${entry.tags.join(', ')}\n\n`;
+        }
+
+        if (index < monthEntries.length - 1) {
+          markdown += `---\n\n`;
+        }
+      });
+
+    markdown += `\n---\n\n`;
+    markdown += `*Exported from Productivity Hub on ${new Date().toLocaleDateString()}*\n`;
+
+    // Create and download file
+    const filename = `journal-${monthYear.replace(' ', '-').toLowerCase()}.md`;
+    const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    console.log(`✅ Exported ${monthEntries.length} entries to ${filename}`);
+    alert(`Exported ${monthEntries.length} entries for ${monthYear}`);
+  };
+
+  // Load entries on mount - preserve real user entries, only clear actual dummy data
+  useEffect(() => {
+    const loadEntries = () => {
+      console.log('📔 Loading journal entries...');
+
+      // Load entries from localStorage
+      const savedEntries = JSON.parse(localStorage.getItem('journalEntries') || '[]');
+
+      // If no entries found, try recovery
+      if (savedEntries.length === 0) {
+        console.log('🔍 No entries found, attempting recovery...');
+        const recoveryResult = JournalDataRecovery.recoverEntries();
+        if (recoveryResult.success) {
+          console.log('✅ Recovery successful:', recoveryResult.message);
+          const recoveredEntries = recoveryResult.recoveredEntries;
+          setEntries(recoveredEntries);
+          return;
+        }
+      }
+
+      // Filter out only obvious dummy/test entries, preserve real user entries
+      const cleanedEntries = savedEntries.filter(entry => {
+        // Remove entries that are clearly dummy data FIRST
+        if (entry.title && (entry.title.includes('Dummy') || entry.title.includes('Test') || entry.title.includes('Sample'))) return false;
+        if (entry.reflections && (entry.reflections.toLowerCase().includes('dummy') || entry.reflections.toLowerCase().includes('sample') || entry.reflections.toLowerCase().includes('test'))) return false;
+
+        // Keep entries that have real user content
+        if (entry.reflections && entry.reflections.trim().length > 20) return true;
+        if (entry.gratitude && entry.gratitude.trim().length > 10) return true;
+        if (entry.title && entry.title.trim().length > 0 && !entry.title.toLowerCase().includes('dummy') && !entry.title.toLowerCase().includes('test')) return true;
+
+        // Keep entries that have IDs that look like real user entries (timestamps)
+        if (entry.id && typeof entry.id === 'number' && entry.id > 1000000000000) return true;
+
+        // Default: reject if we get here
+        return false;
+      });
+
+      // Save the cleaned entries back to localStorage
+      localStorage.setItem('journalEntries', JSON.stringify(cleanedEntries));
+
+      // Load the entries into state
+      setEntries(cleanedEntries);
+
+      console.log(`✅ Loaded ${cleanedEntries.length} journal entries`);
+      console.log('💡 Real user entries preserved and loaded successfully');
+    };
+
+    loadEntries();
   }, []);
 
   // Calculate streak on mount
@@ -2280,12 +2363,24 @@ const JournalSimple: React.FC = () => {
                   <span>{getMonthEmoji(selectedMonthEntries.reduce((sum, e) => sum + (e.mood || 0), 0) / selectedMonthEntries.length)}</span>
                   {selectedMonth}
                 </h2>
-                <button className="modal-close" onClick={closeMonthModal}>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                  </svg>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => exportMonthToMD(selectedMonth, selectedMonthEntries)}
+                    className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 flex items-center gap-2"
+                    title={`Export ${selectedMonth} entries as Markdown`}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Export MD
+                  </button>
+                  <button className="modal-close" onClick={closeMonthModal}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                </div>
               </div>
 
               <div className="modal-content">

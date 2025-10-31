@@ -32,6 +32,7 @@ import StreakTracker from './journal/StreakTracker';
 import EntryTemplates from './journal/EntryTemplates';
 import CalendarView from './journal/CalendarView';
 import ListView from './journal/ListView';
+import { JournalDataRecovery } from '../utils/journalDataRecovery';
 
 
 const Journal: React.FC = () => {
@@ -65,10 +66,155 @@ const Journal: React.FC = () => {
   const [selectedEntries, setSelectedEntries] = useState<Set<string>>(new Set());
   const [selectMode, setSelectMode] = useState(false);
 
-  // Generate 45 realistic entries over 60 days
+  // Load entries from localStorage on mount - preserve real user entries, only clear actual dummy data
   useEffect(() => {
-    const generatedEntries = generateJournalEntries();
-    setEntries(generatedEntries);
+    const loadEntries = () => {
+      console.log('📔 Loading journal entries...');
+
+      // Load entries from localStorage
+      const savedEntries = JSON.parse(localStorage.getItem('journalEntries') || '[]');
+
+      // If no entries found, try recovery
+      if (savedEntries.length === 0) {
+        console.log('🔍 No entries found, attempting recovery...');
+        const recoveryResult = JournalDataRecovery.recoverEntries();
+        if (recoveryResult.success) {
+          console.log('✅ Recovery successful:', recoveryResult.message);
+          const recoveredEntries = recoveryResult.recoveredEntries.map(entry => ({
+            id: entry.id,
+            date: new Date(entry.date),
+            title: entry.title,
+            mood: entry.mood,
+            energy: entry.energy || 7,
+            reflections: entry.reflections || entry.content || '',
+            gratitude: entry.gratitude || '',
+            biggestWin: entry.biggestWin || '',
+            learning: entry.learning || '',
+            tags: entry.tags || [],
+            content: entry.content || entry.reflections || '',
+            template: entry.template,
+            lastSaved: entry.lastSaved ? new Date(entry.lastSaved) : new Date()
+          }));
+          setEntries(recoveredEntries);
+          return;
+        }
+      }
+
+      // Filter out only obvious dummy/test entries, preserve real user entries
+      const cleanedEntries = savedEntries.filter(entry => {
+        // Remove entries that are clearly dummy data FIRST
+        if (entry.template && (entry.template.includes('Dummy') || entry.template.includes('Test') || entry.template.includes('Sample'))) return false;
+        if (entry.content && (entry.content.toLowerCase().includes('dummy') || entry.content.toLowerCase().includes('sample') || entry.content.toLowerCase().includes('test'))) return false;
+        if (entry.reflections && (entry.reflections.toLowerCase().includes('dummy') || entry.reflections.toLowerCase().includes('sample') || entry.reflections.toLowerCase().includes('test'))) return false;
+
+        // Keep entries that have real user content
+        if (entry.content && entry.content.trim().length > 20) return true;
+        if (entry.reflections && entry.reflections.trim().length > 20) return true;
+        if (entry.biggestWin && entry.biggestWin.trim().length > 10) return true;
+        if (entry.learning && entry.learning.trim().length > 10) return true;
+        if (entry.title && entry.title.trim().length > 0 && !entry.title.toLowerCase().includes('dummy') && !entry.title.toLowerCase().includes('test')) return true;
+
+        // Keep entries that have IDs that look like real user entries (timestamps)
+        if (entry.id && typeof entry.id === 'string' && entry.id.includes('journal-') && entry.id.split('-')[1]) {
+          const timestamp = parseInt(entry.id.split('-')[1]);
+          if (timestamp > 1000000000000) return true; // Keep if timestamp is recent
+        }
+
+        // Default: reject if we get here
+        return false;
+      });
+
+      // Convert to ExtendedJournalEntry format
+      const extendedEntries: ExtendedJournalEntry[] = cleanedEntries.map(entry => ({
+        id: entry.id,
+        date: new Date(entry.date),
+        title: entry.title,
+        mood: entry.mood,
+        energy: entry.energy || 7,
+        reflections: entry.reflections || entry.content || '',
+        gratitude: entry.gratitude || '',
+        biggestWin: entry.biggestWin || '',
+        learning: entry.learning || '',
+        tags: entry.tags || [],
+        content: entry.content || entry.reflections || '',
+        template: entry.template,
+        lastSaved: entry.lastSaved ? new Date(entry.lastSaved) : new Date()
+      }));
+
+      // Save the cleaned entries back to localStorage
+      localStorage.setItem('journalEntries', JSON.stringify(extendedEntries));
+
+      // Load the entries into state
+      setEntries(extendedEntries);
+
+      console.log(`✅ Loaded ${extendedEntries.length} journal entries`);
+      console.log('💡 Real user entries preserved and loaded successfully');
+    };
+
+    loadEntries();
+  }, []);
+
+  // Add a global function to clear journal data (for debugging/emergency use)
+  useEffect(() => {
+    (window as any).clearJournalData = () => {
+      if (confirm('Are you sure you want to clear ALL journal entries? This cannot be undone.')) {
+        localStorage.removeItem('journalEntries');
+        localStorage.removeItem('journal-entries');
+        localStorage.removeItem('journalData');
+        localStorage.removeItem('journal');
+        setEntries([]);
+        console.log('Journal data cleared successfully');
+        alert('Journal data cleared successfully');
+      }
+    };
+
+    (window as any).clearDummyDataOnly = () => {
+      const savedEntries = JSON.parse(localStorage.getItem('journalEntries') || '[]');
+      const realEntries = savedEntries.filter((entry: any) => {
+        // Keep entries with real content
+        if (entry.content && entry.content.trim().length > 0 && !entry.content.includes('dummy') && !entry.content.includes('test')) return true;
+        if (entry.reflections && entry.reflections.trim().length > 0 && !entry.reflections.includes('dummy') && !entry.reflections.includes('test')) return true;
+        if (entry.biggestWin && entry.biggestWin.trim().length > 0) return true;
+        if (entry.learning && entry.learning.trim().length > 0) return true;
+        return false;
+      });
+
+      localStorage.setItem('journalEntries', JSON.stringify(realEntries));
+      setEntries(realEntries);
+      console.log(`Cleared dummy data, kept ${realEntries.length} real entries`);
+      alert(`Cleared dummy data, kept ${realEntries.length} real entries`);
+    };
+
+    // Add recovery functions to global window
+    (window as any).journalRecovery = {
+      scan: () => JournalDataRecovery.scanForRecoverableEntries(),
+      recover: () => {
+        const result = JournalDataRecovery.recoverEntries();
+        if (result.success) {
+          const recoveredEntries = result.recoveredEntries.map(entry => ({
+            id: entry.id,
+            date: new Date(entry.date),
+            title: entry.title,
+            mood: entry.mood,
+            energy: entry.energy || 7,
+            reflections: entry.reflections || entry.content || '',
+            gratitude: entry.gratitude || '',
+            biggestWin: entry.biggestWin || '',
+            learning: entry.learning || '',
+            tags: entry.tags || [],
+            content: entry.content || entry.reflections || '',
+            template: entry.template,
+            lastSaved: entry.lastSaved ? new Date(entry.lastSaved) : new Date()
+          }));
+          setEntries(recoveredEntries);
+        }
+        return result;
+      },
+      backup: () => JournalDataRecovery.createEmergencyBackup(),
+      listBackups: () => JournalDataRecovery.getAvailableBackups()
+    };
+
+    console.log('🔧 Journal recovery tools available in window.journalRecovery');
   }, []);
 
   // Modal folder functions
@@ -100,93 +246,7 @@ const Journal: React.FC = () => {
     };
   }, [currentEntry]);
 
-  const generateJournalEntries = (): ExtendedJournalEntry[] => {
-    const entries: ExtendedJournalEntry[] = [];
-    const today = new Date();
-    const templates = ['Morning Pages', 'Evening Reflection', 'Gratitude', 'Goal Review'];
-    const reflections = [
-      "Had a productive morning meeting with the team. The new project proposal was well-received and I feel optimistic about our direction.",
-      "Struggled with focus today, but managed to complete the quarterly report. Need to work on time management.",
-      "Great conversation with a mentor today. Learned so much about leadership and career growth.",
-      "Feeling grateful for the support of my colleagues. We really pulled together to meet the deadline.",
-      "Tried a new approach to problem-solving and it paid off. Innovation requires patience.",
-      "Reflection moment: realized I need to set better boundaries with work hours.",
-      "Celebrated a small win today - fixed that bug that's been bothering me for days!",
-      "Learning experience: asked for help earlier instead of struggling alone. Teamwork makes the dream work.",
-      "Meditation session was really helpful. Starting the day with mindfulness makes such a difference.",
-      "Challenging day but growth comes from discomfort. Tomorrow is a new opportunity."
-    ];
-
-    const wins = [
-      "Completed the project proposal ahead of schedule",
-      "Successfully resolved the client's concerns",
-      "Led a productive team meeting",
-      "Finished the online course module",
-      "Helped a colleague solve a complex problem",
-      "Implemented a new workflow that saved time",
-      "Received positive feedback from my manager",
-      "Overcame a fear and gave a presentation",
-      "Made progress on a personal goal",
-      "Maintained work-life balance despite pressure"
-    ];
-
-    const learnings = [
-      "The importance of clear communication in remote work",
-      "How to delegate tasks more effectively",
-      "New technique for managing stress under pressure",
-      "Better ways to organize my digital workspace",
-      "The value of taking regular breaks",
-      "How to give and receive constructive feedback",
-      "Methods for improving concentration",
-      "Understanding different communication styles",
-      "The power of saying no to protect my time",
-      "Techniques for better decision making"
-    ];
-
-    const tags = [
-      'work', 'personal', 'growth', 'productivity', 'mindfulness', 'health',
-      'learning', 'relationships', 'creativity', 'leadership', 'balance',
-      'challenges', 'success', 'reflection', 'goals'
-    ];
-
-    for (let i = 0; i < 45; i++) {
-      const daysAgo = Math.floor(Math.random() * 60);
-      const date = new Date(today);
-      date.setDate(date.getDate() - daysAgo);
-
-      // Normal distribution of mood (more 5-8, fewer extremes)
-      let mood = Math.floor(Math.random() * 10) + 1;
-      const random = Math.random();
-      if (random < 0.15) mood = Math.floor(Math.random() * 3) + 1; // 15% chance of low mood (1-3)
-      else if (random < 0.25) mood = Math.floor(Math.random() * 2) + 9; // 10% chance of high mood (9-10)
-      else mood = Math.floor(Math.random() * 4) + 4; // 75% chance of medium mood (4-8)
-
-      const entryTags: string[] = [];
-      const numTags = Math.floor(Math.random() * 4) + 1;
-      for (let j = 0; j < numTags; j++) {
-        const tag = tags[Math.floor(Math.random() * tags.length)];
-        if (!entryTags.includes(tag)) entryTags.push(tag);
-      }
-
-      entries.push({
-        id: `journal-${i + 1}`,
-        date,
-        content: reflections[Math.floor(Math.random() * reflections.length)],
-        mood,
-        energy: Math.floor(Math.random() * 10) + 1,
-        themes: [tags[Math.floor(Math.random() * tags.length)]],
-        insights: ['Important insight about personal growth'],
-        biggestWin: wins[Math.floor(Math.random() * wins.length)],
-        learning: learnings[Math.floor(Math.random() * learnings.length)],
-        tags: entryTags,
-        template: templates[Math.floor(Math.random() * templates.length)],
-        isDraft: false
-      });
-    }
-
-    return entries.sort((a, b) => b.date.getTime() - a.date.getTime());
-  };
-
+  
   const saveDraft = () => {
     if (currentEntry.id) {
       setEntries(prev => prev.map(entry =>
@@ -220,12 +280,16 @@ const Journal: React.FC = () => {
       lastSaved: new Date()
     };
 
+    let updatedEntries: ExtendedJournalEntry[];
     if (editingEntry) {
-      setEntries(prev => prev.map(e => e.id === editingEntry ? entry : e));
+      updatedEntries = entries.map(e => e.id === editingEntry ? entry : e);
       setEditingEntry(null);
     } else {
-      setEntries(prev => [entry, ...prev]);
+      updatedEntries = [entry, ...entries];
     }
+
+    setEntries(updatedEntries);
+    localStorage.setItem('journalEntries', JSON.stringify(updatedEntries));
 
     // Reset form
     setCurrentEntry({
@@ -240,7 +304,9 @@ const Journal: React.FC = () => {
   };
 
   const deleteEntry = (id: string) => {
-    setEntries(prev => prev.filter(entry => entry.id !== id));
+    const updatedEntries = entries.filter(entry => entry.id !== id);
+    setEntries(updatedEntries);
+    localStorage.setItem('journalEntries', JSON.stringify(updatedEntries));
   };
 
   const editEntry = (entry: ExtendedJournalEntry) => {
@@ -549,6 +615,15 @@ const Journal: React.FC = () => {
     const filename = `journal-selected-${Date.now()}.md`;
     exportToMD(selectedEntriesArray, filename);
     clearSelection();
+  };
+
+  const exportAllToMD = (allEntries: ExtendedJournalEntry[]) => {
+    if (allEntries.length === 0) {
+      alert('No entries to export.');
+      return;
+    }
+    const filename = `journal-all-entries-${new Date().toISOString().split('T')[0]}.md`;
+    exportToMD(allEntries, filename);
   };
 
   return (
@@ -936,6 +1011,7 @@ const Journal: React.FC = () => {
             exportMonthToMD={exportMonthToMD}
             clearSelection={clearSelection}
             exportSelectedToMD={exportSelectedToMD}
+            exportAllToMD={exportAllToMD}
             setSelectMode={setSelectMode}
           />
         )}
