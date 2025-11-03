@@ -1,9 +1,11 @@
 import React, { Suspense, lazy, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import ErrorBoundary from './components/ErrorBoundary';
 import { AppearanceStorage } from './utils/appearanceStorage';
 
 // 🚀 LAZY LOADING for instant initial load!
-const MainApp = lazy(() => import('./MainApp'));
+const AuthWrapper = lazy(() => import('./components/AuthWrapper'));
+const EmailVerification = lazy(() => import('./pages/EmailVerification'));
 
 // 🎯 Loading component for better UX
 const LoadingSpinner = () => (
@@ -39,26 +41,18 @@ const LoadingSpinner = () => (
 );
 
 function App() {
-  // Initialize appearance preferences on app startup
+  // EMERGENCY: DISABLE appearance initialization to prevent conflicts
   useEffect(() => {
-    const initializeAppearance = async () => {
-      try {
-        console.log('🎨 Initializing appearance preferences...');
-        const preferences = await AppearanceStorage.loadAllPreferences();
-        AppearanceStorage.applyAppearancePreferences(preferences);
-        console.log('✅ Appearance preferences initialized:', preferences);
-      } catch (error) {
-        console.error('❌ Failed to initialize appearance preferences:', error);
-        // Apply defaults as fallback
-        AppearanceStorage.applyAppearancePreferences({
-          font_size: 'medium',
-          theme: 'light',
-          compact_mode: false
-        });
-      }
-    };
+    console.log('🚨 EMERGENCY: Skipping appearance initialization to prevent conflicts');
 
-    initializeAppearance();
+    // Apply simple stable defaults without async storage
+    try {
+      document.documentElement.classList.remove('dark', 'font-small', 'font-medium', 'font-large', 'compact-mode');
+      document.documentElement.classList.add('font-medium');
+      console.log('✅ Emergency: Applied stable appearance defaults');
+    } catch (error) {
+      console.error('❌ Emergency appearance setup failed:', error);
+    }
   }, []);
 
   return (
@@ -144,9 +138,16 @@ function App() {
             }
           }
         `}</style>
-        <Suspense fallback={<LoadingSpinner />}>
-          <MainApp />
-        </Suspense>
+        <Router>
+          <Suspense fallback={<LoadingSpinner />}>
+            <Routes>
+              <Route path="/verify" element={<EmailVerification />} />
+              <Route path="/login" element={<AuthWrapper />} />
+              <Route path="/" element={<Navigate to="/login" replace />} />
+              <Route path="/*" element={<AuthWrapper />} />
+            </Routes>
+          </Suspense>
+        </Router>
       </div>
     </ErrorBoundary>
   );
