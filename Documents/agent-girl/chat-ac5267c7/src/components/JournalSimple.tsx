@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { SecureJournalStorage, JournalEntry } from '../utils/secureJournalStorage';
 import { JournalDataRecovery } from '../utils/journalDataRecovery';
-import { JournalTestSuite } from '../utils/journalTestSuite';
 
 const JournalSimple: React.FC = () => {
   // Add state for journal
@@ -13,7 +12,7 @@ const JournalSimple: React.FC = () => {
 
   // Update journalEntry state to include tags
   const [journalEntry, setJournalEntry] = useState({
-    date: new Date().toISOString().split('T')[0],
+    date: new Date().toLocaleDateString('en-CA'),
     title: '',
     mood: 7,
     energy: 7,
@@ -28,7 +27,6 @@ const JournalSimple: React.FC = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
-  const [testRunning, setTestRunning] = useState(false);
 
   // Month folders state
   const [expandedMonths, setExpandedMonths] = useState([]);
@@ -255,7 +253,7 @@ const JournalSimple: React.FC = () => {
 
       // Reset form
       setJournalEntry({
-        date: new Date().toISOString().split('T')[0],
+        date: new Date().toLocaleDateString('en-CA'),
         title: '',
         mood: 7,
         energy: 7,
@@ -600,37 +598,7 @@ const JournalSimple: React.FC = () => {
     a.click();
   };
 
-  // Run journal tests
-  const runJournalTests = async () => {
-    if (testRunning) return;
-
-    setTestRunning(true);
-    setError('');
-    setShowSuccess(false);
-
-    try {
-      console.log('🧪 Starting Journal Test Suite...');
-      const testResults = await JournalTestSuite.runAllTests();
-
-      if (testResults.summary.successRate === 100) {
-        setShowSuccess(true);
-        setTimeout(() => setShowSuccess(false), 5000);
-        console.log('✅ All tests passed!');
-      } else {
-        setError(`Tests completed: ${testResults.summary.successRate}% passed (${testResults.summary.failedTests} failed)`);
-        setTimeout(() => setError(''), 8000);
-      }
-
-      console.log('📊 Test Results:', testResults);
-    } catch (error) {
-      console.error('❌ Test suite failed:', error);
-      setError(`Test suite failed: ${error.message}`);
-      setTimeout(() => setError(''), 8000);
-    } finally {
-      setTestRunning(false);
-    }
-  };
-
+  
   return (
     <>
       <style>{`
@@ -2270,30 +2238,7 @@ const JournalSimple: React.FC = () => {
               <p>Record your thoughts, feelings, and daily reflections</p>
             </div>
             <div className="header-actions">
-              {process.env.NODE_ENV === 'development' && (
-                <button
-                  className="btn-test"
-                  onClick={runJournalTests}
-                  disabled={testRunning}
-                  title="Run journal functionality tests"
-                >
-                  {testRunning ? (
-                    <>
-                      <span className="spinner"></span>
-                      Testing...
-                    </>
-                  ) : (
-                    <>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M9 11l3 3L22 4"/>
-                        <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
-                      </svg>
-                      Run Tests
-                    </>
-                  )}
-                </button>
-              )}
-              <button className="btn-export" onClick={handleExportMD}>
+                <button className="btn-export" onClick={handleExportMD}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                   <polyline points="7 10 12 15 17 10"/>

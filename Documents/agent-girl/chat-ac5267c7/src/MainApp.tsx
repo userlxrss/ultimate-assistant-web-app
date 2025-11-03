@@ -12,8 +12,8 @@ import ContactsApp from './components/contacts/ContactsApp';
 import CleanSettingsPage from './components/CleanSettingsPage';
 import { NotificationProvider } from './components/NotificationSystem';
 // EMERGENCY: DISABLE TimerProvider and ThemeProvider to fix performance issues
-// 
-// 
+//
+//
 
 // DISABLED: EMERGENCY CRITICAL FIXES - Break React event system
 // import {
@@ -121,41 +121,41 @@ const MainApp: React.FC = () => {
   // EMERGENCY OPTIMIZED SIGN OUT HANDLER
   const handleSignOut = useCallback(async () => {
     console.log("🚨 SIGN OUT BUTTON CLICKED - handleSignOut function called");
-    
+
     try {
       setShowProfileDropdown(false);
-      
+
       // Clear all timers and intervals first
       const highestTimeoutId = setTimeout(() => {}, 0);
       for (let i = 1; i <= highestTimeoutId; i++) {
         clearTimeout(i);
         clearInterval(i);
       }
-      
+
       // Clear local state
       setIsAuthenticated(false);
       setUserInfo(null);
       userDataStorage.removeData('currentUser');
-      
+
       // Attempt graceful logout
       try {
         await userAuthManager.logout();
       } catch (logoutError) {
         console.error("Graceful logout failed:", logoutError);
       }
-      
+
       // Clear all storage
       localStorage.clear();
       sessionStorage.clear();
-      
+
       console.log("✅ Sign out successful - redirecting");
-      
+
       // Force redirect
       window.location.href = "/login";
-      
+
     } catch (error) {
       console.error("Sign out error:", error);
-      
+
       // EMERGENCY FALLBACK: Force redirect to login
       localStorage.clear();
       sessionStorage.clear();
@@ -298,20 +298,6 @@ const MainApp: React.FC = () => {
                 {/* Notifications */}
                 <button className={`p-2 rounded-lg transition-colors ${isDark ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-400 hover:bg-gray-100'}`}>
                   <Bell className="w-5 h-5" />
-                </button>
-
-                {/* EMERGENCY: Direct Sign Out Button */}
-                <button
-                  onClick={() => {
-                    console.log("🚪 EMERGENCY SIGN OUT CLICKED");
-                    localStorage.clear();
-                    sessionStorage.clear();
-                    window.location.href = "/loginpage.html?signedout=true";
-                  }}
-                  className="p-2 rounded-lg transition-colors text-red-500 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
-                  title="Emergency Sign Out"
-                >
-                  <LogOut className="w-5 h-5" />
                 </button>
 
                 {/* Profile Button */}
