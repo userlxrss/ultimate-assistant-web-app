@@ -15,13 +15,14 @@ import { NotificationProvider } from './components/NotificationSystem';
 // 
 // 
 
-// EMERGENCY CRITICAL FIXES
-import {
-  disableAppearanceStorage,
-  performEmergencySignOut,
-  clearAllTimers,
-  forceThemeOverride
-} from '../CRITICAL-FIXES';
+// DISABLED: EMERGENCY CRITICAL FIXES - Break React event system
+// import {
+//   disableAppearanceStorage,
+//   performEmergencySignOut,
+//   clearAllTimers,
+//   forceThemeOverride
+// } from '../CRITICAL-FIXES';
+console.log('🚫 Emergency fixes import disabled - React event system protection applied');
 
 type ActiveModule = 'dashboard' | 'journal' | 'tasks' | 'calendar' | 'email' | 'contacts' | 'settings';
 
@@ -48,26 +49,21 @@ const MainApp: React.FC = () => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const profileButtonRef = useRef<HTMLButtonElement>(null);
 
-  // EMERGENCY: Add cleanup and performance fixes on mount
+  // DISABLED: Emergency fixes that break React events
   useEffect(() => {
-    console.log('🚨 EMERGENCY: Applying critical fixes on component mount...');
-
-    // Apply emergency fixes immediately
-    clearAllTimers();
-    disableAppearanceStorage();
-    forceThemeOverride('light');
+    console.log('✅ React event system protection: Emergency fixes disabled');
 
     const checkAuth = async () => {
       try {
-        const userSession = await userAuthManager.checkSession();
-        if (userSession.isValid && userSession.user) {
+        const user = userAuthManager.getCurrentUser();
+        if (user) {
           setIsAuthenticated(true);
-          setUserInfo(userSession.user);
-          userDataStorage.setCurrentUser(userSession.user);
+          setUserInfo(user);
+          userDataStorage.setData('currentUser', user);
         } else {
           setIsAuthenticated(false);
           setUserInfo(null);
-          userDataStorage.setCurrentUser(null);
+          userDataStorage.removeData('currentUser');
         }
       } catch (error) {
         console.error('Auth check failed:', error);
@@ -78,10 +74,9 @@ const MainApp: React.FC = () => {
 
     checkAuth();
 
-    // EMERGENCY: Cleanup on unmount
+    // Normal cleanup without breaking React events
     return () => {
-      console.log('🧹 EMERGENCY: Cleaning up MainApp component...');
-      clearAllTimers();
+      console.log('🧹 Normal MainApp component cleanup');
     };
   }, []);
 
@@ -118,14 +113,14 @@ const MainApp: React.FC = () => {
   const handleProfileClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('Profile clicked - toggling dropdown');
+    console.log('🔵 PROFILE BUTTON CLICKED - dropdown should toggle');
     setShowProfileDropdown(prev => !prev);
   }, []);
 
   // EMERGENCY: FIXED sign out handler
   // EMERGENCY OPTIMIZED SIGN OUT HANDLER
   const handleSignOut = useCallback(async () => {
-    console.log("🚨 EMERGENCY SIGN OUT INITIATED");
+    console.log("🚨 SIGN OUT BUTTON CLICKED - handleSignOut function called");
     
     try {
       setShowProfileDropdown(false);
@@ -140,7 +135,7 @@ const MainApp: React.FC = () => {
       // Clear local state
       setIsAuthenticated(false);
       setUserInfo(null);
-      userDataStorage.setCurrentUser(null);
+      userDataStorage.removeData('currentUser');
       
       // Attempt graceful logout
       try {
@@ -156,15 +151,15 @@ const MainApp: React.FC = () => {
       console.log("✅ Sign out successful - redirecting");
       
       // Force redirect
-      window.location.href = "/";
+      window.location.href = "/login";
       
     } catch (error) {
       console.error("Sign out error:", error);
       
-      // EMERGENCY FALLBACK: Force reload
+      // EMERGENCY FALLBACK: Force redirect to login
       localStorage.clear();
       sessionStorage.clear();
-      window.location.reload();
+      window.location.href = "/login";
     }
   }, []);
   const navigationItems = [
@@ -305,6 +300,20 @@ const MainApp: React.FC = () => {
                   <Bell className="w-5 h-5" />
                 </button>
 
+                {/* EMERGENCY: Direct Sign Out Button */}
+                <button
+                  onClick={() => {
+                    console.log("🚪 EMERGENCY SIGN OUT CLICKED");
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    window.location.href = "/loginpage.html?signedout=true";
+                  }}
+                  className="p-2 rounded-lg transition-colors text-red-500 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+                  title="Emergency Sign Out"
+                >
+                  <LogOut className="w-5 h-5" />
+                </button>
+
                 {/* Profile Button */}
                 <div className="relative">
                   <button
@@ -318,64 +327,70 @@ const MainApp: React.FC = () => {
                     <User className="w-5 h-5" />
                   </button>
 
-                  {/* Profile Dropdown */}
+                  {/* Profile Dropdown - SIMPLIFIED */}
                   {showProfileDropdown && (
-                    <div
-                      ref={dropdownRef}
-                      className={`absolute right-0 mt-2 w-72 rounded-lg shadow-lg border z-50 ${
-                        isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-                      }`}
-                    >
-                      {/* Profile Header */}
-                      <div className={`p-4 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+                    <div className="absolute top-16 right-4 w-64 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg z-50">
+                      {/* User Info */}
+                      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
                         <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
-                            {isAuthenticated ? userInfo?.name?.charAt(0) || 'U' : 'U'}
+                          <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
+                            <span className="text-purple-600 dark:text-purple-300 font-semibold">
+                              {userInfo?.email?.[0]?.toUpperCase() || 'U'}
+                            </span>
                           </div>
                           <div>
-                            <p className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                              {isAuthenticated ? userInfo?.name || 'User' : 'Guest User'}
+                            <p className="font-medium text-gray-900 dark:text-white">
+                              {userInfo?.email || 'Guest User'}
                             </p>
-                            <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                              {isAuthenticated ? userInfo?.email || 'user@example.com' : 'Not signed in'}
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              Not signed in
                             </p>
                           </div>
                         </div>
                       </div>
 
-                      {/* Menu Options */}
-                      <div className="py-2">
+                      {/* Menu Items */}
+                      <div className="p-2">
                         <button
                           onClick={() => {
                             setActiveModule('settings');
                             setShowProfileDropdown(false);
                           }}
-                          className={`w-full px-4 py-2 flex items-center space-x-3 text-sm transition-colors ${
-                            isDark ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                          }`}
+                          className="w-full px-4 py-2 flex items-center space-x-3 text-sm transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
                         >
-                          <User className="w-4 h-4" />
+                          <Settings className="w-4 h-4" />
                           <span>Settings</span>
                         </button>
-
                         <button
                           onClick={() => {
                             toggleTheme();
                             setShowProfileDropdown(false);
                           }}
-                          className={`w-full px-4 py-2 flex items-center space-x-3 text-sm transition-colors ${
-                            isDark ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                          }`}
+                          className="w-full px-4 py-2 flex items-center space-x-3 text-sm transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
                         >
-                          {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-                          <span>{isDark ? 'Light Mode' : 'Dark Mode'}</span>
+                          <Moon className="w-4 h-4" />
+                          <span>Dark Mode</span>
                         </button>
 
-                        <div className={`my-2 border-t ${isDark ? 'border-gray-700' : 'border-gray-200'}`}></div>
-
+                        {/* SIGN OUT BUTTON - SIMPLIFIED */}
                         <button
-                          onClick={handleSignOut}
-                          className="w-full px-4 py-2 flex items-center space-x-3 text-sm transition-colors text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+                          onMouseDown={async (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+
+                            // Close dropdown immediately
+                            setShowProfileDropdown(false);
+
+                            // Clear everything
+                            setIsAuthenticated(false);
+                            setUserInfo(null);
+                            localStorage.clear();
+                            sessionStorage.clear();
+
+                            // Force redirect to login page with success message
+                            window.location.href = "/loginpage.html?signedout=true";
+                          }}
+                          className="w-full px-4 py-2 flex items-center space-x-3 text-sm transition-colors text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 rounded"
                         >
                           <LogOut className="w-4 h-4" />
                           <span>Sign Out</span>
