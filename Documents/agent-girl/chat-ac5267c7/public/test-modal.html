@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Verification Modal</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #1a1a2e;
+            color: white;
+        }
+        .test-button {
+            background: #7c3aed;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+        .test-button:hover {
+            background: #6366f1;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Verification Modal Test</h1>
+    <p>This page tests the verification modal functionality.</p>
+
+    <button class="test-button" onclick="testModal()">
+        📧 Test Verification Modal
+    </button>
+
+    <button class="test-button" onclick="testFullFlow()">
+        🔄 Test Full Signup Flow
+    </button>
+
+    <div id="results"></div>
+
+    <script src="production-email-verification.js"></script>
+    <script>
+        async function testModal() {
+            console.log('🧪 Testing modal display...');
+            const results = document.getElementById('results');
+
+            try {
+                // Test data
+                const testData = {
+                    email: 'test@example.com',
+                    fullName: 'Test User',
+                    username: 'testuser',
+                    password: 'testpass123'
+                };
+
+                // Call the verification function
+                const result = await window.productionEmailVerification.sendVerificationEmail(testData);
+
+                if (result.success) {
+                    results.innerHTML = `
+                        <div style="background: #22c55e; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                            ✅ Modal test successful! Check for the verification modal.
+                            <br>Code: ${result.code}
+                            <br>Link: ${result.link}
+                        </div>
+                    `;
+                } else {
+                    results.innerHTML = `
+                        <div style="background: #ef4444; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                            ❌ Modal test failed: ${result.error}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                results.innerHTML = `
+                    <div style="background: #ef4444; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                        ❌ Modal test error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function testFullFlow() {
+            console.log('🔄 Testing full signup flow...');
+            const results = document.getElementById('results');
+
+            try {
+                // Simulate form data
+                const formData = {
+                    email: 'fullflow@example.com',
+                    fullName: 'Full Flow Test',
+                    username: 'fullflowtest',
+                    password: 'password123'
+                };
+
+                // This is the exact flow from signup.html
+                const result = await window.productionEmailVerification.sendVerificationEmail(formData);
+
+                if (result && result.success) {
+                    results.innerHTML = `
+                        <div style="background: #22c55e; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                            ✅ Full flow test successful!
+                            <br>You should see the verification modal.
+                            <br>📧 Email: ${formData.email}
+                            <br>🔢 Code: ${result.code}
+                        </div>
+                    `;
+                } else {
+                    results.innerHTML = `
+                        <div style="background: #ef4444; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                            ❌ Full flow test failed: ${result.error || 'Unknown error'}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                results.innerHTML = `
+                    <div style="background: #ef4444; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                        ❌ Full flow test error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

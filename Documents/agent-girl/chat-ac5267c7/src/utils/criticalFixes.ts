@@ -147,7 +147,44 @@ export const emergencyRecovery = () => {
   }
 };
 
-// DISABLED: Auto-execution breaks React event system
-// console.log('🔧 APPLYING CRITICAL PRODUCTION FIXES...');
-// emergencyRecovery();
-console.log('🚫 Auto-execution disabled - React event system protection applied');
+// 7. HEALTH CHECK FUNCTION
+export const performHealthCheck = () => {
+  try {
+    const issues: string[] = [];
+
+    // Check for memory leaks
+    if ('memory' in performance) {
+      const memory = (performance as any).memory;
+      const usedMB = Math.round(memory.usedJSHeapSize / 1024 / 1024);
+      if (usedMB > 100) {
+        issues.push(`High memory usage: ${usedMB}MB`);
+      }
+    }
+
+    // Check for storage conflicts
+    const conflictKeys = ['user_preferences:font_size', 'user_preferences:theme'];
+    conflictKeys.forEach(key => {
+      if (localStorage.getItem(key)) {
+        issues.push(`Storage conflict detected: ${key}`);
+      }
+    });
+
+    // Check for excessive timers
+    const maxIntervalId = setTimeout(() => {}, 0);
+    if (maxIntervalId > 1000) {
+      issues.push(`Excessive timers detected: ${maxIntervalId} intervals`);
+    }
+
+    return {
+      healthy: issues.length === 0,
+      issues,
+      timestamp: new Date().toISOString()
+    };
+  } catch (error) {
+    return {
+      healthy: false,
+      issues: ['Health check failed'],
+      timestamp: new Date().toISOString()
+    };
+  }
+};

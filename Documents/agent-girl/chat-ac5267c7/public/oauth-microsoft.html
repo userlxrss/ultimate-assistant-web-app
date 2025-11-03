@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microsoft OAuth Callback</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .premium-gradient {
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 25%, #312e81 50%, #1e1b4b 75%, #0f172a 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow:
+                0 8px 32px 0 rgba(31, 38, 135, 0.37),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .loading-spinner {
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            border-top: 3px solid white;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .pulse-animation {
+            animation: pulse 2s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="premium-gradient min-h-screen flex items-center justify-center p-4">
+    <div class="glass-card rounded-2xl p-8 max-w-md w-full text-center">
+        <div class="mb-6">
+            <div class="inline-flex items-center justify-center w-16 h-16 mb-4 relative">
+                <div class="absolute inset-0 bg-gradient-to-r from-orange-600 to-blue-600 rounded-2xl blur-xl opacity-60"></div>
+                <div class="relative bg-gradient-to-r from-orange-600 to-blue-600 rounded-xl p-4">
+                    <svg class="w-8 h-8 text-white" viewBox="0 0 24 24">
+                        <path fill="#f25022" d="M11.4 11.4H2.6V2.6h8.8v8.8z"/>
+                        <path fill="#7fba00" d="M21.4 11.4h-8.8V2.6h8.8v8.8z"/>
+                        <path fill="#00a4ef" d="M11.4 21.4H2.6v-8.8h8.8v8.8z"/>
+                        <path fill="#ffb900" d="M21.4 21.4h-8.8v-8.8h8.8v8.8z"/>
+                    </svg>
+                </div>
+            </div>
+            <h1 class="text-2xl font-bold text-white mb-2">Connecting with Microsoft</h1>
+            <p id="statusMessage" class="text-white/70 text-sm">Please wait while we authenticate your account...</p>
+        </div>
+
+        <div class="flex justify-center mb-6">
+            <div class="loading-spinner"></div>
+        </div>
+
+        <div id="errorContainer" class="hidden">
+            <div class="bg-red-500/20 border border-red-500/30 rounded-xl p-4 mb-4">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-exclamation-circle text-red-400 text-lg"></i>
+                    <div class="text-left">
+                        <p class="text-red-300 font-medium">Authentication Failed</p>
+                        <p id="errorMessage" class="text-red-200 text-sm mt-1">Something went wrong during authentication.</p>
+                    </div>
+                </div>
+            </div>
+            <button
+                id="retryButton"
+                class="w-full py-2 px-4 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors"
+            >
+                Try Again
+            </button>
+        </div>
+
+        <div id="successContainer" class="hidden">
+            <div class="bg-green-500/20 border border-green-500/30 rounded-xl p-4 mb-4">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-check-circle text-green-400 text-lg"></i>
+                    <div>
+                        <p class="text-green-300 font-medium">Authentication Successful</p>
+                        <p class="text-green-200 text-sm mt-1">Redirecting to your dashboard...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/auth/authManager.js"></script>
+    <script type="module" src="/auth/oauthHandler.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+            const state = urlParams.get('state');
+            const error = urlParams.get('error');
+
+            const statusMessage = document.getElementById('statusMessage');
+            const errorContainer = document.getElementById('errorContainer');
+            const errorMessage = document.getElementById('errorMessage');
+            const successContainer = document.getElementById('successContainer');
+
+            try {
+                if (error) {
+                    throw new Error(`Microsoft OAuth error: ${error}`);
+                }
+
+                if (!code || !state) {
+                    throw new Error('Invalid OAuth callback parameters');
+                }
+
+                // Verify state
+                const storedState = localStorage.getItem('oauthState');
+                if (state !== storedState) {
+                    throw new Error('Invalid OAuth state');
+                }
+
+                statusMessage.textContent = 'Exchanging authorization code for tokens...';
+
+                // Initialize OAuth handler
+                const oauthHandler = new window.OAuthHandler();
+
+                statusMessage.textContent = 'Fetching your Microsoft profile...';
+
+                // Handle OAuth callback
+                const result = await oauthHandler.handleOAuthCallback('microsoft', window.location.href);
+
+                if (result.success) {
+                    statusMessage.textContent = 'Authentication successful!';
+                    successContainer.classList.remove('hidden');
+
+                    // Redirect to dashboard after delay
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 2000);
+
+                } else {
+                    throw new Error(result.error || 'Authentication failed');
+                }
+
+            } catch (error) {
+                console.error('Microsoft OAuth callback error:', error);
+
+                statusMessage.textContent = 'Authentication failed';
+                errorContainer.classList.remove('hidden');
+                errorMessage.textContent = error.message || 'An unexpected error occurred during authentication.';
+
+                // Hide loading spinner
+                document.querySelector('.loading-spinner').style.display = 'none';
+            }
+
+            // Retry button handler
+            document.getElementById('retryButton').addEventListener('click', function() {
+                window.location.href = 'signup.html';
+            });
+
+            // Auto-redirect if no parameters after 10 seconds
+            if (!code && !state && !error) {
+                setTimeout(() => {
+                    window.location.href = 'signup.html';
+                }, 10000);
+            }
+        });
+    </script>
+</body>
+</html>

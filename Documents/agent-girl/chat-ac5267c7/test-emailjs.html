@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EmailJS Configuration Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .config-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .test-section {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-1px);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .result.info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .code {
+            background: #f1f3f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+
+        .help-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .logs {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>EmailJS Configuration Test</h1>
+        <p class="subtitle">Test your EmailJS setup before using it in production</p>
+
+        <div class="config-section">
+            <h3>1. EmailJS Configuration</h3>
+            <div class="form-group">
+                <label for="serviceId">Service ID</label>
+                <input type="text" id="serviceId" placeholder="service_xxxxxxxxxxxx">
+                <div class="help-text">Found in EmailJS dashboard → Email Services</div>
+            </div>
+            <div class="form-group">
+                <label for="verificationTemplateId">Verification Template ID</label>
+                <input type="text" id="verificationTemplateId" placeholder="template_xxxxxxxxxxxx">
+                <div class="help-text">Found in EmailJS dashboard → Email Templates</div>
+            </div>
+            <div class="form-group">
+                <label for="passwordResetTemplateId">Password Reset Template ID</label>
+                <input type="text" id="passwordResetTemplateId" placeholder="template_xxxxxxxxxxxx">
+                <div class="help-text">Found in EmailJS dashboard → Email Templates</div>
+            </div>
+            <div class="form-group">
+                <label for="publicKey">Public Key</label>
+                <input type="text" id="publicKey" placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxx">
+                <div class="help-text">Found in EmailJS dashboard → Account</div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>2. Test Email Sending</h3>
+            <div class="form-group">
+                <label for="testEmail">Test Email Address</label>
+                <input type="email" id="testEmail" placeholder="your-email@example.com">
+                <div class="help-text">Use a real email address you can access</div>
+            </div>
+            <div class="form-group">
+                <label for="testName">Test Name</label>
+                <input type="text" id="testName" placeholder="John Doe" value="Test User">
+            </div>
+
+            <button class="btn" onclick="testEmailJSLoad()">Load EmailJS</button>
+            <button class="btn" onclick="testVerificationEmail()">Test Verification Email</button>
+            <button class="btn" onclick="testPasswordResetEmail()">Test Password Reset</button>
+            <button class="btn btn-danger" onclick="clearResults()">Clear Results</button>
+        </div>
+
+        <div id="result" class="result"></div>
+        <div id="logs" class="logs"></div>
+    </div>
+
+    <!-- Load EmailJS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+    <script>
+        let emailJSConfig = {
+            serviceId: '',
+            templateIdVerification: '',
+            templateIdPasswordReset: '',
+            publicKey: ''
+        };
+
+        function showResult(message, type = 'info') {
+            const result = document.getElementById('result');
+            result.className = `result ${type}`;
+            result.innerHTML = message;
+            result.style.display = 'block';
+
+            log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        function log(message) {
+            const logs = document.getElementById('logs');
+            const timestamp = new Date().toLocaleTimeString();
+            logs.innerHTML += `[${timestamp}] ${message}\n`;
+            logs.scrollTop = logs.scrollHeight;
+            logs.style.display = 'block';
+        }
+
+        function clearResults() {
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('logs').style.display = 'none';
+            document.getElementById('logs').innerHTML = '';
+        }
+
+        function getConfig() {
+            emailJSConfig.serviceId = document.getElementById('serviceId').value.trim();
+            emailJSConfig.templateIdVerification = document.getElementById('verificationTemplateId').value.trim();
+            emailJSConfig.templateIdPasswordReset = document.getElementById('passwordResetTemplateId').value.trim();
+            emailJSConfig.publicKey = document.getElementById('publicKey').value.trim();
+
+            // Validate configuration
+            const missing = [];
+            if (!emailJSConfig.serviceId) missing.push('Service ID');
+            if (!emailJSConfig.templateIdVerification) missing.push('Verification Template ID');
+            if (!emailJSConfig.templateIdPasswordReset) missing.push('Password Reset Template ID');
+            if (!emailJSConfig.publicKey) missing.push('Public Key');
+
+            if (missing.length > 0) {
+                throw new Error(`Missing configuration: ${missing.join(', ')}`);
+            }
+
+            return emailJSConfig;
+        }
+
+        async function testEmailJSLoad() {
+            try {
+                log('Starting EmailJS load test...');
+
+                const config = getConfig();
+
+                // Initialize EmailJS
+                await window.emailjs.init(config.publicKey);
+
+                showResult(
+                    '✅ EmailJS loaded successfully! Public key is valid.',
+                    'success'
+                );
+
+                log('EmailJS initialized successfully');
+
+            } catch (error) {
+                showResult(
+                    `❌ Failed to load EmailJS: ${error.message}`,
+                    'error'
+                );
+                log(`EmailJS load error: ${error.message}`);
+            }
+        }
+
+        async function testVerificationEmail() {
+            try {
+                log('Starting verification email test...');
+
+                const config = getConfig();
+                const testEmail = document.getElementById('testEmail').value.trim();
+                const testName = document.getElementById('testName').value.trim() || 'Test User';
+
+                if (!testEmail) {
+                    throw new Error('Please enter a test email address');
+                }
+
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(testEmail)) {
+                    throw new Error('Please enter a valid email address');
+                }
+
+                // Initialize EmailJS
+                await window.emailjs.init(config.publicKey);
+                log('EmailJS initialized');
+
+                // Prepare template parameters
+                const templateParams = {
+                    to_email: testEmail,
+                    to_name: testName,
+                    verification_code: Math.floor(100000 + Math.random() * 900000).toString(),
+                    verification_link: window.location.href,
+                    company_name: 'Productivity Hub',
+                    support_email: 'support@productivityhub.com',
+                    current_year: new Date().getFullYear()
+                };
+
+                log(`Sending verification email to ${testEmail}...`);
+
+                // Send email
+                const response = await window.emailjs.send(
+                    config.serviceId,
+                    config.templateIdVerification,
+                    templateParams
+                );
+
+                showResult(
+                    `✅ Verification email sent successfully to ${testEmail}! Check your inbox (and spam folder).`,
+                    'success'
+                );
+
+                log(`Verification email sent: ${JSON.stringify(response)}`);
+
+            } catch (error) {
+                let errorMessage = error.message;
+
+                // Provide more helpful error messages
+                if (error.text === 'The user ID is not registered.') {
+                    errorMessage = 'Invalid Public Key. Check your EmailJS account settings.';
+                } else if (error.text === 'The template ID is not registered.') {
+                    errorMessage = 'Invalid Verification Template ID. Check your EmailJS templates.';
+                } else if (error.text === 'The service ID is not registered.') {
+                    errorMessage = 'Invalid Service ID. Check your EmailJS email services.';
+                } else if (error.status === 429) {
+                    errorMessage = 'Rate limit exceeded. Please wait before sending another email.';
+                } else if (error.status >= 500) {
+                    errorMessage = 'EmailJS server error. Please try again later.';
+                }
+
+                showResult(
+                    `❌ Failed to send verification email: ${errorMessage}`,
+                    'error'
+                );
+
+                log(`Verification email error: ${JSON.stringify(error)}`);
+            }
+        }
+
+        async function testPasswordResetEmail() {
+            try {
+                log('Starting password reset email test...');
+
+                const config = getConfig();
+                const testEmail = document.getElementById('testEmail').value.trim();
+                const testName = document.getElementById('testName').value.trim() || 'Test User';
+
+                if (!testEmail) {
+                    throw new Error('Please enter a test email address');
+                }
+
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(testEmail)) {
+                    throw new Error('Please enter a valid email address');
+                }
+
+                // Initialize EmailJS
+                await window.emailjs.init(config.publicKey);
+                log('EmailJS initialized');
+
+                // Prepare template parameters
+                const templateParams = {
+                    to_email: testEmail,
+                    to_name: testName,
+                    reset_token: 'reset_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8),
+                    reset_link: `${window.location.href}?token=test`,
+                    company_name: 'Productivity Hub',
+                    support_email: 'support@productivityhub.com',
+                    current_year: new Date().getFullYear(),
+                    reset_expires: '1 hour'
+                };
+
+                log(`Sending password reset email to ${testEmail}...`);
+
+                // Send email
+                const response = await window.emailjs.send(
+                    config.serviceId,
+                    config.templateIdPasswordReset,
+                    templateParams
+                );
+
+                showResult(
+                    `✅ Password reset email sent successfully to ${testEmail}! Check your inbox (and spam folder).`,
+                    'success'
+                );
+
+                log(`Password reset email sent: ${JSON.stringify(response)}`);
+
+            } catch (error) {
+                let errorMessage = error.message;
+
+                // Provide more helpful error messages
+                if (error.text === 'The user ID is not registered.') {
+                    errorMessage = 'Invalid Public Key. Check your EmailJS account settings.';
+                } else if (error.text === 'The template ID is not registered.') {
+                    errorMessage = 'Invalid Password Reset Template ID. Check your EmailJS templates.';
+                } else if (error.text === 'The service ID is not registered.') {
+                    errorMessage = 'Invalid Service ID. Check your EmailJS email services.';
+                } else if (error.status === 429) {
+                    errorMessage = 'Rate limit exceeded. Please wait before sending another email.';
+                } else if (error.status >= 500) {
+                    errorMessage = 'EmailJS server error. Please try again later.';
+                }
+
+                showResult(
+                    `❌ Failed to send password reset email: ${errorMessage}`,
+                    'error'
+                );
+
+                log(`Password reset error: ${JSON.stringify(error)}`);
+            }
+        }
+
+        // Auto-load EmailJS on page load
+        window.addEventListener('load', () => {
+            if (window.emailjs) {
+                log('EmailJS SDK loaded from CDN');
+            } else {
+                log('EmailJS SDK not found - check internet connection');
+            }
+        });
+    </script>
+</body>
+</html>

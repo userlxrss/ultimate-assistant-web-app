@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Reset Link Test Tool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6 text-gray-800">Supabase Password Reset Link Test Tool</h1>
+
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Test Different Reset Link Formats</h2>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Test URL Format:</label>
+                    <select id="testFormat" class="w-full p-2 border rounded">
+                        <option value="hash_access">Hash with access_token</option>
+                        <option value="query_access">Query with access_token</option>
+                        <option value="hash_recovery">Hash with type=recovery</option>
+                        <option value="query_recovery">Query with type=recovery</option>
+                        <option value="legacy_token">Query with token parameter</option>
+                        <option value="oauth_code">Hash with code parameter</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-2">Generated Test URL:</label>
+                    <input type="text" id="testUrl" class="w-full p-2 border rounded" readonly>
+                    <button onclick="copyTestUrl()" class="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                        Copy URL
+                    </button>
+                </div>
+
+                <button onclick="testUrlParsing()" class="w-full px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+                    Test URL Parsing
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Test Results</h2>
+            <div id="testResults" class="bg-gray-50 p-4 rounded min-h-[200px] font-mono text-sm">
+                Click "Test URL Parsing" to see results...
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">Manual URL Test</h2>
+            <p class="text-sm text-gray-600 mb-4">Paste a Supabase reset link to test parsing:</p>
+            <input type="url" id="manualUrl" placeholder="https://yoursite.com/reset-password.html#..." class="w-full p-2 border rounded mb-2">
+            <button onclick="testManualUrl()" class="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600">
+                Test Manual URL
+            </button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Supabase configuration (same as your main app)
+        const SUPABASE_URL = 'https://vacwojgxafujscxuqmpg.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZhY3dvamd4YWZ1anNjeHVxbXBnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTU5MTksImV4cCI6MjA3Nzc3MTkxOX0.RniyufeNXF9h6a9u55zGIxLRFeFDCaJxQ1ZjLv6KgxI';
+
+        const testUrls = {
+            hash_access: 'http://localhost:5176/reset-password.html#access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzYyMTk5NTE5LCJzdWIiOiJmMzBkZjI3ZS1iMWNmLTQyY2YtOGU3ZC0yZGQxMjU3OGM5YmUiLCJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20iLCJwaG9uZSI6IiIsImFwcF9tZXRhZGF0YSI6e30sInVzZXJfbWV0YWRhdGEiOnt9LCJyb2xlIjoiYW5vbiIsImFhIjoiYWFlIiwiYW1yIjpbXX0.abc123def456&refresh_token=refresh-token-123&expires_in=3600&token_type=bearer&type=recovery&email=test%40example.com',
+            query_access: 'http://localhost:5176/reset-password.html?access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzYyMTk5NTE5LCJzdWIiOiJmMzBkZjI3ZS1iMWNmLTQyY2YtOGU3ZC0yZGQxMjU3OGM5YmUiLCJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20iLCJwaG9uZSI6IiIsImFwcF9tZXRhZGF0YSI6e30sInVzZXJfbWV0YWRhdGEiOnt9LCJyb2xlIjoiYW5vbiIsImFhIjoiYWFlIiwiYW1yIjpbXX0.abc123def456&refresh_token=refresh-token-123&type=recovery&email=test%40example.com',
+            hash_recovery: 'http://localhost:5176/reset-password.html#type=recovery&email=test%40example.com',
+            query_recovery: 'http://localhost:5176/reset-password.html?type=recovery&email=test%40example.com',
+            legacy_token: 'http://localhost:5176/reset-password.html?token=legacy-reset-token-123&email=test%40example.com',
+            oauth_code: 'http://localhost:5176/reset-password.html#code=oauth-code-123&state=some-state'
+        };
+
+        function updateTestUrl() {
+            const format = document.getElementById('testFormat').value;
+            document.getElementById('testUrl').value = testUrls[format];
+        }
+
+        function copyTestUrl() {
+            const input = document.getElementById('testUrl');
+            input.select();
+            document.execCommand('copy');
+            alert('URL copied to clipboard!');
+        }
+
+        async function testUrlParsing() {
+            const testUrl = document.getElementById('testUrl').value;
+            await testParsingLogic(testUrl);
+        }
+
+        async function testManualUrl() {
+            const manualUrl = document.getElementById('manualUrl').value;
+            if (!manualUrl) {
+                alert('Please enter a URL to test');
+                return;
+            }
+            await testParsingLogic(manualUrl);
+        }
+
+        async function testParsingLogic(testUrl) {
+            const results = document.getElementById('testResults');
+            results.innerHTML = '<div class="text-blue-600">Testing URL parsing...</div>';
+
+            // Simulate the parsing logic from reset-password.html
+            let accessToken = null;
+            let refreshToken = null;
+            let email = null;
+            let type = null;
+            let isResetFlow = false;
+
+            const analysis = {
+                originalUrl: testUrl,
+                steps: []
+            };
+
+            // Create a temporary URL object to parse
+            const tempUrl = new URL(testUrl);
+
+            // Method 1: Check hash fragment
+            const hash = tempUrl.hash;
+            if (hash) {
+                analysis.steps.push(`Found hash fragment: ${hash}`);
+
+                let hashContent = hash.substring(1);
+                if (hashContent.includes('%')) {
+                    hashContent = decodeURIComponent(hashContent);
+                    analysis.steps.push('Decoded hash content');
+                }
+
+                const hashParams = new URLSearchParams(hashContent);
+
+                accessToken = hashParams.get('access_token');
+                refreshToken = hashParams.get('refresh_token');
+                email = hashParams.get('email');
+                type = hashParams.get('type');
+
+                analysis.steps.push(`Hash params - access_token: ${accessToken ? 'YES' : 'NO'}, refresh_token: ${refreshToken ? 'YES' : 'NO'}, email: ${email || 'NO'}, type: ${type || 'NO'}`);
+
+                if (accessToken || type === 'recovery' || type === 'signup') {
+                    isResetFlow = true;
+                    analysis.steps.push('Reset flow detected via hash fragment');
+                }
+            }
+
+            // Method 2: Check query parameters
+            const urlParams = new URLSearchParams(tempUrl.search);
+            if (!isResetFlow) {
+                const queryToken = urlParams.get('access_token');
+                const queryRefresh = urlParams.get('refresh_token');
+                const queryEmail = urlParams.get('email');
+                const queryType = urlParams.get('type');
+                const legacyToken = urlParams.get('token');
+
+                accessToken = accessToken || queryToken || legacyToken;
+                refreshToken = refreshToken || queryRefresh;
+                email = email || queryEmail;
+                type = type || queryType;
+
+                analysis.steps.push(`Query params - access_token: ${queryToken ? 'YES' : 'NO'}, refresh_token: ${queryRefresh ? 'YES' : 'NO'}, email: ${queryEmail || 'NO'}, type: ${queryType || 'NO'}, token: ${legacyToken || 'NO'}`);
+
+                if (accessToken || type === 'recovery' || type === 'signup' || legacyToken) {
+                    isResetFlow = true;
+                    analysis.steps.push('Reset flow detected via query parameters');
+                }
+            }
+
+            // Method 3: Regex parsing
+            if (!isResetFlow) {
+                const urlStr = testUrl;
+                const tokenMatch = urlStr.match(/[?&]access_token=([^&]+)/);
+                const refreshMatch = urlStr.match(/[?&]refresh_token=([^&]+)/);
+                const emailMatch = urlStr.match(/[?&]email=([^&]+)/);
+                const typeMatch = urlStr.match(/[?&]type=([^&]+)/);
+
+                if (tokenMatch) {
+                    accessToken = decodeURIComponent(tokenMatch[1]);
+                    isResetFlow = true;
+                    analysis.steps.push('Reset flow detected via regex parsing');
+                }
+
+                if (refreshMatch) refreshToken = decodeURIComponent(refreshMatch[1]);
+                if (emailMatch) email = decodeURIComponent(emailMatch[1]);
+                if (typeMatch) type = decodeURIComponent(typeMatch[1]);
+
+                analysis.steps.push(`Regex results - access_token: ${tokenMatch ? 'YES' : 'NO'}, refresh_token: ${refreshMatch ? 'YES' : 'NO'}, email: ${emailMatch ? 'YES' : 'NO'}, type: ${typeMatch ? 'YES' : 'NO'}`);
+            }
+
+            // Final validation
+            const hasValidTokens = accessToken && accessToken.length > 10;
+            const isValidResetType = type === 'recovery' || type === 'signup' || type === 'recovery';
+
+            if (hasValidTokens || isValidResetType) {
+                isResetFlow = true;
+            }
+
+            analysis.finalResult = {
+                isResetFlow,
+                hasAccessToken: !!accessToken,
+                hasRefreshToken: !!refreshToken,
+                hasEmail: !!email,
+                hasType: !!type,
+                type,
+                accessTokenLength: accessToken ? accessToken.length : 0,
+                emailLength: email ? email.length : 0,
+                hasValidTokens,
+                isValidResetType,
+                wouldShowResetForm: isResetFlow && (accessToken || type === 'recovery')
+            };
+
+            // Display results
+            let resultsHtml = '<div class="space-y-4">';
+            resultsHtml += `<div class="font-semibold text-lg">Analysis Results:</div>`;
+            resultsHtml += `<div><strong>Original URL:</strong> ${testUrl}</div>`;
+            resultsHtml += `<div><strong>Reset Flow Detected:</strong> <span class="${isResetFlow ? 'text-green-600' : 'text-red-600'}">${isResetFlow ? 'YES' : 'NO'}</span></div>`;
+            resultsHtml += `<div><strong>Would Show Reset Form:</strong> <span class="${analysis.finalResult.wouldShowResetForm ? 'text-green-600' : 'text-red-600'}">${analysis.finalResult.wouldShowResetForm ? 'YES' : 'NO'}</span></div>`;
+
+            resultsHtml += '<div class="mt-4"><strong>Parsed Data:</strong>';
+            resultsHtml += `<ul class="ml-4 mt-2 space-y-1">`;
+            resultsHtml += `<li>Access Token: ${accessToken ? `${accessToken.substring(0, 30)}... (${accessToken.length} chars)` : 'NOT FOUND'}</li>`;
+            resultsHtml += `<li>Refresh Token: ${refreshToken ? `${refreshToken.substring(0, 30)}... (${refreshToken.length} chars)` : 'NOT FOUND'}</li>`;
+            resultsHtml += `<li>Email: ${email || 'NOT FOUND'}</li>`;
+            resultsHtml += `<li>Type: ${type || 'NOT FOUND'}</li>`;
+            resultsHtml += `</ul></div>`;
+
+            resultsHtml += '<div class="mt-4"><strong>Analysis Steps:</strong>';
+            resultsHtml += `<ol class="ml-4 mt-2 space-y-1 list-decimal">`;
+            analysis.steps.forEach(step => {
+                resultsHtml += `<li>${step}</li>`;
+            });
+            resultsHtml += `</ol></div>`;
+
+            resultsHtml += '</div>';
+
+            results.innerHTML = resultsHtml;
+        }
+
+        // Initialize
+        document.getElementById('testFormat').addEventListener('change', updateTestUrl);
+        updateTestUrl();
+    </script>
+</body>
+</html>

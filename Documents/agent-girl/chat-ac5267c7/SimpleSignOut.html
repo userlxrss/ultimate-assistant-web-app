@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Sign Out Test</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            backdrop-filter: blur(10px);
+        }
+        .sign-out-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 0.5rem;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 1rem;
+        }
+        .sign-out-btn:hover {
+            background: #dc2626;
+        }
+        .message {
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚨 Simple Sign Out Test</h1>
+        <p class="message">This will test if the sign-out logic works in isolation</p>
+
+        <button class="sign-out-btn" onclick="handleSignOut()">
+            🚪 Sign Out
+        </button>
+
+        <p style="margin-top: 2rem; opacity: 0.8;">
+            After clicking, you should be redirected to /login
+        </p>
+    </div>
+
+    <script>
+        function handleSignOut() {
+            console.log("🚪 SIGN OUT CLICKED - Simple Test");
+
+            // Clear all storage
+            localStorage.clear();
+            sessionStorage.clear();
+
+            console.log("✅ Storage cleared");
+
+            // Force redirect to login
+            window.location.href = "/login";
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React onClick Test</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            padding: 20px;
+            background: #f3f4f6;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        .emergency {
+            background: #ef4444;
+        }
+        .emergency:hover {
+            background: #dc2626;
+        }
+        .console-output {
+            background: #1f2937;
+            color: #10b981;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            margin-top: 10px;
+            min-height: 100px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 React onClick Handler Test</h1>
+    <p>This test checks if React onClick handlers are working in the application environment.</p>
+
+    <div class="test-section">
+        <h2>Test 1: Basic JavaScript onClick</h2>
+        <button onclick="console.log('✅ JavaScript onClick works!'); updateConsole('JavaScript onClick triggered');">
+            Test JavaScript onClick
+        </button>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: Basic Inline Sign Out</h2>
+        <button class="emergency" onclick="
+            console.log('🚪 EMERGENCY SIGN OUT CLICKED');
+            updateConsole('Emergency sign out triggered');
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = '/login';
+        ">
+            🚪 Emergency Sign Out
+        </button>
+        <p>This should clear storage and redirect to /login</p>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: MouseDown vs Click Test</h2>
+        <button onclick="console.log('onClick fired'); updateConsole('onClick event fired');">
+            onClick Test
+        </button>
+        <button onmousedown="console.log('onMouseDown fired'); updateConsole('onMouseDown event fired');">
+            onMouseDown Test
+        </button>
+        <p>Tests if click events are being captured</p>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 4: Event Propagation Test</h2>
+        <div onclick="console.log('Parent div clicked'); updateConsole('Parent div clicked');" style="padding: 20px; background: #fef3c7; border-radius: 4px;">
+            <button onclick="console.log('Child button clicked'); updateConsole('Child button clicked'); event.stopPropagation();">
+                Child Button (stopPropagation)
+            </button>
+            <button onclick="console.log('Child button without stopProp'); updateConsole('Child button without stopProp');">
+                Child Button (no stopPropagation)
+            </button>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Console Output</h2>
+        <div id="console-output" class="console-output">Console events will appear here...</div>
+        <button onclick="clearConsole();">Clear Console</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Environment Check</h2>
+        <button onclick="checkEnvironment()">Check Environment</button>
+        <div id="env-info" style="margin-top: 10px; font-family: monospace; font-size: 12px;"></div>
+    </div>
+
+    <script>
+        function updateConsole(message) {
+            const output = document.getElementById('console-output');
+            const timestamp = new Date().toLocaleTimeString();
+            output.textContent += `[${timestamp}] ${message}\n`;
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function clearConsole() {
+            document.getElementById('console-output').textContent = 'Console cleared...\n';
+        }
+
+        function checkEnvironment() {
+            const info = {
+                userAgent: navigator.userAgent,
+                localStorage: typeof localStorage,
+                sessionStorage: typeof sessionStorage,
+                react: !!window.React,
+                reactDom: !!window.ReactDOM,
+                vite: !!document.querySelector('[data-vite-dev-id]') || window.__vite_plugin_react_preamble_installed__
+            };
+
+            document.getElementById('env-info').textContent = JSON.stringify(info, null, 2);
+            console.log('Environment info:', info);
+        }
+
+        // Log page load
+        updateConsole('Test page loaded successfully');
+        console.log('🔧 React onClick Test page loaded');
+    </script>
+</body>
+</html>

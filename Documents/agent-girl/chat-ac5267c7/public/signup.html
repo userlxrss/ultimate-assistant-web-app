@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard - Sign Up</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .premium-gradient {
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 25%, #312e81 50%, #1e1b4b 75%, #0f172a 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow:
+                0 8px 32px 0 rgba(31, 38, 135, 0.37),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .premium-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .premium-input:focus {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(147, 51, 234, 0.5);
+            box-shadow:
+                0 0 0 3px rgba(147, 51, 234, 0.1),
+                0 4px 20px 0 rgba(147, 51, 234, 0.2);
+        }
+
+        .premium-button-primary {
+            background: linear-gradient(135deg, #9333ea 0%, #6366f1 100%);
+            box-shadow:
+                0 4px 20px 0 rgba(147, 51, 234, 0.3),
+                0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .premium-button-primary:hover {
+            background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+            box-shadow:
+                0 6px 30px 0 rgba(147, 51, 234, 0.4),
+                0 2px 10px 0 rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .premium-button-oauth {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .premium-button-oauth:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .floating-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.3;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .orb-1 {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, #9333ea 0%, transparent 70%);
+            top: -200px;
+            left: -200px;
+            animation-delay: 0s;
+        }
+
+        .orb-2 {
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, #3b82f6 0%, transparent 70%);
+            bottom: -150px;
+            right: -150px;
+            animation-delay: 5s;
+        }
+
+        .orb-3 {
+            width: 250px;
+            height: 250px;
+            background: radial-gradient(circle, #06b6d4 0%, transparent 70%);
+            top: 50%;
+            left: 50%;
+            animation-delay: 10s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -30px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+
+        .brand-logo {
+            background: linear-gradient(135deg, #9333ea 0%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 40px rgba(147, 51, 234, 0.3);
+        }
+
+        .password-strength {
+            height: 4px;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+            margin-top: 8px;
+        }
+
+        .strength-weak { background: linear-gradient(90deg, #ef4444 0%, #ef4444 33%, #e5e7eb 33%); }
+        .strength-medium { background: linear-gradient(90deg, #f59e0b 0%, #f59e0b 66%, #e5e7eb 66%); }
+        .strength-strong { background: linear-gradient(90deg, #22c55e 0%, #22c55e 100%); }
+
+        .loading-spinner {
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            border-top: 2px solid white;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Custom scrollbar styling for the glass card */
+        .glass-card::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .glass-card::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .glass-card::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+
+        .glass-card::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-in {
+            animation: slideIn 0.8s ease-out;
+        }
+
+        .validation-error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .success-message {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .checkbox-custom {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .checkbox-custom:checked {
+            background: linear-gradient(135deg, #9333ea 0%, #6366f1 100%);
+            border-color: rgba(147, 51, 234, 0.5);
+        }
+    </style>
+</head>
+<body class="premium-gradient min-h-screen p-4 relative overflow-y-auto overflow-x-hidden">
+    <!-- Animated Background Orbs -->
+    <div class="floating-orb orb-1"></div>
+    <div class="floating-orb orb-2"></div>
+    <div class="floating-orb orb-3"></div>
+
+    <div class="flex items-center justify-center min-h-screen py-8">
+        <div class="w-full max-w-md relative z-10">
+        <!-- Main Signup Card -->
+        <div class="glass-card rounded-2xl p-8 slide-in">
+            <!-- Logo/Header -->
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 mb-6 relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl blur-xl opacity-60"></div>
+                    <div class="relative bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl p-4">
+                        <i class="fas fa-user-plus text-white text-2xl"></i>
+                    </div>
+                </div>
+                <h1 class="text-3xl font-bold text-white mb-2 brand-logo">Create Account</h1>
+                <p class="text-white/70 text-sm">Join thousands of professionals optimizing their productivity.</p>
+            </div>
+
+            <!-- Validation Errors Container -->
+            <div id="validationErrors" class="hidden mb-6 space-y-2"></div>
+
+            <!-- Success Message -->
+            <div id="successMessage" class="hidden mb-6 p-4 success-message rounded-xl flex items-center space-x-3 slide-in">
+                <div class="flex-shrink-0 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                    <i class="fas fa-check text-white text-xs"></i>
+                </div>
+                <p class="text-green-400 text-sm font-medium">✅ Account created! Please check your email to verify your account.</p>
+            </div>
+
+            <!-- Signup Form -->
+            <form id="signupForm" class="space-y-4">
+                <!-- Full Name Input -->
+                <div>
+                    <label for="fullName" class="block text-white/90 text-sm font-medium mb-2">
+                        Full Name
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="fas fa-user text-white/50 text-sm"></i>
+                        </div>
+                        <input
+                            type="text"
+                            id="fullName"
+                            name="fullName"
+                            required
+                            class="premium-input w-full pl-12 pr-4 py-3 rounded-xl text-white placeholder-white/50 focus:outline-none transition-all"
+                            placeholder="John Doe"
+                        >
+                    </div>
+                </div>
+
+                <!-- Username Input -->
+                <div>
+                    <label for="username" class="block text-white/90 text-sm font-medium mb-2">
+                        Username
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="fas fa-at text-white/50 text-sm"></i>
+                        </div>
+                        <input
+                            type="text"
+                            id="username"
+                            name="username"
+                            required
+                            class="premium-input w-full pl-12 pr-4 py-3 rounded-xl text-white placeholder-white/50 focus:outline-none transition-all"
+                            placeholder="johndoe"
+                        >
+                    </div>
+                    <p class="text-white/40 text-xs mt-1">Choose a unique username for your profile</p>
+                </div>
+
+                <!-- Email Input -->
+                <div>
+                    <label for="email" class="block text-white/90 text-sm font-medium mb-2">
+                        Email Address
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="fas fa-envelope text-white/50 text-sm"></i>
+                        </div>
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            required
+                            class="premium-input w-full pl-12 pr-4 py-3 rounded-xl text-white placeholder-white/50 focus:outline-none transition-all"
+                            placeholder="name@company.com"
+                        >
+                    </div>
+                </div>
+
+                <!-- Password Input -->
+                <div>
+                    <label for="password" class="block text-white/90 text-sm font-medium mb-2">
+                        Password
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="fas fa-lock text-white/50 text-sm"></i>
+                        </div>
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            required
+                            class="premium-input w-full pl-12 pr-12 py-3 rounded-xl text-white placeholder-white/50 focus:outline-none transition-all"
+                            placeholder="••••••••"
+                        >
+                        <button
+                            type="button"
+                            id="togglePassword"
+                            class="absolute inset-y-0 right-0 pr-4 flex items-center text-white/50 hover:text-white/80 transition-colors"
+                        >
+                            <i class="fas fa-eye text-sm" id="toggleIcon"></i>
+                        </button>
+                    </div>
+                    <!-- Password Strength Indicator -->
+                    <div id="passwordStrength" class="password-strength hidden"></div>
+                    <p class="text-white/40 text-xs mt-1">Use 8+ characters with a mix of letters, numbers & symbols</p>
+                </div>
+
+                <!-- Confirm Password Input -->
+                <div>
+                    <label for="confirmPassword" class="block text-white/90 text-sm font-medium mb-2">
+                        Confirm Password
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="fas fa-lock text-white/50 text-sm"></i>
+                        </div>
+                        <input
+                            type="password"
+                            id="confirmPassword"
+                            name="confirmPassword"
+                            required
+                            class="premium-input w-full pl-12 pr-4 py-3 rounded-xl text-white placeholder-white/50 focus:outline-none transition-all"
+                            placeholder="••••••••"
+                        >
+                    </div>
+                </div>
+
+                <!-- Terms and Privacy -->
+                <div class="space-y-3">
+                    <label class="flex items-start space-x-3">
+                        <input
+                            type="checkbox"
+                            id="terms"
+                            name="terms"
+                            required
+                            class="checkbox-custom mt-1 w-4 h-4 rounded text-purple-600 focus:ring-purple-500 focus:ring-opacity-25"
+                        >
+                        <span class="text-white/70 text-sm leading-relaxed">
+                            I agree to the
+                            <a href="#" class="text-purple-400 hover:text-purple-300 font-medium transition-colors">Terms of Service</a>
+                            and
+                            <a href="#" class="text-purple-400 hover:text-purple-300 font-medium transition-colors">Privacy Policy</a>
+                        </span>
+                    </label>
+
+                    <label class="flex items-start space-x-3">
+                        <input
+                            type="checkbox"
+                            id="marketing"
+                            name="marketing"
+                            class="checkbox-custom mt-1 w-4 h-4 rounded text-purple-600 focus:ring-purple-500 focus:ring-opacity-25"
+                        >
+                        <span class="text-white/70 text-sm">
+                            Send me product updates and marketing emails (optional)
+                        </span>
+                    </label>
+                </div>
+
+                <!-- Sign Up Button -->
+                <button
+                    type="submit"
+                    id="signUpButton"
+                    class="premium-button-primary w-full py-3 px-4 text-white font-semibold rounded-xl transition-all duration-300 flex items-center justify-center space-x-2"
+                >
+                    <i class="fas fa-rocket"></i>
+                    <span>Create Account</span>
+                </button>
+            </form>
+
+            <!-- Divider -->
+            <div class="relative my-6">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-white/10"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-4 bg-transparent text-white/50">Or sign up with</span>
+                </div>
+            </div>
+
+            <!-- Social Signup Buttons -->
+            <div class="grid grid-cols-2 gap-3">
+                <button
+                    id="googleSignUp"
+                    class="premium-button-oauth flex items-center justify-center space-x-2 py-3 px-4 text-white font-medium rounded-xl transition-all"
+                >
+                    <svg class="w-5 h-5" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    <span>Google</span>
+                </button>
+                <button
+                    id="microsoftSignUp"
+                    class="premium-button-oauth flex items-center justify-center space-x-2 py-3 px-4 text-white font-medium rounded-xl transition-all"
+                >
+                    <svg class="w-5 h-5" viewBox="0 0 24 24">
+                        <path fill="#f25022" d="M11.4 11.4H2.6V2.6h8.8v8.8z"/>
+                        <path fill="#7fba00" d="M21.4 11.4h-8.8V2.6h8.8v8.8z"/>
+                        <path fill="#00a4ef" d="M11.4 21.4H2.6v-8.8h8.8v8.8z"/>
+                        <path fill="#ffb900" d="M21.4 21.4h-8.8v-8.8h8.8v8.8z"/>
+                    </svg>
+                    <span>Microsoft</span>
+                </button>
+            </div>
+
+            <!-- Sign In Link -->
+            <div class="text-center mt-6">
+                <p class="text-white/50 text-sm">
+                    Already have an account?
+                    <a href="loginpage.html" class="text-purple-400 hover:text-purple-300 font-medium transition-colors">
+                        Sign in here
+                    </a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Premium Footer -->
+        <div class="text-center mt-8 text-white/50 text-xs space-y-2">
+            <p>&copy; 2025 Analytics Dashboard. Built with precision.</p>
+            <div class="flex items-center justify-center space-x-4">
+                <a href="#" class="hover:text-white/70 transition-colors">Privacy</a>
+                <span>•</span>
+                <a href="#" class="hover:text-white/70 transition-colors">Terms</a>
+                <span>•</span>
+                <a href="#" class="hover:text-white/70 transition-colors">Support</a>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <!-- Load Supabase Auth -->
+    <script src="/supabase-auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Password visibility toggle
+            const togglePassword = document.getElementById('togglePassword');
+            const passwordInput = document.getElementById('password');
+            const toggleIcon = document.getElementById('toggleIcon');
+
+            togglePassword.addEventListener('click', function() {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+
+                toggleIcon.style.transform = 'scale(0.8)';
+                setTimeout(() => {
+                    toggleIcon.classList.toggle('fa-eye');
+                    toggleIcon.classList.toggle('fa-eye-slash');
+                    toggleIcon.style.transform = 'scale(1)';
+                }, 100);
+            });
+
+            // Password strength checker
+            passwordInput.addEventListener('input', function() {
+                const password = this.value;
+                const strengthIndicator = document.getElementById('passwordStrength');
+
+                if (password.length > 0) {
+                    strengthIndicator.classList.remove('hidden');
+
+                    let strength = 0;
+                    if (password.length >= 8) strength++;
+                    if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength++;
+                    if (password.match(/[0-9]/)) strength++;
+                    if (password.match(/[^a-zA-Z0-9]/)) strength++;
+
+                    strengthIndicator.className = 'password-strength';
+                    if (strength <= 1) {
+                        strengthIndicator.classList.add('strength-weak');
+                    } else if (strength === 2) {
+                        strengthIndicator.classList.add('strength-medium');
+                    } else {
+                        strengthIndicator.classList.add('strength-strong');
+                    }
+                } else {
+                    strengthIndicator.classList.add('hidden');
+                }
+            });
+
+            // Form validation and submission
+            const signupForm = document.getElementById('signupForm');
+            const signUpButton = document.getElementById('signUpButton');
+            const validationErrors = document.getElementById('validationErrors');
+
+            function showValidationError(message) {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'p-3 validation-error rounded-xl flex items-center space-x-2';
+                errorDiv.innerHTML = `
+                    <i class="fas fa-exclamation-triangle text-red-400 text-sm"></i>
+                    <span class="text-red-300 text-sm">${message}</span>
+                `;
+                validationErrors.appendChild(errorDiv);
+                validationErrors.classList.remove('hidden');
+            }
+
+            function clearValidationErrors() {
+                validationErrors.innerHTML = '';
+                validationErrors.classList.add('hidden');
+            }
+
+            function validateForm() {
+                clearValidationErrors();
+                let isValid = true;
+
+                const fullName = document.getElementById('fullName').value.trim();
+                const username = document.getElementById('username').value.trim();
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                const terms = document.getElementById('terms').checked;
+
+                // Full name validation
+                if (fullName.length < 2) {
+                    showValidationError('Full name must be at least 2 characters long');
+                    isValid = false;
+                }
+
+                // Username validation
+                if (username.length < 3) {
+                    showValidationError('Username must be at least 3 characters long');
+                    isValid = false;
+                } else if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+                    showValidationError('Username can only contain letters, numbers, and underscores');
+                    isValid = false;
+                }
+
+                // Email validation
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    showValidationError('Please enter a valid email address');
+                    isValid = false;
+                }
+
+                // Password validation
+                if (password.length < 8) {
+                    showValidationError('Password must be at least 8 characters long');
+                    isValid = false;
+                } else if (password !== confirmPassword) {
+                    showValidationError('Passwords do not match');
+                    isValid = false;
+                }
+
+                // Terms validation
+                if (!terms) {
+                    showValidationError('You must agree to the Terms of Service and Privacy Policy');
+                    isValid = false;
+                }
+
+                return isValid;
+            }
+
+            signupForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                if (!validateForm()) {
+                    return;
+                }
+
+                // Show loading state
+                const originalContent = signUpButton.innerHTML;
+                signUpButton.innerHTML = '<div class="loading-spinner mr-2"></div><span>Creating account...</span>';
+                signUpButton.disabled = true;
+
+                // Get form data properly
+                const emailInput = document.getElementById('email');
+                const usernameInput = document.getElementById('username');
+                const fullNameInput = document.getElementById('fullName');
+                const passwordInput = document.getElementById('password');
+                const confirmPasswordInput = document.getElementById('confirmPassword');
+                const marketingInput = document.getElementById('marketing');
+
+                const formData = {
+                    fullName: fullNameInput.value.trim(),
+                    username: usernameInput.value.trim(),
+                    email: emailInput.value.trim(),
+                    password: passwordInput.value,
+                    confirmPassword: confirmPasswordInput.value,
+                    marketing: marketingInput.checked
+                };
+
+                console.log('🚀 Submitting form data:', formData);
+
+                try {
+                    // Use Supabase authentication
+                    console.log('📧 Sending registration to Supabase...');
+                    const result = await window.supabaseAuth.signUp(formData);
+
+                    console.log('Supabase auth result:', result);
+
+                    // Check if registration was successful
+                    if (result && result.success) {
+                        console.log('✅ Registration successful!');
+
+                        // Hide form and show success message
+                        signupForm.style.display = 'none';
+
+                        const successMessage = document.getElementById('successMessage');
+                        successMessage.classList.remove('hidden');
+
+                        if (result.needsVerification) {
+                            successMessage.querySelector('p').textContent = '✅ Account created! Please check your email to verify your account.';
+
+                            // Show additional verification info
+                            const verificationInfo = document.createElement('div');
+                            verificationInfo.className = 'mt-4 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 backdrop-blur-lg';
+                            verificationInfo.innerHTML = `
+                                <div class="flex items-start space-x-3">
+                                    <i class="fas fa-info-circle text-blue-400 text-sm mt-0.5"></i>
+                                    <div>
+                                        <p class="text-blue-300 text-sm font-medium mb-1">Check your email</p>
+                                        <p class="text-blue-200/80 text-xs">
+                                            We've sent a verification link to <strong>${formData.email}</strong>.
+                                            Click the link to activate your account.
+                                        </p>
+                                    </div>
+                                </div>
+                            `;
+                            successMessage.appendChild(verificationInfo);
+                        } else {
+                            successMessage.querySelector('p').textContent = '✅ Account created and verified! Redirecting to dashboard...';
+                            // Auto redirect after 2 seconds
+                            setTimeout(() => {
+                                window.location.href = '/';
+                            }, 2000);
+                        }
+
+                    } else {
+                        showValidationError(result.error || 'Failed to create account. Please try again.');
+                        signUpButton.innerHTML = originalContent;
+                        signUpButton.disabled = false;
+                    }
+
+                } catch (error) {
+                    console.error('❌ Registration error:', error);
+                    showValidationError('An error occurred while creating your account. Please try again.');
+                    signUpButton.innerHTML = originalContent;
+                    signUpButton.disabled = false;
+                }
+            });
+
+            // OAuth signup handlers
+            document.getElementById('googleSignUp').addEventListener('click', async function() {
+                await handleOAuthSignup('Google', this);
+            });
+
+            document.getElementById('microsoftSignUp').addEventListener('click', async function() {
+                await handleOAuthSignup('Microsoft', this);
+            });
+
+            async function handleOAuthSignup(provider, button) {
+                const originalContent = button.innerHTML;
+                button.innerHTML = `<div class="loading-spinner mr-2" style="border-top-color: currentColor;"></div><span>Connecting...</span>`;
+                button.disabled = true;
+
+                try {
+                    console.log(`🔗 Initiating ${provider} OAuth signup...`);
+                    const result = await window.supabaseAuth.signInWithOAuth(provider);
+
+                    if (!result.success) {
+                        showValidationError(result.error || `Failed to connect with ${provider}. Please try again.`);
+                        button.innerHTML = originalContent;
+                        button.disabled = false;
+                    }
+                    // OAuth will redirect automatically on success
+
+                } catch (error) {
+                    console.error('OAuth error:', error);
+                    showValidationError(`Failed to connect with ${provider}. Please try again.`);
+                    button.innerHTML = originalContent;
+                    button.disabled = false;
+                }
+            }
+
+            // Add input focus effects
+            const inputs = document.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.parentElement.classList.add('scale-[1.02]');
+                });
+
+                input.addEventListener('blur', function() {
+                    this.parentElement.classList.remove('scale-[1.02]');
+                });
+            });
+
+            // Initialize animations
+            setTimeout(() => {
+                document.querySelector('.glass-card').style.transform = 'scale(1)';
+            }, 100);
+        });
+    </script>
+</body>
+</html>

@@ -88,23 +88,22 @@ function emergencyMemoryOptimization() {
   console.log('✅ Memory optimization completed');
 }
 
-// 5. EVENT LISTENER CLEANUP
+// 5. EVENT LISTENER CLEANUP - DISABLED: This breaks React's synthetic event system
 function emergencyEventCleanup() {
-  console.log('👂 Cleaning up event listeners...');
+  console.log('🚫 EVENT LISTENER CLEANUP DISABLED - Prevents React event system from breaking');
+  console.log('👂 React event listeners will function normally');
 
-  // Remove problematic event listeners
-  const originalAddEventListener = EventTarget.prototype.addEventListener;
-  const originalRemoveEventListener = EventTarget.prototype.removeEventListener;
+  // REMOVED: EventTarget.prototype modifications that break React
+  // const originalAddEventListener = EventTarget.prototype.addEventListener;
+  // const originalRemoveEventListener = EventTarget.prototype.removeEventListener;
+  // EventTarget.prototype.addEventListener = function(type, listener, options) {
+  //   if (type === 'storage' || type === 'beforeunload') {
+  //     return; // Block problematic listeners
+  //   }
+  //   return originalAddEventListener.call(this, type, listener, options);
+  // };
 
-  // Temporarily disable new event listeners
-  EventTarget.prototype.addEventListener = function(type, listener, options) {
-    if (type === 'storage' || type === 'beforeunload') {
-      return; // Block problematic listeners
-    }
-    return originalAddEventListener.call(this, type, listener, options);
-  };
-
-  console.log('✅ Event listeners cleaned up');
+  console.log('✅ React event system protection applied');
 }
 
 // 6. FORCED SIGN-OUT FIX
@@ -235,8 +234,9 @@ function performEmergencyRecovery() {
   }
 }
 
-// AUTO-EXECUTE EMERGENCY RECOVERY
-performEmergencyRecovery();
+// DISABLED: AUTO-EXECUTION BREAKS REACT EVENTS
+// performEmergencyRecovery();
+console.log('🚫 Auto-execution disabled - React event system protection applied');
 
 // Export for manual access
 window.emergencyRecovery = performEmergencyRecovery;
