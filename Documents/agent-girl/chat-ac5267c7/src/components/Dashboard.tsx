@@ -26,7 +26,6 @@ import {
 import {
   generateMoodData,
   generateTasks,
-  generateJournalEntries,
   generateCalendarEvents,
   generateEmails,
   generateContacts,
@@ -46,11 +45,11 @@ const Dashboard: React.FC = () => {
   const [dateRange, setDateRange] = useState('30');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Generate mock data
+  // Use real data from localStorage instead of mock data
   const [data] = useState(() => ({
     moodData: generateMoodData(60),
     tasks: generateTasks(60),
-    journalEntries: generateJournalEntries(60),
+    journalEntries: [], // NO MOCK ENTRIES - Start with empty journal
     events: generateCalendarEvents(60),
     emails: generateEmails(60),
     contacts: generateContacts(60),

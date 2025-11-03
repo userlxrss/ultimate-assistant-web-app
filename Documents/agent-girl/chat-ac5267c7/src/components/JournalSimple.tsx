@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { JournalStorage } from '../utils/journalStorage';
-import { ExtendedJournalEntry } from '../types/journal';
+import { SecureJournalStorage, JournalEntry } from '../utils/secureJournalStorage';
 import { JournalDataRecovery } from '../utils/journalDataRecovery';
+import { JournalTestSuite } from '../utils/journalTestSuite';
 
 const JournalSimple: React.FC = () => {
   // Add state for journal
@@ -22,10 +22,13 @@ const JournalSimple: React.FC = () => {
     tags: [] // ADD THIS
   });
 
-  const [entries, setEntries] = useState([]);
+  const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [saving, setSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [testRunning, setTestRunning] = useState(false);
 
   // Month folders state
   const [expandedMonths, setExpandedMonths] = useState([]);
@@ -81,26 +84,49 @@ const JournalSimple: React.FC = () => {
     setShowDeleteModal(true);
   };
 
-  const confirmDeleteEntry = () => {
+  const confirmDeleteEntry = async () => {
     if (!entryToDelete) return;
 
-    const updatedEntries = entries.filter(e => e.id !== entryToDelete.id);
-    setEntries(updatedEntries);
-    localStorage.setItem('journalEntries', JSON.stringify(updatedEntries));
+    try {
+      setSaving(true);
+      setError('');
 
-    // Update the modal entries
-    setSelectedMonthEntries(prev => prev.filter(e => e.id !== entryToDelete.id));
+      // Use secure storage for deletion
+      const deleteResult = await SecureJournalStorage.deleteEntry(entryToDelete.id);
 
-    // Close modals if this was the last entry
-    if (selectedMonthEntries.length <= 1) {
-      closeMonthModal();
+      if (!deleteResult.success) {
+        throw new Error(deleteResult.error || 'Failed to delete entry');
+      }
+
+      // Update local state
+      const updatedEntries = entries.filter(e => e.id !== entryToDelete.id);
+      setEntries(updatedEntries);
+
+      // Update the modal entries
+      setSelectedMonthEntries(prev => prev.filter(e => e.id !== entryToDelete.id));
+
+      // Close modals if this was the last entry
+      if (selectedMonthEntries.length <= 1) {
+        closeMonthModal();
+      }
+
+      // Show success message
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+
+      console.log('✅ Entry deleted successfully');
+    } catch (error) {
+      console.error('❌ Failed to delete entry:', error);
+      setError(`Failed to delete entry: ${error.message}`);
+      setTimeout(() => setError(''), 5000);
+    } finally {
+      setSaving(false);
+      // Close delete modal and clear state
+      setShowDeleteModal(false);
+      setEntryToDelete(null);
+      setEditingEntry(null);
+      setViewingEntry(null);
     }
-
-    // Close delete modal and clear state
-    setShowDeleteModal(false);
-    setEntryToDelete(null);
-    setEditingEntry(null);
-    setViewingEntry(null);
   };
 
   const cancelDelete = () => {
@@ -108,23 +134,43 @@ const JournalSimple: React.FC = () => {
     setEntryToDelete(null);
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (!editingEntry) return;
 
-    const updatedEntries = entries.map(e =>
-      e.id === editingEntry.id ? editingEntry : e
-    );
+    try {
+      setSaving(true);
+      setError('');
 
-    setEntries(updatedEntries);
-    localStorage.setItem('journalEntries', JSON.stringify(updatedEntries));
+      // Use secure storage for saving
+      const saveResult = await SecureJournalStorage.saveEntry(editingEntry);
 
-    // Update the modal entries
-    setSelectedMonthEntries(prev =>
-      prev.map(e => e.id === editingEntry.id ? editingEntry : e)
-    );
+      if (!saveResult.success) {
+        throw new Error(saveResult.error || 'Failed to save entry');
+      }
 
-    setEditingEntry(null);
-    alert('Entry updated successfully!');
+      // Update local state
+      const updatedEntries = entries.map(e =>
+        e.id === editingEntry.id ? editingEntry : e
+      );
+      setEntries(updatedEntries);
+
+      // Update the modal entries
+      setSelectedMonthEntries(prev =>
+        prev.map(e => e.id === editingEntry.id ? editingEntry : e)
+      );
+
+      setEditingEntry(null);
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+
+      console.log('✅ Entry updated successfully');
+    } catch (error) {
+      console.error('❌ Failed to save entry:', error);
+      setError(`Failed to save entry: ${error.message}`);
+      setTimeout(() => setError(''), 5000);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const organizeEntriesByMonth = () => {
@@ -182,35 +228,30 @@ const JournalSimple: React.FC = () => {
   // Save entry
   const handleSaveEntry = async () => {
     if (!journalEntry.reflections && !journalEntry.gratitude) {
-      alert('Please write at least a reflection or gratitude');
+      setError('Please write at least a reflection or gratitude');
+      setTimeout(() => setError(''), 3000);
       return;
     }
 
     setSaving(true);
+    setError('');
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      const newEntry = {
+      const newEntry: JournalEntry = {
         ...journalEntry,
         id: Date.now(),
         timestamp: new Date().toISOString()
       };
 
-      setEntries(prev => [newEntry, ...prev]);
+      // Use secure storage for saving
+      const saveResult = await SecureJournalStorage.saveEntry(newEntry);
 
-      // Save to localStorage with persistence verification
-      const savedEntries = JSON.parse(localStorage.getItem('journalEntries') || '[]');
-      savedEntries.unshift(newEntry);
-      localStorage.setItem('journalEntries', JSON.stringify(savedEntries));
-
-      // Verify the save was successful
-      const verifyEntries = JSON.parse(localStorage.getItem('journalEntries') || '[]');
-      if (verifyEntries.length !== savedEntries.length) {
-        console.warn('⚠️ Save verification failed, retrying...');
-        localStorage.setItem('journalEntries', JSON.stringify(savedEntries));
+      if (!saveResult.success) {
+        throw new Error(saveResult.error || 'Failed to save entry');
       }
+
+      // Update local state
+      setEntries(prev => [newEntry, ...prev]);
 
       // Reset form
       setJournalEntry({
@@ -225,8 +266,12 @@ const JournalSimple: React.FC = () => {
 
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
+
+      console.log('✅ Journal entry saved successfully');
     } catch (error) {
-      alert('Failed to save entry');
+      console.error('❌ Failed to save journal entry:', error);
+      setError(`Failed to save entry: ${error.message}`);
+      setTimeout(() => setError(''), 5000);
     } finally {
       setSaving(false);
     }
@@ -389,52 +434,79 @@ const JournalSimple: React.FC = () => {
     alert(`Exported ${monthEntries.length} entries for ${monthYear}`);
   };
 
-  // Load entries on mount - preserve real user entries, only clear actual dummy data
+  // Load entries on mount using secure storage
   useEffect(() => {
-    const loadEntries = () => {
-      console.log('📔 Loading journal entries...');
+    const loadEntries = async () => {
+      try {
+        setLoading(true);
+        console.log('📔 Loading journal entries...');
 
-      // Load entries from localStorage
-      const savedEntries = JSON.parse(localStorage.getItem('journalEntries') || '[]');
+        // Use secure storage to load entries
+        const loadResult = await SecureJournalStorage.loadEntries();
 
-      // If no entries found, try recovery
-      if (savedEntries.length === 0) {
-        console.log('🔍 No entries found, attempting recovery...');
-        const recoveryResult = JournalDataRecovery.recoverEntries();
-        if (recoveryResult.success) {
-          console.log('✅ Recovery successful:', recoveryResult.message);
-          const recoveredEntries = recoveryResult.recoveredEntries;
-          setEntries(recoveredEntries);
-          return;
+        if (!loadResult.success) {
+          throw new Error(loadResult.error || 'Failed to load entries');
         }
+
+        const loadedEntries = loadResult.data || [];
+
+        // If no entries found, try recovery
+        if (loadedEntries.length === 0) {
+          console.log('🔍 No entries found, attempting recovery...');
+          const recoveryResult = JournalDataRecovery.recoverEntries();
+          if (recoveryResult.success && recoveryResult.recoveredEntries.length > 0) {
+            console.log('✅ Recovery successful:', recoveryResult.message);
+            const recoveredEntries = recoveryResult.recoveredEntries;
+
+            // Save recovered entries using secure storage
+            for (const entry of recoveredEntries) {
+              await SecureJournalStorage.saveEntry(entry);
+            }
+
+            setEntries(recoveredEntries);
+            return;
+          }
+        }
+
+        // Filter out only obvious dummy/test entries, preserve real user entries
+        const cleanedEntries = loadedEntries.filter(entry => {
+          // Remove entries that are clearly dummy data FIRST
+          if (entry.title && (entry.title.includes('Dummy') || entry.title.includes('Test') || entry.title.includes('Sample'))) return false;
+          if (entry.reflections && (entry.reflections.toLowerCase().includes('dummy') || entry.reflections.toLowerCase().includes('sample') || entry.reflections.toLowerCase().includes('test'))) return false;
+
+          // Keep entries that have real user content
+          if (entry.reflections && entry.reflections.trim().length > 20) return true;
+          if (entry.gratitude && entry.gratitude.trim().length > 10) return true;
+          if (entry.title && entry.title.trim().length > 0 && !entry.title.toLowerCase().includes('dummy') && !entry.title.toLowerCase().includes('test')) return true;
+
+          // Keep entries that have IDs that look like real user entries (timestamps)
+          if (entry.id && typeof entry.id === 'number' && entry.id > 1000000000000) return true;
+
+          // Default: reject if we get here
+          return false;
+        });
+
+        // If we filtered out entries, save the cleaned version
+        if (cleanedEntries.length !== loadedEntries.length) {
+          console.log(`🧹 Cleaned ${loadedEntries.length - cleanedEntries.length} invalid entries`);
+          // Save each cleaned entry
+          for (const entry of cleanedEntries) {
+            await SecureJournalStorage.saveEntry(entry);
+          }
+        }
+
+        // Load the entries into state
+        setEntries(cleanedEntries);
+
+        console.log(`✅ Loaded ${cleanedEntries.length} journal entries`);
+        console.log('💡 Real user entries preserved and loaded successfully');
+      } catch (error) {
+        console.error('❌ Failed to load journal entries:', error);
+        setError(`Failed to load entries: ${error.message}`);
+        setTimeout(() => setError(''), 5000);
+      } finally {
+        setLoading(false);
       }
-
-      // Filter out only obvious dummy/test entries, preserve real user entries
-      const cleanedEntries = savedEntries.filter(entry => {
-        // Remove entries that are clearly dummy data FIRST
-        if (entry.title && (entry.title.includes('Dummy') || entry.title.includes('Test') || entry.title.includes('Sample'))) return false;
-        if (entry.reflections && (entry.reflections.toLowerCase().includes('dummy') || entry.reflections.toLowerCase().includes('sample') || entry.reflections.toLowerCase().includes('test'))) return false;
-
-        // Keep entries that have real user content
-        if (entry.reflections && entry.reflections.trim().length > 20) return true;
-        if (entry.gratitude && entry.gratitude.trim().length > 10) return true;
-        if (entry.title && entry.title.trim().length > 0 && !entry.title.toLowerCase().includes('dummy') && !entry.title.toLowerCase().includes('test')) return true;
-
-        // Keep entries that have IDs that look like real user entries (timestamps)
-        if (entry.id && typeof entry.id === 'number' && entry.id > 1000000000000) return true;
-
-        // Default: reject if we get here
-        return false;
-      });
-
-      // Save the cleaned entries back to localStorage
-      localStorage.setItem('journalEntries', JSON.stringify(cleanedEntries));
-
-      // Load the entries into state
-      setEntries(cleanedEntries);
-
-      console.log(`✅ Loaded ${cleanedEntries.length} journal entries`);
-      console.log('💡 Real user entries preserved and loaded successfully');
     };
 
     loadEntries();
@@ -442,14 +514,14 @@ const JournalSimple: React.FC = () => {
 
   // Calculate streak on mount
   useEffect(() => {
-    const savedEntries = JSON.parse(localStorage.getItem('journalEntries') || '[]');
+    if (entries.length === 0) return;
 
     // Calculate streak
     let currentStreak = 0;
     const today = new Date().toDateString();
     const yesterday = new Date(Date.now() - 86400000).toDateString();
 
-    const sortedEntries = savedEntries.sort((a, b) => new Date(b.date) - new Date(a.date));
+    const sortedEntries = [...entries].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     if (sortedEntries.length > 0) {
       const lastEntryDate = new Date(sortedEntries[0].date).toDateString();
@@ -460,7 +532,7 @@ const JournalSimple: React.FC = () => {
         for (let i = 1; i < sortedEntries.length; i++) {
           const currentDate = new Date(sortedEntries[i].date);
           const prevDate = new Date(sortedEntries[i - 1].date);
-          const diffDays = Math.floor((prevDate - currentDate) / 86400000);
+          const diffDays = Math.floor((prevDate.getTime() - currentDate.getTime()) / 86400000);
 
           if (diffDays === 1) {
             currentStreak++;
@@ -526,6 +598,37 @@ const JournalSimple: React.FC = () => {
     a.href = url;
     a.download = `journal-export-${new Date().toISOString().split('T')[0]}.md`;
     a.click();
+  };
+
+  // Run journal tests
+  const runJournalTests = async () => {
+    if (testRunning) return;
+
+    setTestRunning(true);
+    setError('');
+    setShowSuccess(false);
+
+    try {
+      console.log('🧪 Starting Journal Test Suite...');
+      const testResults = await JournalTestSuite.runAllTests();
+
+      if (testResults.summary.successRate === 100) {
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 5000);
+        console.log('✅ All tests passed!');
+      } else {
+        setError(`Tests completed: ${testResults.summary.successRate}% passed (${testResults.summary.failedTests} failed)`);
+        setTimeout(() => setError(''), 8000);
+      }
+
+      console.log('📊 Test Results:', testResults);
+    } catch (error) {
+      console.error('❌ Test suite failed:', error);
+      setError(`Test suite failed: ${error.message}`);
+      setTimeout(() => setError(''), 8000);
+    } finally {
+      setTestRunning(false);
+    }
   };
 
   return (
@@ -616,6 +719,43 @@ const JournalSimple: React.FC = () => {
           color: white;
         }
 
+        .btn-test {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 8px 16px;
+          background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+          color: white;
+          border: none;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 150ms ease;
+          margin-right: 8px;
+        }
+
+        .btn-test:hover:not(:disabled) {
+          background: linear-gradient(135deg, #059669 0%, #047857 100%);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(16,185,129,0.3);
+        }
+
+        .btn-test:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
+          transform: none;
+        }
+
+        .btn-test .spinner {
+          width: 14px;
+          height: 14px;
+          border: 2px solid rgba(255,255,255,0.3);
+          border-top-color: white;
+          border-radius: 50%;
+          animation: spin 600ms linear infinite;
+        }
+
         /* Success Toast */
         .success-toast {
           padding: 10px 16px;
@@ -647,6 +787,50 @@ const JournalSimple: React.FC = () => {
             opacity: 1;
             transform: translateY(0);
           }
+        }
+
+        /* Loading Toast */
+        .loading-toast {
+          padding: 10px 16px;
+          background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+          border: 1px solid #93C5FD;
+          border-radius: 8px;
+          color: #1E40AF;
+          font-size: 13px;
+          font-weight: 600;
+          margin-bottom: 16px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          animation: slideDown 300ms ease;
+        }
+
+        .dark .loading-toast {
+          background: rgba(59,130,246,0.15);
+          border-color: rgba(59,130,246,0.3);
+          color: #93C5FD;
+        }
+
+        /* Error Toast */
+        .error-toast {
+          padding: 10px 16px;
+          background: linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%);
+          border: 1px solid #FCA5A5;
+          border-radius: 8px;
+          color: #991B1B;
+          font-size: 13px;
+          font-weight: 600;
+          margin-bottom: 16px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          animation: slideDown 300ms ease;
+        }
+
+        .dark .error-toast {
+          background: rgba(239,68,68,0.15);
+          border-color: rgba(239,68,68,0.3);
+          color: #FCA5A5;
         }
 
         /* ===== COMPACT CONTAINER ===== */
@@ -1780,6 +1964,60 @@ const JournalSimple: React.FC = () => {
           background: #334155;
         }
 
+        /* Month Actions */
+        .month-actions {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .export-month-btn {
+          padding: 6px 8px;
+          background: transparent;
+          border: 1px solid #E5E7EB;
+          border-radius: 6px;
+          cursor: pointer;
+          transition: all 200ms ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #64748B;
+        }
+
+        .export-month-btn:hover {
+          background: #3B82F6;
+          border-color: #3B82F6;
+          color: white;
+          transform: scale(1.05);
+        }
+
+        .dark .export-month-btn {
+          border-color: #334155;
+          color: #94A3B8;
+        }
+
+        .dark .export-month-btn:hover {
+          background: #3B82F6;
+          border-color: #3B82F6;
+          color: white;
+        }
+
+        .month-toggle {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #64748B;
+          transition: transform 200ms ease;
+        }
+
+        .month-folder-header:hover .month-toggle {
+          transform: translateX(2px);
+        }
+
+        .dark .month-toggle {
+          color: #94A3B8;
+        }
+
         /* ===== CUSTOM DELETE MODAL STYLES ===== */
         .delete-modal-overlay {
           position: fixed;
@@ -2032,6 +2270,29 @@ const JournalSimple: React.FC = () => {
               <p>Record your thoughts, feelings, and daily reflections</p>
             </div>
             <div className="header-actions">
+              {process.env.NODE_ENV === 'development' && (
+                <button
+                  className="btn-test"
+                  onClick={runJournalTests}
+                  disabled={testRunning}
+                  title="Run journal functionality tests"
+                >
+                  {testRunning ? (
+                    <>
+                      <span className="spinner"></span>
+                      Testing...
+                    </>
+                  ) : (
+                    <>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M9 11l3 3L22 4"/>
+                        <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+                      </svg>
+                      Run Tests
+                    </>
+                  )}
+                </button>
+              )}
               <button className="btn-export" onClick={handleExportMD}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -2044,10 +2305,25 @@ const JournalSimple: React.FC = () => {
           </div>
         </div>
 
+        {/* Loading Message */}
+        {loading && (
+          <div className="loading-toast">
+            <div className="spinner"></div>
+            Loading journal entries...
+          </div>
+        )}
+
         {/* Success Message */}
         {showSuccess && (
           <div className="success-toast">
             ✓ Journal entry saved successfully
+          </div>
+        )}
+
+        {/* Error Message */}
+        {error && (
+          <div className="error-toast">
+            ⚠️ {error}
           </div>
         )}
 
@@ -2338,10 +2614,26 @@ const JournalSimple: React.FC = () => {
                               </div>
                             </div>
                           </div>
-                          <div className="month-toggle">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <polyline points="6 9 12 15 18 9"></polyline>
-                            </svg>
+                          <div className="month-actions">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                exportMonthToMD(monthYear, monthData.entries);
+                              }}
+                              className="export-month-btn"
+                              title={`Export ${monthYear} entries as Markdown`}
+                            >
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="7 10 12 15 17 10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                              </svg>
+                            </button>
+                            <div className="month-toggle">
+                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                              </svg>
+                            </div>
                           </div>
                         </div>
                       </div>

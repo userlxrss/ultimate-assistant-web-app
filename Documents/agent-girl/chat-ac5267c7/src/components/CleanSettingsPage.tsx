@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Mail, CheckCircle2, Link, Palette, User, Camera } from 'lucide-react';
 import { motionAPI } from '../utils/motionApi';
 import { realGmailAPI } from '../utils/realGmailAPI';
-import { useTheme } from '../contexts/ThemeContext';
+import { AppearanceStorage, FontSize } from '../utils/appearanceStorage';
 
 interface AppConnection {
   id: string;
@@ -16,18 +16,89 @@ interface AppConnection {
   targetTab: string;
 }
 
+// Direct theme management functions - bypass context completely
+const getCurrentTheme = (): 'light' | 'dark' => {
+  const stored = localStorage.getItem('user_preferences:theme');
+  if (stored === 'light' || stored === 'dark') {
+    return stored;
+  }
+  return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+};
+
+const setThemeDirect = (newTheme: 'light' | 'dark') => {
+  // Apply to DOM immediately
+  if (newTheme === 'dark') {
+    document.documentElement.classList.add('dark');
+    document.body.classList.add('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+    document.body.classList.remove('dark');
+  }
+
+  // Save to localStorage directly
+  localStorage.setItem('user_preferences:theme', newTheme);
+
+  console.log(`🎨 Theme set to ${newTheme} (direct DOM manipulation)`);
+};
+
 const CleanSettingsPage: React.FC = () => {
-  // Use global theme context
-  const { theme, setTheme } = useTheme();
+  // Use direct theme state instead of context
+  const [theme, setThemeState] = useState<'light' | 'dark'>(() => getCurrentTheme());
+
+  // Sync theme state with DOM on mount and storage changes
+  useEffect(() => {
+    const updateThemeFromStorage = () => {
+      const currentTheme = getCurrentTheme();
+      setThemeState(currentTheme);
+
+      // Ensure theme is applied to DOM
+      if (currentTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.body.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+        document.body.classList.remove('dark');
+      }
+    };
+
+    // Initial sync and DOM application
+    updateThemeFromStorage();
+
+    // Listen for storage changes from other tabs
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'user_preferences:theme') {
+        updateThemeFromStorage();
+      }
+    };
+
+    // Listen for custom theme change events
+    const handleThemeChange = (e: CustomEvent) => {
+      console.log('🎨 Settings received theme change event:', e.detail);
+      setThemeState(e.detail.theme);
+      // Apply theme immediately when event is received
+      if (e.detail.theme === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.body.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+        document.body.classList.remove('dark');
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('themeChanged', handleThemeChange as EventListener);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('themeChanged', handleThemeChange as EventListener);
+    };
+  }, []);
 
   // Tab state
   const [activeTab, setActiveTab] = useState('integrations');
-  const [fontSize, setFontSize] = useState(() => {
-    return localStorage.getItem('fontSize') || 'medium';
-  });
-  const [compactMode, setCompactMode] = useState(() => {
-    return localStorage.getItem('compactMode') === 'true';
-  });
+  const [fontSize, setFontSize] = useState<FontSize>('medium');
+  const [compactMode, setCompactMode] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
   // Profile tab state
   const [securityOpen, setSecurityOpen] = useState(false);
   const [dangerOpen, setDangerOpen] = useState(false);
@@ -106,28 +177,54 @@ const CleanSettingsPage: React.FC = () => {
 
   // Note: Theme is now handled globally by ThemeContext
 
+  // Initialize appearance preferences on mount
+  useEffect(() => {
+    const initializePreferences = async () => {
+      try {
+        // Load saved preferences using AppearanceStorage
+        const preferences = await AppearanceStorage.loadAllPreferences();
+
+        setFontSize(preferences.font_size);
+        setCompactMode(preferences.compact_mode);
+        setIsInitialized(true);
+
+        // Apply preferences to DOM
+        AppearanceStorage.applyAppearancePreferences(preferences);
+      } catch (error) {
+        console.error('Failed to initialize appearance preferences:', error);
+        setIsInitialized(true);
+      }
+    };
+
+    initializePreferences();
+  }, []);
+
   // Apply font size changes
   useEffect(() => {
-    // Save to localStorage
-    localStorage.setItem('fontSize', fontSize);
+    if (!isInitialized) return;
 
-    // Remove all font size classes first
+    // Save to storage
+    AppearanceStorage.saveFontSize(fontSize);
+
+    // Apply to DOM
     document.documentElement.classList.remove('font-small', 'font-medium', 'font-large', 'font-extra-large');
-    // Add the current font size class
     document.documentElement.classList.add(`font-${fontSize}`);
-  }, [fontSize]);
+  }, [fontSize, isInitialized]);
 
   // Apply compact mode changes
   useEffect(() => {
-    // Save to localStorage
-    localStorage.setItem('compactMode', compactMode.toString());
+    if (!isInitialized) return;
 
+    // Save to storage
+    AppearanceStorage.saveCompactMode(compactMode);
+
+    // Apply to DOM
     if (compactMode) {
       document.documentElement.classList.add('compact-mode');
     } else {
       document.documentElement.classList.remove('compact-mode');
     }
-  }, [compactMode]);
+  }, [compactMode, isInitialized]);
 
   // Load saved profile data on component mount
   useEffect(() => {
@@ -544,9 +641,14 @@ const CleanSettingsPage: React.FC = () => {
   };
 
   const handleThemeChange = (newTheme: 'light' | 'dark') => {
-    setTheme(newTheme);
-    // The useEffect will automatically apply the theme to the document
-    console.log(`Theme changed to ${newTheme}`);
+    setThemeDirect(newTheme);
+    setThemeState(newTheme);
+    console.log(`Settings page theme changed to ${newTheme} (direct DOM manipulation)`);
+
+    // Dispatch a custom event to notify all components of theme change
+    window.dispatchEvent(new CustomEvent('themeChanged', {
+      detail: { theme: newTheme }
+    }));
   };
 
   const handleProfileUpdate = (field: string, value: string) => {

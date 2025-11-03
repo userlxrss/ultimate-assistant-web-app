@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { AppearanceStorage } from '../utils/appearanceStorage';
 
 interface ThemeContextType {
   theme: 'light' | 'dark';
@@ -22,37 +23,60 @@ interface ThemeProviderProps {
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const [theme, setThemeState] = useState<'light' | 'dark'>(() => {
-    // Check localStorage for saved theme
-    const savedTheme = localStorage.getItem('theme');
+    // Check for saved preference in localStorage first for immediate load
+    const savedTheme = localStorage.getItem('user_preferences:theme');
     if (savedTheme === 'light' || savedTheme === 'dark') {
       return savedTheme;
     }
-
-    // Check system preference
-    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return 'dark';
-    }
-
-    return 'light';
+    return 'light'; // default
   });
 
+  // Apply theme changes to DOM and storage
   const setTheme = (newTheme: 'light' | 'dark') => {
     setThemeState(newTheme);
-    localStorage.setItem('theme', newTheme);
 
-    // Apply theme to document element
+    // Apply to DOM immediately
     if (newTheme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
+
+    // Save to storage (async but don't wait for it)
+    AppearanceStorage.saveTheme(newTheme).catch(error => {
+      console.error('Failed to save theme:', error);
+    });
   };
 
   const toggleTheme = () => {
-    setTheme(theme === 'light' ? 'dark' : 'light');
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
   };
 
-  // Apply theme on mount and when it changes
+  // Initialize theme on mount and apply to DOM
+  useEffect(() => {
+    const initializeTheme = async () => {
+      try {
+        // Load saved theme using AppearanceStorage
+        const savedTheme = await AppearanceStorage.loadTheme();
+        setThemeState(savedTheme);
+
+        // Apply theme to document element
+        if (savedTheme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      } catch (error) {
+        console.error('Failed to initialize theme:', error);
+        // Keep current state as fallback
+      }
+    };
+
+    initializeTheme();
+  }, []);
+
+  // Apply theme when it changes
   useEffect(() => {
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
@@ -60,20 +84,6 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
       document.documentElement.classList.remove('dark');
     }
   }, [theme]);
-
-  // Listen for system theme changes
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = (e: MediaQueryListEvent) => {
-      // Only change theme if user hasn't explicitly set one
-      if (!localStorage.getItem('theme')) {
-        setTheme(e.matches ? 'dark' : 'light');
-      }
-    };
-
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, []);
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>

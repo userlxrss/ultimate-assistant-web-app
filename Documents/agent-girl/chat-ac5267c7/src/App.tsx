@@ -1,5 +1,6 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useEffect } from 'react';
 import ErrorBoundary from './components/ErrorBoundary';
+import { AppearanceStorage } from './utils/appearanceStorage';
 
 // 🚀 LAZY LOADING for instant initial load!
 const MainApp = lazy(() => import('./MainApp'));
@@ -38,6 +39,28 @@ const LoadingSpinner = () => (
 );
 
 function App() {
+  // Initialize appearance preferences on app startup
+  useEffect(() => {
+    const initializeAppearance = async () => {
+      try {
+        console.log('🎨 Initializing appearance preferences...');
+        const preferences = await AppearanceStorage.loadAllPreferences();
+        AppearanceStorage.applyAppearancePreferences(preferences);
+        console.log('✅ Appearance preferences initialized:', preferences);
+      } catch (error) {
+        console.error('❌ Failed to initialize appearance preferences:', error);
+        // Apply defaults as fallback
+        AppearanceStorage.applyAppearancePreferences({
+          font_size: 'medium',
+          theme: 'light',
+          compact_mode: false
+        });
+      }
+    };
+
+    initializeAppearance();
+  }, []);
+
   return (
     <ErrorBoundary>
       <div className="App">

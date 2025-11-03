@@ -11,17 +11,132 @@ import ContactsApp from './components/contacts/ContactsApp';
 import CleanSettingsPage from './components/CleanSettingsPage';
 import { NotificationProvider } from './components/NotificationSystem';
 import { TimerProvider } from './contexts/TimerContext';
-import { ThemeProvider, useTheme } from './contexts/ThemeContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { GoogleAuthSimple } from './components/auth/GoogleAuthSimple';
 import { AuthStatusIndicator } from './components/AuthStatusIndicator';
 import OAuthTestPage from './components/OAuthTestPage';
 
 type ActiveModule = 'dashboard' | 'journal' | 'tasks' | 'calendar' | 'email' | 'contacts' | 'settings';
 
+// Standalone direct theme management - bypass context completely
+const getCurrentTheme = (): 'light' | 'dark' => {
+  const stored = localStorage.getItem('user_preferences:theme');
+  if (stored === 'light' || stored === 'dark') {
+    return stored;
+  }
+  // Check DOM class as fallback
+  return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+};
+
+const toggleDarkModeDirect = () => {
+  const currentTheme = getCurrentTheme();
+  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+  // Apply to DOM immediately
+  if (newTheme === 'dark') {
+    document.documentElement.classList.add('dark');
+    document.body.classList.add('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+    document.body.classList.remove('dark');
+  }
+
+  // Save to localStorage directly
+  localStorage.setItem('user_preferences:theme', newTheme);
+
+  console.log(`🎨 Theme toggled to ${newTheme} (direct DOM manipulation)`);
+
+  return newTheme;
+};
+
 const MainAppContent: React.FC = () => {
-  const { theme, toggleTheme } = useTheme();
+  // Use direct theme state without context to avoid Fast Refresh issues
+  const [theme, setThemeState] = useState<'light' | 'dark'>(() => getCurrentTheme());
+
+  // Sync theme state with DOM on mount and storage changes
+  useEffect(() => {
+    const updateThemeFromStorage = () => {
+      const currentTheme = getCurrentTheme();
+      setThemeState(currentTheme);
+
+      // Ensure theme is applied to DOM
+      if (currentTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.body.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+        document.body.classList.remove('dark');
+      }
+
+      // Force re-render of all dark mode elements
+      document.body.style.display = 'none';
+      document.body.offsetHeight; // Trigger reflow
+      document.body.style.display = '';
+
+      console.log(`🎨 Theme updated to ${currentTheme}, DOM classes applied`);
+    };
+
+    // Initial sync and DOM application
+    updateThemeFromStorage();
+    console.log(`🎨 Theme initialized: ${theme}`);
+
+    // Listen for storage changes from other tabs
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'user_preferences:theme') {
+        console.log('🎨 Storage change detected, updating theme');
+        updateThemeFromStorage();
+      }
+    };
+
+    // Listen for custom theme change events
+    const handleThemeChange = (e: CustomEvent) => {
+      console.log('🎨 Received theme change event:', e.detail);
+      setThemeState(e.detail.theme);
+      // Apply theme immediately when event is received
+      if (e.detail.theme === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.body.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+        document.body.classList.remove('dark');
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('themeChanged', handleThemeChange as EventListener);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('themeChanged', handleThemeChange as EventListener);
+    };
+  }, []);
+
   const [activeModule, setActiveModule] = useState<ActiveModule>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  // Simple toggle function that uses direct DOM manipulation
+  const toggleTheme = useCallback(() => {
+    const newTheme = toggleDarkModeDirect();
+    setThemeState(newTheme);
+    console.log(`🎨 Theme toggled to ${newTheme} via profile dropdown`);
+
+    // Dispatch a custom event to notify all components of theme change
+    window.dispatchEvent(new CustomEvent('themeChanged', {
+      detail: { theme: newTheme }
+    }));
+
+    // Force a re-render of all components by updating the theme state
+    setTimeout(() => {
+      setThemeState(newTheme);
+    }, 10);
+
+    // Visual feedback - flash the screen briefly
+    document.body.style.transition = 'background-color 0.3s ease';
+    document.body.style.backgroundColor = newTheme === 'dark' ? '#1f2937' : '#f9fafb';
+    setTimeout(() => {
+      document.body.style.backgroundColor = '';
+    }, 300);
+  }, []);
   const [dateRange, setDateRange] = useState('30');
   const [searchQuery, setSearchQuery] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -81,6 +196,7 @@ const MainAppContent: React.FC = () => {
         // You could add state management to navigate to specific settings tab
         break;
       case 'appearance':
+        // Use the unified toggleTheme function for consistency
         toggleTheme();
         break;
       default:
@@ -112,7 +228,7 @@ const MainAppContent: React.FC = () => {
     return () => document.removeEventListener('keydown', handleEscapeKey);
   }, []);
 
-  // Global auth status check
+  // Global auth status check and debug utilities
   useEffect(() => {
     const checkAuthStatus = () => {
       const authStatus = authManager.getAuthStatus();
@@ -120,6 +236,18 @@ const MainAppContent: React.FC = () => {
     };
 
     checkAuthStatus();
+
+    // Add debug function to window for testing
+    (window as any).debugTheme = () => {
+      console.log('=== THEME DEBUG INFO ===');
+      console.log('Current React state theme:', theme);
+      console.log('getCurrentTheme():', getCurrentTheme());
+      console.log('DOM classes:', document.documentElement.className);
+      console.log('Body classes:', document.body.className);
+      console.log('localStorage theme:', localStorage.getItem('user_preferences:theme'));
+      console.log('Computed style (body bg):', getComputedStyle(document.body).backgroundColor);
+      console.log('========================');
+    };
 
     // Listen for storage changes (for cross-tab sync)
     const handleStorageChange = (e: StorageEvent) => {
@@ -132,6 +260,11 @@ const MainAppContent: React.FC = () => {
     const handleTabActivation = () => {
       console.log('🔄 Tab activated, checking component refresh needs...');
       window.dispatchEvent(new CustomEvent('tabActivated'));
+
+      // Debug theme state on tab activation
+      console.log('🎨 Theme debug - Current theme:', theme);
+      console.log('🎨 Theme debug - DOM classes:', document.documentElement.className);
+      console.log('🎨 Theme debug - localStorage:', localStorage.getItem('user_preferences:theme'));
     };
 
     window.addEventListener('storage', handleStorageChange);
@@ -140,8 +273,9 @@ const MainAppContent: React.FC = () => {
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('focus', handleTabActivation);
+      delete (window as any).debugTheme;
     };
-  }, []);
+  }, [theme]);
 
   const handleDateRangeChange = useCallback((range: string) => {
     setDateRange(range);
@@ -185,8 +319,8 @@ const MainAppContent: React.FC = () => {
       default:
         return (
           <div className="p-6 text-center">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Module Not Found</h2>
-            <p className="text-gray-600">The requested module could not be loaded.</p>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Module Not Found</h2>
+            <p className="text-gray-600 dark:text-gray-400">The requested module could not be loaded.</p>
           </div>
         );
     }
@@ -317,8 +451,8 @@ const MainAppContent: React.FC = () => {
                   <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
                 </button>
 
-                
-                <div className="relative" ref={dropdownRef}>
+
+                <div className="relative z-[1000000]" ref={dropdownRef}>
                   <button
                     onClick={handleProfileClick}
                     className={`p-3 transition-all duration-200 group rounded-xl relative ${
@@ -332,69 +466,6 @@ const MainAppContent: React.FC = () => {
                       <div className="absolute top-2 right-2 w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
                     )}
                   </button>
-
-                  {/* Profile Dropdown */}
-                  {showProfileDropdown && (
-                    <div className="absolute top-full right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-50 overflow-hidden profile-dropdown-enter">
-                      {/* Dropdown Arrow */}
-                      <div className="absolute top-0 right-6 transform -translate-y-1/2 rotate-45 w-2 h-2 bg-white dark:bg-gray-800 border-l border-t border-gray-200 dark:border-gray-700"></div>
-
-                      {/* Profile Header */}
-                      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-lg shadow-md">
-                            {isAuthenticated ? userInfo?.name?.charAt(0) || 'U' : 'U'}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-                              {isAuthenticated ? userInfo?.name || 'User' : 'Guest User'}
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                              {isAuthenticated ? userInfo?.email || 'user@example.com' : 'Not signed in'}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Menu Options */}
-                      <div className="py-2">
-                        <button
-                          onClick={() => handleMenuNavigation('profile')}
-                          className={`profile-dropdown-item w-full px-4 py-3 flex items-center space-x-3 text-sm transition-all duration-150 ${
-                            theme === "dark"
-                              ? 'text-gray-300 hover:bg-gray-700 hover:text-white hover:translate-x-1'
-                              : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 hover:translate-x-1'
-                          }`}
-                        >
-                          <User className="w-4 h-4 flex-shrink-0" />
-                          <span>Profile Settings</span>
-                        </button>
-
-                        <button
-                          onClick={() => handleMenuNavigation('appearance')}
-                          className={`profile-dropdown-item w-full px-4 py-3 flex items-center space-x-3 text-sm transition-all duration-150 ${
-                            theme === "dark"
-                              ? 'text-gray-300 hover:bg-gray-700 hover:text-white hover:translate-x-1'
-                              : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 hover:translate-x-1'
-                          }`}
-                        >
-                          {theme === "dark" ? <Sun className="w-4 h-4 flex-shrink-0" /> : <Moon className="w-4 h-4 flex-shrink-0" />}
-                          <span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
-                        </button>
-
-                        {/* Divider */}
-                        <div className="my-2 border-t border-gray-200 dark:border-gray-700"></div>
-
-                        <button
-                          onClick={handleSignOut}
-                          className="profile-dropdown-item w-full px-4 py-3 flex items-center space-x-3 text-sm text-red-600 dark:text-red-400 transition-all duration-150 hover:bg-red-50 dark:hover:bg-red-900/20 hover:translate-x-1"
-                        >
-                          <LogOut className="w-4 h-4 flex-shrink-0" />
-                          <span>Sign Out</span>
-                        </button>
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
@@ -406,6 +477,77 @@ const MainAppContent: React.FC = () => {
           </div>
         </main>
       </div>
+
+      {/* Profile Dropdown - Moved to root level to avoid stacking context issues */}
+      {showProfileDropdown && (
+        <div className="fixed inset-0 z-[1000001] pointer-events-none">
+          <div className="absolute top-24 right-6 pointer-events-auto">
+            <div className="relative">
+              {/* Dropdown Arrow */}
+              <div className="absolute -top-1 right-6 transform rotate-45 w-2 h-2 bg-white dark:bg-gray-800 border-l border-t border-gray-200 dark:border-gray-700 z-[1000002]"></div>
+
+              {/* Dropdown Menu */}
+              <div className="mt-2 w-80 max-h-[80vh] overflow-y-auto bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 profile-dropdown-enter">
+                {/* Profile Header */}
+                <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-lg shadow-md">
+                      {isAuthenticated ? userInfo?.name?.charAt(0) || 'U' : 'U'}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                        {isAuthenticated ? userInfo?.name || 'User' : 'Guest User'}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                        {isAuthenticated ? userInfo?.email || 'user@example.com' : 'Not signed in'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Menu Options */}
+                <div className="py-2">
+                  <button
+                    onClick={() => handleMenuNavigation('profile')}
+                    className={`profile-dropdown-item w-full px-4 py-3 flex items-center space-x-3 text-sm transition-all duration-150 ${
+                      theme === "dark"
+                        ? 'text-gray-300 hover:bg-gray-700 hover:text-white hover:translate-x-1'
+                        : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 hover:translate-x-1'
+                    }`}
+                  >
+                    <User className="w-4 h-4 flex-shrink-0" />
+                    <span>Profile Settings</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleMenuNavigation('appearance')}
+                    className={`profile-dropdown-item w-full px-4 py-3 flex items-center space-x-3 text-sm transition-all duration-150 ${
+                      theme === "dark"
+                        ? 'text-gray-300 hover:bg-gray-700 hover:text-white hover:translate-x-1'
+                        : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 hover:translate-x-1'
+                    }`}
+                  >
+                    {theme === "dark" ? <Sun className="w-4 h-4 flex-shrink-0" /> : <Moon className="w-4 h-4 flex-shrink-0" />}
+                    <span>{theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}</span>
+                  </button>
+
+  
+                  {/* Divider */}
+                  <div className="my-2 border-t border-gray-200 dark:border-gray-700"></div>
+
+                  <button
+                    onClick={handleSignOut}
+                    className="profile-dropdown-item w-full px-4 py-3 flex items-center space-x-3 text-sm text-red-600 dark:text-red-400 transition-all duration-150 hover:bg-red-50 dark:hover:bg-red-900/20 hover:translate-x-1"
+                  >
+                    <LogOut className="w-4 h-4 flex-shrink-0" />
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </NotificationProvider>
   );
 };

@@ -154,67 +154,43 @@ const Journal: React.FC = () => {
     loadEntries();
   }, []);
 
-  // Add a global function to clear journal data (for debugging/emergency use)
+  // 🔒 SECURITY: Remove dangerous global functions from production
+  // Only available in development environment with proper warnings
   useEffect(() => {
-    (window as any).clearJournalData = () => {
-      if (confirm('Are you sure you want to clear ALL journal entries? This cannot be undone.')) {
-        localStorage.removeItem('journalEntries');
-        localStorage.removeItem('journal-entries');
-        localStorage.removeItem('journalData');
-        localStorage.removeItem('journal');
-        setEntries([]);
-        console.log('Journal data cleared successfully');
-        alert('Journal data cleared successfully');
-      }
-    };
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('⚠️ DEVELOPMENT MODE: Journal management tools available');
+      console.warn('⚠️ These tools are for development debugging ONLY');
+      console.warn('⚠️ Never use these in production environment');
 
-    (window as any).clearDummyDataOnly = () => {
-      const savedEntries = JSON.parse(localStorage.getItem('journalEntries') || '[]');
-      const realEntries = savedEntries.filter((entry: any) => {
-        // Keep entries with real content
-        if (entry.content && entry.content.trim().length > 0 && !entry.content.includes('dummy') && !entry.content.includes('test')) return true;
-        if (entry.reflections && entry.reflections.trim().length > 0 && !entry.reflections.includes('dummy') && !entry.reflections.includes('test')) return true;
-        if (entry.biggestWin && entry.biggestWin.trim().length > 0) return true;
-        if (entry.learning && entry.learning.trim().length > 0) return true;
-        return false;
-      });
-
-      localStorage.setItem('journalEntries', JSON.stringify(realEntries));
-      setEntries(realEntries);
-      console.log(`Cleared dummy data, kept ${realEntries.length} real entries`);
-      alert(`Cleared dummy data, kept ${realEntries.length} real entries`);
-    };
-
-    // Add recovery functions to global window
-    (window as any).journalRecovery = {
-      scan: () => JournalDataRecovery.scanForRecoverableEntries(),
-      recover: () => {
-        const result = JournalDataRecovery.recoverEntries();
-        if (result.success) {
-          const recoveredEntries = result.recoveredEntries.map(entry => ({
-            id: entry.id,
-            date: new Date(entry.date),
-            title: entry.title,
-            mood: entry.mood,
-            energy: entry.energy || 7,
-            reflections: entry.reflections || entry.content || '',
-            gratitude: entry.gratitude || '',
-            biggestWin: entry.biggestWin || '',
-            learning: entry.learning || '',
-            tags: entry.tags || [],
-            content: entry.content || entry.reflections || '',
-            template: entry.template,
-            lastSaved: entry.lastSaved ? new Date(entry.lastSaved) : new Date()
-          }));
-          setEntries(recoveredEntries);
+      // Safe recovery functions only (no data deletion)
+      (window as any).journalRecovery = {
+        scan: () => JournalDataRecovery.scanForRecoverableEntries(),
+        backup: () => JournalDataRecovery.createEmergencyBackup(),
+        listBackups: () => JournalDataRecovery.getAvailableBackups(),
+        // Safe recovery with confirmation
+        safeRecover: () => {
+          if (confirm('⚠️ DEVELOPMENT: Recover lost journal entries? This scans all storage locations.')) {
+            const result = JournalDataRecovery.recoverEntries();
+            if (result.success) {
+              console.log('✅ Recovery successful:', result.message);
+              alert(`✅ Recovered ${result.recoveredEntries.length} entries`);
+            } else {
+              console.log('❌ Recovery failed:', result.message);
+              alert('❌ No recoverable entries found');
+            }
+            return result;
+          }
         }
-        return result;
-      },
-      backup: () => JournalDataRecovery.createEmergencyBackup(),
-      listBackups: () => JournalDataRecovery.getAvailableBackups()
-    };
+      };
 
-    console.log('🔧 Journal recovery tools available in window.journalRecovery');
+      console.log('🔧 Development recovery tools available in window.journalRecovery');
+    } else {
+      // PRODUCTION: Remove any existing dangerous global functions
+      delete (window as any).clearJournalData;
+      delete (window as any).clearDummyDataOnly;
+      delete (window as any).journalRecovery;
+      console.log('🔒 Production mode: Global journal functions disabled for security');
+    }
   }, []);
 
   // Modal folder functions
