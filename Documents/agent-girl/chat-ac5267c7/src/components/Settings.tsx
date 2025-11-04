@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Settings, Calendar, Download, Layout, Palette, ChevronDown, Link, Check, AlertCircle, RefreshCw, ExternalLink } from 'lucide-react';
-import { motionAPI } from '../utils/motionApi';
 import { OAuthIntegration } from './oauth/OAuthIntegration';
 import { GmailSettings } from './email/GmailSettings';
 
@@ -98,73 +97,94 @@ const MotionIntegration: React.FC = () => {
     checkMotionConnection();
   }, []);
 
-  const checkMotionConnection = async () => {
+  const checkMotionConnection = () => {
     try {
-      console.log('🔍 Checking Motion OAuth connection status...');
+      console.log('🔍 Checking Motion OAuth tokens...');
 
-      // Check for real OAuth authentication
-      if (motionAPI.isAuthenticated()) {
-        console.log('✅ Motion API reports authenticated via OAuth');
+      // Check for REAL OAuth tokens in localStorage
+      const motionTokens = localStorage.getItem('motion_oauth_tokens');
+      const motionUser = localStorage.getItem('motion_oauth_user');
 
-        // Get current user info
-        const userResponse = await motionAPI.getCurrentUser();
-        if (userResponse.success && userResponse.data) {
-          console.log('✅ Motion OAuth user verified:', userResponse.data.email);
-          setIsConnected(true);
-          updateSyncStatus();
-          return;
+      if (motionTokens && motionUser) {
+        try {
+          const tokens = JSON.parse(motionTokens);
+          const user = JSON.parse(motionUser);
+
+          // Check if tokens are still valid (not expired)
+          const now = Date.now();
+          if (tokens.expiresAt && now < tokens.expiresAt) {
+            console.log('✅ Valid Motion OAuth tokens found for user:', user.email);
+            setIsConnected(true);
+            setSyncStatus({ connected: true, lastSync: new Date() });
+            return;
+          } else {
+            console.log('⚠️ Motion OAuth tokens expired, removing...');
+            localStorage.removeItem('motion_oauth_tokens');
+            localStorage.removeItem('motion_oauth_user');
+          }
+        } catch (parseError) {
+          console.log('❌ Invalid Motion OAuth tokens, removing...');
+          localStorage.removeItem('motion_oauth_tokens');
+          localStorage.removeItem('motion_oauth_user');
         }
       }
 
-      // If not authenticated via OAuth, show not connected
-      console.log('📦 Motion not authenticated via OAuth - showing as not connected');
+      // No valid OAuth tokens found
+      console.log('📦 No Motion OAuth tokens found - showing as not connected');
       setIsConnected(false);
+      setSyncStatus(null);
 
     } catch (error) {
-      console.error('❌ Error checking Motion OAuth connection:', error);
+      console.error('❌ Error checking Motion OAuth tokens:', error);
       setIsConnected(false);
+      setSyncStatus(null);
     }
   };
 
-  const updateSyncStatus = () => {
-    const status = motionAPI.getSyncStatus();
+  const updateSyncStatus = (status: any) => {
     setSyncStatus(status);
   };
 
-  const handleConnectMotion = async () => {
+  const handleConnectMotion = () => {
     setIsConnecting(true);
     try {
-      // Redirect to Motion OAuth authorization
-      const motionOAuthUrl = 'https://app.usemotion.com/oauth/authorize?' +
-        'client_id=demo-client-id&' +
-        'redirect_uri=' + encodeURIComponent(window.location.origin + '/oauth/callback') + '&' +
-        'scope=tasks:read tasks:write&' +
-        'response_type=code&' +
-        'state=' + Math.random().toString(36).substring(7);
+      // REAL OAuth: Redirect user to Motion's actual login page
+      const MOTION_CLIENT_ID = 'demo-client-id'; // Replace with your actual Motion client ID
+      const REDIRECT_URI = encodeURIComponent(window.location.origin + '/auth/motion/callback');
+      const SCOPE = 'tasks:read tasks:write calendar:read';
+      const STATE = Math.random().toString(36).substring(7);
 
+      // Build REAL OAuth URL - this will take user to Motion's login page
+      const motionOAuthUrl = `https://api.usemotion.com/oauth/authorize?client_id=${MOTION_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=${SCOPE}&state=${STATE}`;
+
+      console.log('🔗 Redirecting to Motion OAuth page:', motionOAuthUrl);
+
+      // REDIRECT USER TO MOTION'S ACTUAL LOGIN PAGE
       window.location.href = motionOAuthUrl;
 
     } catch (error) {
-      console.error('Failed to connect Motion:', error);
-      alert(`❌ Failed to connect to Motion: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('Failed to start OAuth flow:', error);
+      alert(`❌ Failed to start Motion OAuth: ${error instanceof Error ? error.message : 'Unknown error'}`);
       setIsConnecting(false);
     }
   };
 
-  const handleDisconnectMotion = async () => {
-    if (confirm('Are you sure you want to disconnect Motion? This will remove your connection and tasks.')) {
+  const handleDisconnectMotion = () => {
+    if (confirm('Are you sure you want to disconnect Motion? This will remove your OAuth tokens.')) {
       try {
         console.log('🔌 Disconnecting Motion OAuth...');
 
-        // Clear OAuth tokens and user session
-        await motionAPI.disconnectMotion();
+        // Clear OAuth tokens from localStorage
+        localStorage.removeItem('motion_oauth_tokens');
+        localStorage.removeItem('motion_oauth_user');
+        localStorage.removeItem('motion_oauth_state');
 
         // Clear local state
         setIsConnected(false);
         setSyncStatus(null);
         setLastSync(null);
 
-        console.log('✅ Motion OAuth disconnected successfully');
+        console.log('✅ Motion OAuth tokens cleared successfully');
         alert('✅ Disconnected from Motion');
       } catch (error) {
         console.error('Failed to disconnect Motion:', error);
