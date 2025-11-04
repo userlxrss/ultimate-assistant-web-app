@@ -14,8 +14,10 @@ const AuthWrapper: React.FC = () => {
   const [userInfo, setUserInfo] = useState<any>(null);
 
   useEffect(() => {
+    console.log('🔥 AuthWrapper: Initializing authentication...');
     // Use Firebase authentication - no backend needed!
     const unsubscribe = onAuthStateChange((user) => {
+      console.log('🔥 AuthWrapper: Auth state changed:', user);
       if (user) {
         const userData = {
           id: user.uid,
@@ -23,9 +25,11 @@ const AuthWrapper: React.FC = () => {
           name: user.displayName,
           picture: user.photoURL
         };
+        console.log('🔥 AuthWrapper: User authenticated:', userData);
         setUserInfo(userData);
         setIsAuthenticated(true);
       } else {
+        console.log('🔥 AuthWrapper: User not authenticated');
         setUserInfo(null);
         setIsAuthenticated(false);
       }
@@ -46,6 +50,7 @@ const AuthWrapper: React.FC = () => {
   };
 
   if (isLoading) {
+    console.log('🔥 AuthWrapper: Rendering loading state');
     return (
       <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-gray-900">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
@@ -54,9 +59,11 @@ const AuthWrapper: React.FC = () => {
   }
 
   if (!isAuthenticated) {
+    console.log('🔥 AuthWrapper: Rendering AuthPage - user not authenticated');
     return <AuthPage onAuthSuccess={handleAuthSuccess} />;
   }
 
+  console.log('🔥 AuthWrapper: Rendering MainApp - user authenticated');
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Suspense fallback={
