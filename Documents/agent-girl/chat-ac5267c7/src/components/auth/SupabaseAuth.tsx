@@ -112,7 +112,7 @@ export const SupabaseAuth: React.FC<SupabaseAuthProps> = ({
           {isSignUp ? 'Create Account' : 'Sign In'}
         </h2>
         <p className="text-gray-600">
-          {isSignUp ? 'Join Productive Path today' : 'Welcome back to Productive Path'}
+          {isSignUp ? 'Join Productivity Hub today' : 'Welcome back to Productivity Hub'}
         </p>
       </div>
 
@@ -196,7 +196,7 @@ export const SupabaseAuth: React.FC<SupabaseAuthProps> = ({
           Welcome Back!
         </h2>
         <p className="text-gray-600">
-          You're successfully signed in to Productive Path
+          You're successfully signed in to Productivity Hub
         </p>
       </div>
 

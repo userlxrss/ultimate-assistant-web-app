@@ -1,8 +1,26 @@
 {
-  "name": "dashboard-analytics",
+  "name": "productivity-hub",
   "version": "1.0.1",
+  "description": "A comprehensive productivity assistant with journal, tasks, calendar, email, contacts, and analytics features",
   "private": true,
   "type": "module",
+  "keywords": [
+    "productivity",
+    "dashboard",
+    "analytics",
+    "journal",
+    "tasks",
+    "calendar",
+    "email",
+    "contacts",
+    "react",
+    "typescript",
+    "glassmorphism",
+    "personal-assistant",
+    "time-management",
+    "organization",
+    "productivity-tools"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",

@@ -1,23 +1,35 @@
-# Analytics Dashboard with Glassmorphism Design
+# Productivity Hub - Your Personal Assistant
 
-A comprehensive productivity analytics dashboard built with React, TypeScript, and Chart.js featuring modern glassmorphism design patterns.
+A comprehensive productivity assistant that brings together journal, tasks, calendar, email, contacts, and powerful analytics in one beautiful interface. Built with React, TypeScript, and featuring modern glassmorphism design patterns.
 
 ## Features
 
-### 📊 Core Analytics
-- **At-a-Glance Stats**: 4 key metric cards with trend indicators
-- **Mood & Energy Analytics**: 30-day interactive line graphs with gradient fills
-- **Learning & Growth Insights**: Word cloud visualization and impactful learning highlights
-- **Productivity Metrics**: Task completion rates, calendar breakdowns, email activity, and contact growth
+### 🗓️ Calendar Integration
+- **Google Calendar Sync**: Real-time calendar integration and event management
+- **Motion API Integration**: Advanced task scheduling and time management
+- **Smart Event Suggestions**: AI-powered recommendations for optimal scheduling
+- **Meeting Load Analytics**: Visual representation of meeting time vs work hours
 
-### 🎯 Smart Features
+### 📝 Journal & Tasks
+- **Personal Journal**: Rich text journaling with mood tracking and insights
+- **Task Management**: Create, organize, and track tasks with priorities and deadlines
+- **Productivity Analytics**: Task completion rates and performance metrics
+- **Smart Reminders**: Intelligent notifications for important tasks and events
+
+### 📧 Email & Contacts
+- **Gmail Integration**: Full Gmail IMAP integration with email management
+- **Contact Management**: CardDAV integration for comprehensive contact handling
+- **Email Analytics**: Activity tracking and communication patterns
+- **Quick Compose**: Fast email drafting and response templates
+
+### 📊 Analytics & Insights
+- **Comprehensive Dashboard**: At-a-glance stats with trend indicators
+- **Mood & Energy Tracking**: 30-day interactive charts with gradient fills
+- **Productivity Score**: Calculated 1-100 score with trend visualization
+- **Weekly Comparisons**: This week vs last week performance metrics
+- **AI-Powered Insights**: Pattern recognition, recommendations, and motivation
 - **Recent Activity Timeline**: Last 15 activities with categorized icons
 - **Upcoming Events Preview**: Next 5 events with live countdown timers
-- **Quick Actions Bar**: One-click access to journal, tasks, events, email, and contacts
-- **AI-Powered Insights**: Pattern recognition, recommendations, and motivational insights
-- **Weekly Comparison**: This week vs last week performance metrics
-- **Productivity Score**: Calculated 1-100 score with trend visualization
-- **Meeting Load Indicator**: Visual representation of meeting time vs work hours
 
 ### 🎨 Design Features
 - **Glassmorphism Design**: Frosted glass effects with backdrop blur
@@ -26,21 +38,30 @@ A comprehensive productivity analytics dashboard built with React, TypeScript, a
 - **Gender-Neutral Colors**: Sage green, dusty blue, and soft lavender palette
 - **Micro-interactions**: Hover effects, animations, and smooth transitions
 
-### ⚙️ Customization
+### ⚙️ Features & Customization
 - **Date Range Selector**: 7, 30, 60, 90 days, or yearly views
 - **Widget Layout Options**: Default, compact, detailed, or custom layouts
 - **Export Functionality**: PDF reports, CSV data, and JSON exports
 - **Settings Panel**: Persistent preferences and customization options
+- **OAuth Authentication**: Secure Google authentication for all services
+- **Real-time Sync**: Live synchronization across all connected services
+- **Quick Actions Bar**: One-click access to journal, tasks, events, email, and contacts
 
 ## Technology Stack
 
 - **Frontend**: React 18 with TypeScript
+- **Backend**: Express.js with OAuth and session management
 - **Styling**: Tailwind CSS with custom glassmorphism utilities
-- **Charts**: Chart.js with react-chartjs-2
-- **Icons**: Lucide React
-- **Date Handling**: date-fns
-- **Build Tool**: Vite
-- **State Management**: React hooks and context
+- **Charts & Analytics**: Chart.js, recharts for data visualization
+- **Icons**: Lucide React for beautiful UI icons
+- **Authentication**: Google OAuth 2.0 with secure session handling
+- **Email Integration**: Gmail IMAP and nodemailer
+- **Calendar Integration**: Google Calendar API and Motion API
+- **Contact Integration**: CardDAV protocol support
+- **Database**: Firebase for real-time data storage
+- **Date Handling**: date-fns for comprehensive date manipulation
+- **Build Tool**: Vite with ultra-fast hot module replacement
+- **State Management**: React hooks and context API
 
 ## Getting Started
 
@@ -53,7 +74,7 @@ A comprehensive productivity analytics dashboard built with React, TypeScript, a
 1. Clone the repository:
 ```bash
 git clone <repository-url>
-cd dashboard-analytics
+cd productivity-hub
 ```
 
 2. Install dependencies:
@@ -61,18 +82,41 @@ cd dashboard-analytics
 npm install
 ```
 
-3. Start the development server:
+3. Set up environment variables:
+```bash
+# Create a .env file in the root directory
+cp .env.example .env
+# Edit .env with your Google OAuth credentials
+```
+
+4. Start the development server:
 ```bash
 npm run dev
 ```
 
-4. Open your browser and navigate to `http://localhost:5173`
+5. Open your browser and navigate to `http://localhost:5173`
+
+6. Configure your integrations:
+   - Go to the OAuth tab to connect Google services
+   - Set up Gmail IMAP access
+   - Configure Motion API for advanced task management
+   - Set up CardDAV for contact synchronization
 
 ### Build for Production
 
 ```bash
 npm run build
 ```
+
+### Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run gmail-server` - Start Gmail IMAP server
+- `npm run oauth-server` - Start OAuth authentication server
+- `npm run security-audit` - Audit dependencies for security issues
+- `npm run install-oauth-deps` - Install OAuth-specific dependencies
 
 ## Project Structure
 
@@ -82,7 +126,6 @@ src/
 │   ├── Dashboard.tsx    # Main dashboard component
 │   ├── DashboardStats.tsx
 │   ├── MoodAnalytics.tsx
-│   ├── LearningInsights.tsx
 │   ├── ProductivityMetrics.tsx
 │   ├── RecentActivity.tsx
 │   ├── UpcomingEvents.tsx
@@ -90,63 +133,102 @@ src/
 │   ├── AIInsights.tsx
 │   ├── WeeklyComparison.tsx
 │   ├── ProductivityScore.tsx
-│   ├── MeetingLoad.tsx
+│   ├── CalendarIntegration.tsx
+│   ├── EmailIntegration.tsx
+│   ├── ContactManager.tsx
+│   ├── Journal.tsx
+│   ├── Tasks.tsx
 │   └── Settings.tsx
-├── types/               # TypeScript type definitions
+├── pages/               # Page components
+│   ├── JournalPage.tsx
+│   ├── TasksPage.tsx
+│   ├── CalendarPage.tsx
+│   ├── EmailPage.tsx
+│   ├── ContactsPage.tsx
+│   └── AnalyticsPage.tsx
+├── services/           # External service integrations
+│   ├── googleCalendar.ts
+│   ├── gmailService.ts
+│   ├── motionAPI.ts
+│   ├── carddavService.ts
+│   └── authService.ts
+├── types/              # TypeScript type definitions
 │   └── index.ts
-├── utils/               # Utility functions
-│   ├── dataGenerator.ts # Mock data generation
-│   ├── chartUtils.ts    # Chart configuration
-│   └── helpers.ts       # Helper functions
-├── App.tsx             # Root component
-├── main.tsx            # Application entry point
-└── index.css           # Global styles
+├── utils/              # Utility functions
+│   ├── dataGenerator.ts
+│   ├── chartUtils.ts
+│   ├── apiHelpers.ts
+│   └── helpers.ts
+├── hooks/              # Custom React hooks
+├── context/            # React context providers
+├── App.tsx            # Root component
+├── main.tsx           # Application entry point
+└── index.css          # Global styles
 ```
 
-## Key Components
+## Integrations
 
-### DashboardStats
-Displays four key metrics with trend indicators:
-- Task Completion Rate
-- Total Journal Entries
-- Email Activity
-- Total Contacts
+### Google Services Setup
+1. Create a Google Cloud Project
+2. Enable Google Calendar API, Gmail API, and People API
+3. Create OAuth 2.0 credentials
+4. Add authorized redirect URIs for your domain
+5. Configure environment variables with your credentials
 
-### MoodAnalytics
-Interactive line chart showing mood and energy trends over time with gradient fills and smooth animations.
+### Motion API Setup
+1. Sign up at [usemotion.com](https://usemotion.com)
+2. Generate API key from developer dashboard
+3. Configure API key in OAuth settings
 
-### ProductivityMetrics
-Comprehensive productivity visualizations including:
-- Task creation vs completion trends
-- Calendar event breakdown (doughnut chart)
-- Email activity analysis
-- Contact growth over time
+### Gmail IMAP Setup
+1. Enable 2-factor authentication on your Google account
+2. Generate an app password
+3. Configure IMAP credentials in settings
 
-### AIInsights
-Smart insights panel with:
-- Pattern recognition
-- Personalized recommendations
-- Motivational content
-- Priority-based categorization
+## Key Features
 
-### QuickActions
-One-click access to common tasks:
-- Write Journal
-- Create Task
-- Schedule Event
-- Compose Email
-- Add Contact
+### Journal Integration
+- Rich text journaling with mood tracking
+- Daily prompts and reflection questions
+- Emotional pattern analysis and insights
+- Export journal entries as PDF or markdown
 
-## Data Generation
+### Task Management
+- Create, organize, and prioritize tasks
+- Smart task suggestions based on calendar events
+- Progress tracking and completion analytics
+- Integration with Motion API for advanced scheduling
 
-The dashboard includes sophisticated mock data generation that creates:
-- 60 days of realistic mood and energy data
-- Task completion patterns with priority weighting
-- Journal entries with themes and insights
-- Calendar events with various types
-- Email activity statistics
-- Contact growth over time
-- Activity timeline
+### Calendar Integration
+- Google Calendar synchronization
+- Smart event suggestions and scheduling
+- Meeting load analysis and optimization
+- Conflict detection and resolution
+
+### Email Integration
+- Gmail IMAP integration for email management
+- Email analytics and communication patterns
+- Quick compose and response templates
+- Automated email categorization
+
+### Contact Management
+- CardDAV protocol support for contact sync
+- Contact analytics and interaction tracking
+- Smart contact suggestions and organization
+- Export contacts in various formats
+
+### Analytics Dashboard
+- Comprehensive productivity metrics
+- Mood and energy trend analysis
+- Time tracking and productivity scoring
+- Weekly and monthly performance comparisons
+- AI-powered insights and recommendations
+
+### Security & Privacy
+- OAuth 2.0 authentication for all services
+- End-to-end encryption for sensitive data
+- Local data storage with optional cloud sync
+- GDPR-compliant data handling
 
 ## Customization
 
