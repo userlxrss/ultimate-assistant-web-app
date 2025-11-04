@@ -22,10 +22,10 @@ export const FirebaseAuth: React.FC<FirebaseAuthProps> = ({
       if (user) {
         const userData = {
           id: user.uid,
-          email: user.email,
-          name: user.displayName,
-          picture: user.photoURL,
-          accessToken: user.refreshToken
+          email: user.email || '',
+          name: user.displayName || 'User',
+          picture: user.photoURL || '',
+          accessToken: (user as any).refreshToken || ''
         };
         setUserInfo(userData);
         setIsAuthenticated(true);

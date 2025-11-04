@@ -119,7 +119,7 @@ const CleanSettingsPage: React.FC = () => {
     weeklySummary: false
   });
 
-  const [profileImage, setProfileImage] = useState(null);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setShowSuccess] = useState(false);
@@ -308,9 +308,10 @@ const CleanSettingsPage: React.FC = () => {
 
   const handleDisconnect = (appId: string) => {
     if (appId === 'gmail') {
-      realGmailAPI.clearConnection();
+      realGmailAPI.disconnect();
     } else if (appId === 'motion') {
-      motionAPI.clearApiKey();
+      // TODO: Implement motionAPI.disconnect() method
+      console.log('Motion API disconnect not implemented yet');
     }
 
     setConnections(prev => prev.map(conn =>
@@ -330,12 +331,12 @@ const CleanSettingsPage: React.FC = () => {
     setGmailCredentials({ email: '', password: '' });
   };
 
-  // Helper functions for storage with localStorage fallback
+  // Helper functions for storage with localStorage
   const getStorageItem = async (key: string) => {
     try {
-      // Try window.storage first (if available)
-      if (typeof window !== 'undefined' && window.storage) {
-        return await window.storage.get(key);
+      // Use localStorage directly
+      if (typeof window !== 'undefined' && window.localStorage) {
+        return localStorage.getItem(key);
       }
     } catch (error) {
       console.log('window.storage not available, using localStorage');
@@ -353,13 +354,13 @@ const CleanSettingsPage: React.FC = () => {
 
   const setStorageItem = async (key: string, value: string) => {
     try {
-      // Try window.storage first (if available)
-      if (typeof window !== 'undefined' && window.storage) {
-        await window.storage.set(key, value, false);
+      // Use localStorage directly
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.setItem(key, value);
         return;
       }
     } catch (error) {
-      console.log('window.storage not available, using localStorage');
+      console.error('localStorage not available:', error);
     }
 
     // Fallback to localStorage
@@ -372,13 +373,13 @@ const CleanSettingsPage: React.FC = () => {
 
   const deleteStorageItem = async (key: string) => {
     try {
-      // Try window.storage first (if available)
-      if (typeof window !== 'undefined' && window.storage) {
-        await window.storage.delete(key);
+      // Use localStorage directly
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.removeItem(key);
         return;
       }
     } catch (error) {
-      console.log('window.storage not available, using localStorage');
+      console.error('localStorage not available:', error);
     }
 
     // Fallback to localStorage
@@ -408,11 +409,15 @@ const CleanSettingsPage: React.FC = () => {
       console.log('Task Count:', taskCount);
       console.log('=========================================');
 
-      if (connected?.value === 'true' && apiKey?.value) {
+      const isConnected = typeof connected === 'string' ? connected === 'true' : connected?.value === 'true';
+      const hasApiKey = typeof apiKey === 'string' ? !!apiKey : !!apiKey?.value;
+
+      if (isConnected && hasApiKey) {
         setIsMotionConnected(true);
-        setMotionTaskCount(parseInt(taskCount?.value || '0'));
-        if (lastSync?.value) {
-          setMotionLastSync(new Date(lastSync.value));
+        setMotionTaskCount(parseInt(typeof taskCount === 'string' ? taskCount : taskCount?.value || '0'));
+        const lastSyncValue = typeof lastSync === 'string' ? lastSync : lastSync?.value;
+        if (lastSyncValue) {
+          setMotionLastSync(new Date(lastSyncValue));
         }
       } else {
         setIsMotionConnected(false);
@@ -521,7 +526,7 @@ const CleanSettingsPage: React.FC = () => {
   };
 
   // Profile Handler Functions
-  const handleProfileChange = (field, value) => {
+  const handleProfileChange = (field: string, value: any) => {
     setProfileData(prev => ({
       ...prev,
       [field]: value
@@ -529,13 +534,15 @@ const CleanSettingsPage: React.FC = () => {
     setHasChanges(true);
   };
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setProfileImage(reader.result);
-        setHasChanges(true);
+        if (typeof reader.result === 'string') {
+          setProfileImage(reader.result);
+          setHasChanges(true);
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -977,7 +984,7 @@ const CleanSettingsPage: React.FC = () => {
                   <select
                     className="font-selector w-full px-5 py-3 bg-gray-50 dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-600 rounded-xl text-base font-medium text-gray-900 dark:text-white cursor-pointer transition-all duration-200 focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-gray-600 focus:shadow-lg focus:shadow-blue-200"
                     value={fontSize}
-                    onChange={(e) => setFontSize(e.target.value)}
+                    onChange={(e) => setFontSize(e.target.value as FontSize)}
                   >
                     <option value="small">Small</option>
                     <option value="medium">Medium</option>
@@ -1088,8 +1095,8 @@ const CleanSettingsPage: React.FC = () => {
                           <label>Bio</label>
                           <textarea
                             placeholder="Tell us about yourself"
-                            rows="2"
-                            maxLength="150"
+                            rows={2}
+                            maxLength={150}
                             value={profileData.bio}
                             onChange={(e) => handleProfileChange('bio', e.target.value)}
                           />

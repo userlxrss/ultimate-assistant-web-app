@@ -31,7 +31,8 @@ import {
   generateContacts,
   generateActivities,
   generateAIInsights,
-  generateWeeklyComparison
+  generateWeeklyComparison,
+  generateJournalEntries
 } from '../utils/dataGenerator';
 import {
   calculateProductivityScore,
@@ -49,7 +50,7 @@ const Dashboard: React.FC = () => {
   const [data] = useState(() => ({
     moodData: generateMoodData(60),
     tasks: generateTasks(60),
-    journalEntries: [], // NO MOCK ENTRIES - Start with empty journal
+    journalEntries: generateJournalEntries(30), // Generate some mock entries for functionality
     events: generateCalendarEvents(60),
     emails: generateEmails(60),
     contacts: generateContacts(60),
