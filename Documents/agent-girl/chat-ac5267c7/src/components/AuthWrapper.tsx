@@ -15,6 +15,12 @@ const AuthWrapper: React.FC = () => {
 
   useEffect(() => {
     console.log('🔥 AuthWrapper: Initializing authentication...');
+    // FORCE SHOW SIGNUP PAGE IN PRODUCTION FOR NOW
+    console.log('🔥 AuthWrapper: FORCING SIGNUP PAGE TO SHOW IN PRODUCTION');
+    setIsAuthenticated(false);
+    setIsLoading(false);
+    return;
+
     // Use Firebase authentication - no backend needed!
     const unsubscribe = onAuthStateChange((user) => {
       console.log('🔥 AuthWrapper: Auth state changed:', user);
