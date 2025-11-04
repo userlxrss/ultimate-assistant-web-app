@@ -170,7 +170,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
       onUpdate(updatedTask);
 
       // Only sync with Motion if connected
-      if (motionAPI.hasApiKey()) {
+      if (motionAPI.isAuthenticated()) {
         const response = await motionAPI.completeTask(task.id);
         if (!response.success) {
           throw new Error(response.error || 'Failed to sync with Motion');
@@ -205,7 +205,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
       onUpdate(updatedTask);
 
       // Only sync with Motion if connected
-      if (motionAPI.hasApiKey()) {
+      if (motionAPI.isAuthenticated()) {
         const response = await motionAPI.updateTask(task.id, { status: newStatus });
         if (!response.success) {
           throw new Error(response.error || 'Failed to sync status with Motion');
@@ -222,14 +222,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
     }
   };
 
-  const handleCardClick = (e: React.MouseEvent) => {
-    // Don't open modal if clicking on action buttons
-    if ((e.target as HTMLElement).closest('button')) {
-      return;
-    }
-    onViewDetails(task);
-  };
-
+  
   const handleTimerControl = (e: React.MouseEvent) => {
     e.stopPropagation();
 
@@ -314,7 +307,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
     setSyncStatus('Deleting...');
     try {
       // Only sync with Motion if connected
-      if (motionAPI.hasApiKey()) {
+      if (motionAPI.isAuthenticated()) {
         const response = await motionAPI.deleteTask(task.id);
         if (!response.success) {
           throw new Error(response.error || 'Failed to delete from Motion');
@@ -339,8 +332,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
 
   return (
     <div
-      onClick={handleCardClick}
-      className={`group relative bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-lg py-2 px-3 mb-1.5 transition-all duration-200 hover:bg-white/80 dark:hover:bg-gray-800/80 border ${priorityConfig.border} cursor-pointer ${
+      className={`group relative bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-lg py-2 px-3 mb-1.5 transition-all duration-200 hover:bg-white/80 dark:hover:bg-gray-800/80 border ${priorityConfig.border} ${
         task.completed ? 'opacity-60 scale-[0.98]' : ''
       }`}
     >
@@ -367,13 +359,17 @@ const TaskItem: React.FC<TaskItemProps> = ({
         </div>
 
         {/* Task Title - More Compact */}
-        <div className="flex-1 min-w-0 mr-2">
-          <h3 className={`text-sm font-medium text-gray-900 dark:text-white truncate leading-tight ${
+        <button
+          onClick={() => onViewDetails(task)}
+          className="flex-1 min-w-0 mr-2 text-left"
+          title="View task details"
+        >
+          <h3 className={`text-sm font-medium text-gray-900 dark:text-white truncate leading-tight hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${
             task.completed ? 'line-through opacity-60' : ''
           }`}>
             {typeof task.title === 'string' ? task.title : String(task.title || 'Untitled Task')}
           </h3>
-        </div>
+        </button>
 
         {/* Compact Metadata Row - All in one line */}
         <div className="flex items-center gap-1.5 flex-shrink-0">

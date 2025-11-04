@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Journal Security Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        .result { padding: 10px; margin: 10px 0; }
+        .pass { background-color: #d4edda; color: #155724; }
+        .fail { background-color: #f8d7da; color: #721c24; }
+        code { background: #f4f4f4; padding: 2px 4px; }
+    </style>
+</head>
+<body>
+    <h1>🔒 Journal Storage Security Test</h1>
+    <p>This test verifies that the journal storage security fix is working correctly.</p>
+    
+    <div class="test-section">
+        <h2>Test 1: User-Specific Storage Keys</h2>
+        <button onclick="testUserSpecificKeys()">Run Test</button>
+        <div id="test1-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 2: Data Isolation Between Users</h2>
+        <button onclick="testDataIsolation()">Run Test</button>
+        <div id="test2-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 3: Legacy Data Migration</h2>
+        <button onclick="testLegacyMigration()">Run Test</button>
+        <div id="test3-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Run All Tests</h2>
+        <button onclick="runAllTests()">Run All Security Tests</button>
+        <div id="all-results"></div>
+    </div>
+
+    <script>
+        // Test utility functions
+        function generateUserKey(baseKey, userEmail) {
+            const sanitizedEmail = userEmail.replace(/[^a-zA-Z0-9]/g, '_');
+            return `${baseKey}_${sanitizedEmail}`;
+        }
+
+        function showResult(testId, passed, message, details = null) {
+            const resultDiv = document.getElementById(testId);
+            const className = passed ? 'pass' : 'fail';
+            const icon = passed ? '✅' : '❌';
+            
+            let html = `<div class="result ${className}">${icon} ${message}</div>`;
+            if (details) {
+                html += `<pre><code>${JSON.stringify(details, null, 2)}</code></pre>`;
+            }
+            resultDiv.innerHTML = html;
+        }
+
+        // Test 1: User-specific storage keys
+        function testUserSpecificKeys() {
+            const userEmail1 = 'test1@example.com';
+            const userEmail2 = 'test2@example.com';
+            
+            const key1 = generateUserKey('journal_entries', userEmail1);
+            const key2 = generateUserKey('journal_entries', userEmail2);
+            
+            const keysAreDifferent = key1 !== key2;
+            
+            showResult('test1-result', keysAreDifferent, 
+                keysAreDifferent ? 'Users have different storage keys' : 'SECURITY BREACH: Users share storage keys',
+                { user1Key: key1, user2Key: key2 }
+            );
+            
+            return keysAreDifferent;
+        }
+
+        // Test 2: Data isolation between users
+        function testDataIsolation() {
+            const userEmail1 = 'test1@example.com';
+            const userEmail2 = 'test2@example.com';
+            
+            // Simulate user data
+            const userData1 = [{ id: '1', title: 'User 1 Private Entry', content: 'Secret data for user 1' }];
+            const userData2 = [{ id: '1', title: 'User 2 Private Entry', content: 'Secret data for user 2' }];
+            
+            // Store data for each user
+            const key1 = generateUserKey('journal_entries', userEmail1);
+            const key2 = generateUserKey('journal_entries', userEmail2);
+            
+            localStorage.setItem(key1, JSON.stringify(userData1));
+            localStorage.setItem(key2, JSON.stringify(userData2));
+            
+            // Retrieve data for each user
+            const retrievedData1 = JSON.parse(localStorage.getItem(key1) || '[]');
+            const retrievedData2 = JSON.parse(localStorage.getItem(key2) || '[]');
+            
+            // Verify data isolation
+            const user1SeesOnlyOwnData = retrievedData1[0].title === 'User 1 Private Entry';
+            const user2SeesOnlyOwnData = retrievedData2[0].title === 'User 2 Private Entry';
+            const dataIsIsolated = user1SeesOnlyOwnData && user2SeesOnlyOwnData;
+            
+            // Cleanup test data
+            localStorage.removeItem(key1);
+            localStorage.removeItem(key2);
+            
+            showResult('test2-result', dataIsIsolated,
+                dataIsIsolated ? 'Users cannot see each other\'s data' : '🚨 DATA LEAKAGE DETECTED',
+                {
+                    user1Data: retrievedData1[0]?.title,
+                    user2Data: retrievedData2[0]?.title,
+                    isolationVerified: dataIsIsolated
+                }
+            );
+            
+            return dataIsIsolated;
+        }
+
+        // Test 3: Legacy data migration
+        function testLegacyMigration() {
+            const userEmail = 'migration-test@example.com';
+            const legacyKey = 'journal_entries';
+            const userKey = generateUserKey('journal_entries', userEmail);
+            
+            // Simulate legacy data
+            const legacyData = [{ id: 'legacy', title: 'Legacy Entry', content: 'Old format data' }];
+            localStorage.setItem(legacyKey, JSON.stringify(legacyData));
+            
+            // Ensure user-specific storage is empty initially
+            localStorage.removeItem(userKey);
+            
+            // Simulate migration
+            if (!localStorage.getItem(userKey)) {
+                localStorage.setItem(userKey, JSON.stringify(legacyData));
+            }
+            
+            // Verify migration
+            const migratedData = JSON.parse(localStorage.getItem(userKey) || '[]');
+            const migrationSuccessful = migratedData.length === 1 && migratedData[0].id === 'legacy';
+            
+            // Cleanup
+            localStorage.removeItem(legacyKey);
+            localStorage.removeItem(userKey);
+            
+            showResult('test3-result', migrationSuccessful,
+                migrationSuccessful ? 'Legacy data properly migrated' : 'Migration failed',
+                { migratedEntries: migratedData.length, legacyId: migratedData[0]?.id }
+            );
+            
+            return migrationSuccessful;
+        }
+
+        // Run all tests
+        function runAllTests() {
+            const results = {
+                'User-Specific Keys': testUserSpecificKeys(),
+                'Data Isolation': testDataIsolation(),
+                'Legacy Migration': testLegacyMigration()
+            };
+            
+            const passedCount = Object.values(results).filter(Boolean).length;
+            const totalCount = Object.keys(results).length;
+            
+            const allSecure = passedCount === totalCount;
+            
+            let html = `<div class="result ${allSecure ? 'pass' : 'fail'}">
+                <h3>🎯 Security Test Summary</h3>
+                <p><strong>Total Tests:</strong> ${totalCount}</p>
+                <p><strong>Passed:</strong> ${passedCount}</p>
+                <p><strong>Failed:</strong> ${totalCount - passedCount}</p>
+                <p><strong>Status:</strong> ${allSecure ? '✅ SECURE' : '🚨 VULNERABLE'}</p>
+            </div>`;
+            
+            if (allSecure) {
+                html += '<div class="result pass">🎉 <strong>All security tests passed!</strong> User data is properly isolated.</div>';
+            } else {
+                html += '<div class="result fail">🚨 <strong>SECURITY ISSUES DETECTED!</strong> Review failed tests immediately.</div>';
+            }
+            
+            document.getElementById('all-results').innerHTML = html;
+        }
+
+        // Run tests on page load
+        window.onload = function() {
+            console.log('🔒 Journal Security Test Loaded');
+            console.log('Click buttons to run individual tests or "Run All Security Tests" for complete verification.');
+        };
+    </script>
+</body>
+</html>

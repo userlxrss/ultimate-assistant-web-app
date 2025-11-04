@@ -156,7 +156,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
       }
 
       // Only sync with Motion if connected
-      if (motionAPI.hasApiKey()) {
+      if (motionAPI.isAuthenticated()) {
         const response = await motionAPI.updateTask(task.id, { status: newStatus });
         if (!response.success) {
           throw new Error(response.error || 'Failed to sync status with Motion');

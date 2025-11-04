@@ -1,109 +1,75 @@
 import { Task, MotionAPIResponse, TaskOperation } from '../types/tasks';
+import { motionOAuthService } from './motionOAuth';
 
-// Real Motion API Integration with Persistent Authentication
+// Real Motion API Integration with OAuth Authentication
 class MotionAPIService {
   private baseURL = 'https://api.usemotion.com/v1';
-  private apiKey: string | null = null;
   private operations: TaskOperation[] = [];
   private currentUserId: string | null = null;
 
-  // Initialize with persistent authentication
+  // Initialize with OAuth authentication
   constructor() {
     this.initializeConnection();
   }
 
-  // Initialize connection with persistent storage
+  // Initialize connection with OAuth
   private async initializeConnection() {
-    console.log('🔑 Motion API: Initializing persistent connection...');
+    console.log('🔑 Motion API: Initializing OAuth connection...');
 
-    // Check if we have a stored connection
-    try {
-      if (typeof window !== 'undefined' && window.storage) {
-        const savedApiKey = await window.storage.get('motion-api-key');
-        const isConnected = await window.storage.get('motion-connected');
-
-        if (savedApiKey?.value && isConnected?.value) {
-          this.apiKey = savedApiKey.value;
-          console.log('✅ Motion API: Loaded API key from persistent storage');
-        } else {
-          console.log('📦 Motion API: No saved connection found');
-        }
+    // Check if we have OAuth tokens
+    if (motionOAuthService.isAuthenticated()) {
+      const user = motionOAuthService.getCurrentUser();
+      if (user) {
+        this.currentUserId = user.id;
+        console.log('✅ Motion API: OAuth authenticated for user:', user.email);
       }
-    } catch (error) {
-      console.log('⚠️ Motion API: Persistent storage not available, using fallback');
-      // Fallback to hardcoded API key
-      this.apiKey = 'AARvN4IMgBFo6Jvr5IcBHyk8vjg8Z/3h4aUB58wWW1E=';
+    } else {
+      console.log('📦 Motion API: No OAuth authentication found');
     }
-
-    console.log('🔑 Motion API: Final API key status:', !!this.apiKey);
   }
 
-  // Connect to Motion with persistent authentication
+  // Connect to Motion with OAuth
   async connectToMotion(): Promise<boolean> {
-    const apiKey = 'AARvN4IMgBFo6Jvr5IcBHyk8vjg8Z/3h4aUB58wWW1E=';
-
     try {
-      // Test connection
-      const response = await fetch(`${this.baseURL}/tasks`, {
-        headers: {
-          'X-API-Key': apiKey,
-          'Content-Type': 'application/json'
-        }
-      });
+      // Initiate OAuth flow
+      await motionOAuthService.initiateOAuth();
 
-      if (response.ok) {
-        // Save connection persistently
-        if (typeof window !== 'undefined' && window.storage) {
-          await window.storage.set('motion-api-key', apiKey, false); // Personal storage
-          await window.storage.set('motion-connected', 'true', false);
-          await window.storage.set('motion-user-data', JSON.stringify({ connected: true, connectedAt: new Date().toISOString() }), false);
-        }
-
-        this.apiKey = apiKey;
-        console.log('✅ Motion API: Connected and saved persistently');
+      // Get current user after OAuth
+      const user = motionOAuthService.getCurrentUser();
+      if (user) {
+        this.currentUserId = user.id;
+        console.log('✅ Motion API: OAuth connected successfully for user:', user.email);
         return true;
       } else {
-        console.error('❌ Motion API: Connection failed');
+        console.error('❌ Motion API: OAuth completed but no user info available');
         return false;
       }
     } catch (error) {
-      console.error('❌ Motion API: Connection error:', error);
+      console.error('❌ Motion API: OAuth connection error:', error);
       return false;
     }
   }
 
-  // Set API key (legacy method)
-  setApiKey(key: string): void {
-    this.apiKey = key;
-    // Reset current user ID when API key changes
-    this.currentUserId = null;
-  }
-
-  // Check if API key is available
-  hasApiKey(): boolean {
-    return !!this.apiKey;
+  // Check if authenticated with OAuth
+  isAuthenticated(): boolean {
+    return motionOAuthService.isAuthenticated();
   }
 
   // Disconnect from Motion
   async disconnectMotion(): Promise<void> {
     try {
-      if (typeof window !== 'undefined' && window.storage) {
-        await window.storage.delete('motion-api-key');
-        await window.storage.delete('motion-connected');
-        await window.storage.delete('motion-user-data');
-      }
+      await motionOAuthService.disconnect();
+      this.currentUserId = null;
+      console.log('✅ Motion API: Disconnected successfully');
     } catch (error) {
-      console.error('Failed to clear Motion connection:', error);
+      console.error('Failed to disconnect Motion:', error);
     }
-
-    this.apiKey = null;
-    this.currentUserId = null;
   }
 
-  // Make authenticated API requests directly to Motion API
+  // Make authenticated API requests using OAuth tokens
   private async makeRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    if (!this.apiKey) {
-      throw new Error('Motion API key not configured. Please connect to Motion first.');
+    if (!motionOAuthService.isAuthenticated()) {
+      throw new Error('Motion OAuth not authenticated. Please connect to Motion first.');
     }
 
     const url = `${this.baseURL}${endpoint}`;
@@ -111,13 +77,8 @@ class MotionAPIService {
     try {
       console.log(`🎯 Making Motion API request to: ${url}`);
 
-      const response = await fetch(url, {
+      const response = await motionOAuthService.makeAuthenticatedRequest(url, {
         method: options.method || 'GET',
-        headers: {
-          'X-API-Key': this.apiKey,
-          'Content-Type': 'application/json',
-          ...options.headers,
-        },
         body: options.body,
       });
 
@@ -215,7 +176,7 @@ class MotionAPIService {
     }
   }
 
-  // Fetch tasks from Motion
+  // Fetch ONLY user's personal tasks from Motion (CRITICAL REQUIREMENT)
   async getTasks(workspaceId?: string): Promise<MotionAPIResponse> {
     const operation: TaskOperation = {
       type: 'bulk',
@@ -228,23 +189,72 @@ class MotionAPIService {
     try {
       operation.status = 'syncing';
 
-      // Fetch tasks directly from Motion API
-      const endpoint = workspaceId ? `/tasks?workspaceId=${workspaceId}` : '/tasks';
+      // CRITICAL: Filter for ONLY the authenticated user's personal tasks
+      // This ensures we don't fetch teammates' or shared workspace tasks
+      const currentUser = motionOAuthService.getCurrentUser();
+      if (!currentUser) {
+        throw new Error('No authenticated Motion user found');
+      }
+
+      // Build query parameters to filter for personal tasks only
+      const params = new URLSearchParams();
+
+      // Add user filter to get only current user's tasks
+      if (currentUser.id) {
+        params.append('userId', currentUser.id);
+      }
+
+      // Add workspace filter if provided
+      if (workspaceId) {
+        params.append('workspaceId', workspaceId);
+      }
+
+      // Add additional filters to ensure only personal tasks
+      params.append('includeAssigned', 'true');      // Only tasks assigned to user
+      params.append('includeCreated', 'true');       // Tasks created by user
+      params.append('includeShared', 'false');       // Exclude shared/team tasks
+      params.append('excludeTeammate', 'true');      // CRITICAL: Exclude teammates' tasks
+
+      const endpoint = `/tasks?${params.toString()}`;
+      console.log('🎯 Fetching personal tasks for user:', currentUser.email, 'Endpoint:', endpoint);
+
       const response = await this.makeRequest<any>(endpoint);
 
       console.log('🎯 Motion API response received:', response);
-      console.log('🎯 Raw tasks from Motion:', response?.length || 0);
+      console.log('🎯 Raw personal tasks from Motion:', response?.length || 0);
 
       // Handle different response formats
       const rawTasks = Array.isArray(response) ? response : response.tasks || [];
 
+      // CRITICAL: Additional client-side filtering to ensure only user's tasks
+      const personalTasks = rawTasks.filter((task: any) => {
+        // Filter by assigned user
+        if (task.assignedTo && task.assignedTo !== currentUser.id) {
+          return false;
+        }
+
+        // Filter by created user
+        if (task.createdBy && task.createdBy !== currentUser.id) {
+          return false;
+        }
+
+        // Exclude team/shared tasks
+        if (task.isTeamTask || task.isSharedTask) {
+          return false;
+        }
+
+        return true;
+      });
+
+      console.log(`✅ Filtered to ${personalTasks.length} personal tasks from ${rawTasks.length} total tasks`);
+
       // Convert Motion tasks to our Task format
-      const convertedTasks = rawTasks.map((motionTask: any) => {
-        console.log('🔄 Converting task:', motionTask.name || motionTask.title || 'Untitled Task');
+      const convertedTasks = personalTasks.map((motionTask: any) => {
+        console.log('🔄 Converting personal task:', motionTask.name || motionTask.title || 'Untitled Task');
         return this.convertMotionTask(motionTask);
       });
 
-      console.log(`✅ Converted ${convertedTasks.length} tasks from Motion`);
+      console.log(`✅ Converted ${convertedTasks.length} personal tasks from Motion`);
 
       operation.status = 'completed';
 
@@ -254,10 +264,12 @@ class MotionAPIService {
           tasks: convertedTasks,
           meta: {
             total: convertedTasks.length,
-            fetched: new Date().toISOString()
+            fetched: new Date().toISOString(),
+            userId: currentUser.id,
+            userEmail: currentUser.email
           }
         },
-        message: `Successfully fetched ${convertedTasks.length} tasks from Motion`
+        message: `Successfully fetched ${convertedTasks.length} personal tasks from Motion`
       };
     } catch (error) {
       operation.status = 'error';
@@ -267,7 +279,7 @@ class MotionAPIService {
       return {
         success: false,
         error: operation.error,
-        message: 'Failed to fetch tasks from Motion'
+        message: 'Failed to fetch personal tasks from Motion'
       };
     }
   }
@@ -411,7 +423,7 @@ class MotionAPIService {
       return {
         success: false,
         error: operation.error,
-        message: 'Failed to delete task from Motion'
+        message: 'Failed to delete task in Motion'
       };
     }
   }
@@ -461,18 +473,22 @@ class MotionAPIService {
   // Get current user information
   async getCurrentUser(): Promise<MotionAPIResponse> {
     try {
-      const response = await this.makeRequest('/users/me');
+      const user = motionOAuthService.getCurrentUser();
 
-      // Store the current user ID for task filtering
-      if (response.id) {
-        this.currentUserId = response.id;
+      if (user) {
+        this.currentUserId = user.id;
+        return {
+          success: true,
+          data: user,
+          message: 'Successfully retrieved current user information'
+        };
+      } else {
+        return {
+          success: false,
+          error: 'No authenticated user found',
+          message: 'Failed to retrieve current user information'
+        };
       }
-
-      return {
-        success: true,
-        data: response,
-        message: 'Successfully retrieved current user information'
-      };
     } catch (error) {
       return {
         success: false,
@@ -531,13 +547,21 @@ class MotionAPIService {
   // Test API connection
   async testConnection(): Promise<MotionAPIResponse> {
     try {
-      const response = await this.makeRequest('/users/me');
+      const user = motionOAuthService.getCurrentUser();
 
-      return {
-        success: true,
-        data: response,
-        message: 'Successfully connected to Motion API'
-      };
+      if (user) {
+        return {
+          success: true,
+          data: user,
+          message: 'Successfully connected to Motion API via OAuth'
+        };
+      } else {
+        return {
+          success: false,
+          error: 'OAuth not authenticated',
+          message: 'Failed to connect to Motion API'
+        };
+      }
     } catch (error) {
       return {
         success: false,

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { SecureJournalStorage, JournalEntry } from '../utils/secureJournalStorage';
-import { JournalDataRecovery } from '../utils/journalDataRecovery';
+import { SecureUserJournalStorage } from '../utils/secureUserJournalStorage';
+import { JournalEntry } from '../utils/secureJournalStorage';import { JournalDataRecovery } from '../utils/journalDataRecovery';
 
 const JournalSimple: React.FC = () => {
   // Add state for journal
@@ -90,7 +90,7 @@ const JournalSimple: React.FC = () => {
       setError('');
 
       // Use secure storage for deletion
-      const deleteResult = await SecureJournalStorage.deleteEntry(entryToDelete.id);
+      const deleteResult = await SecureUserJournalStorage.deleteEntry(entryToDelete.id);
 
       if (!deleteResult.success) {
         throw new Error(deleteResult.error || 'Failed to delete entry');
@@ -140,7 +140,7 @@ const JournalSimple: React.FC = () => {
       setError('');
 
       // Use secure storage for saving
-      const saveResult = await SecureJournalStorage.saveEntry(editingEntry);
+      const saveResult = await SecureUserJournalStorage.saveEntry(editingEntry);
 
       if (!saveResult.success) {
         throw new Error(saveResult.error || 'Failed to save entry');
@@ -242,7 +242,7 @@ const JournalSimple: React.FC = () => {
       };
 
       // Use secure storage for saving
-      const saveResult = await SecureJournalStorage.saveEntry(newEntry);
+      const saveResult = await SecureUserJournalStorage.saveEntry(newEntry);
 
       if (!saveResult.success) {
         throw new Error(saveResult.error || 'Failed to save entry');
@@ -440,7 +440,7 @@ const JournalSimple: React.FC = () => {
         console.log('📔 Loading journal entries...');
 
         // Use secure storage to load entries
-        const loadResult = await SecureJournalStorage.loadEntries();
+        const loadResult = await SecureUserJournalStorage.loadEntries();
 
         if (!loadResult.success) {
           throw new Error(loadResult.error || 'Failed to load entries');
@@ -458,7 +458,7 @@ const JournalSimple: React.FC = () => {
 
             // Save recovered entries using secure storage
             for (const entry of recoveredEntries) {
-              await SecureJournalStorage.saveEntry(entry);
+              await SecureUserJournalStorage.saveEntry(entry);
             }
 
             setEntries(recoveredEntries);
@@ -489,7 +489,7 @@ const JournalSimple: React.FC = () => {
           console.log(`🧹 Cleaned ${loadedEntries.length - cleanedEntries.length} invalid entries`);
           // Save each cleaned entry
           for (const entry of cleanedEntries) {
-            await SecureJournalStorage.saveEntry(entry);
+            await SecureUserJournalStorage.saveEntry(entry);
           }
         }
 

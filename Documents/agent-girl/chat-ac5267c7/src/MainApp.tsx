@@ -11,7 +11,7 @@ import EmailApp from './EmailApp';
 import ContactsApp from './components/contacts/ContactsApp';
 import CleanSettingsPage from './components/CleanSettingsPage';
 import { NotificationProvider } from './components/NotificationSystem';
-// EMERGENCY: DISABLE TimerProvider and ThemeProvider to fix performance issues
+import { SecureUserJournalStorage } from './utils/secureUserJournalStorage';// EMERGENCY: DISABLE TimerProvider and ThemeProvider to fix performance issues
 //
 //
 
@@ -60,7 +60,12 @@ const MainApp: React.FC = () => {
           setIsAuthenticated(true);
           setUserInfo(user);
           userDataStorage.setData('currentUser', user);
-        } else {
+          // Initialize secure journal storage for authenticated user
+          try {
+            SecureUserJournalStorage.initializeStorage();
+          } catch (storageError) {
+            console.error("Failed to initialize secure journal storage:", storageError);
+          }        } else {
           setIsAuthenticated(false);
           setUserInfo(null);
           userDataStorage.removeData('currentUser');
@@ -138,7 +143,12 @@ const MainApp: React.FC = () => {
       userDataStorage.removeData('currentUser');
 
       // Attempt graceful logout
+      // Handle secure journal storage cleanup
       try {
+        SecureUserJournalStorage.handleLogout();
+      } catch (cleanupError) {
+        console.error("Failed to cleanup secure journal storage:", cleanupError);
+      }      try {
         await userAuthManager.logout();
       } catch (logoutError) {
         console.error("Graceful logout failed:", logoutError);

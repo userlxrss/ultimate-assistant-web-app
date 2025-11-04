@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save, Calendar, Heart, Star, Trash2, Plus } from 'lucide-react';
 import { ExtendedJournalEntry } from '../types/journal';
-import { JournalStorage } from '../utils/journalStorage';
+import { SecureJournalStorageWrapper } from '../utils/secureJournalStorageWrapper';
 import { useNotifications } from './NotificationSystem';
 import ConfirmDialog from './ConfirmDialog';
 
@@ -64,7 +64,7 @@ const JournalEditModal: React.FC<JournalEditModalProps> = ({
         lastSaved: new Date()
       };
 
-      await JournalStorage.saveEntry(updatedEntry);
+      await SecureJournalStorageWrapper.saveEntry(updatedEntry);
       onSave(updatedEntry);
       onClose();
       showSuccess('Entry Updated', 'Your journal entry has been updated successfully.');

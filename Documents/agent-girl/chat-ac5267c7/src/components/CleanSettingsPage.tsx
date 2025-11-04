@@ -252,7 +252,7 @@ const CleanSettingsPage: React.FC = () => {
     }
 
     // Check Motion connection
-    if (motionAPI.hasApiKey()) {
+    if (motionAPI.isAuthenticated()) {
       setConnections(prev => prev.map(conn =>
         conn.id === 'motion'
           ? {

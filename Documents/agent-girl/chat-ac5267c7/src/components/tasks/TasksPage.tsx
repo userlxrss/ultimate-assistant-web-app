@@ -205,7 +205,7 @@ const [hasShownTimeUpNotification, setHasShownTimeUpNotification] = useState(fal
     }
 
     // Fallback: Check if motionAPI already has the key (from Settings)
-    if (motionAPI.hasApiKey()) {
+    if (motionAPI.isAuthenticated()) {
       console.log('🔄 Found API key in motionAPI, connecting...');
       setIsMotionConnected(true);
       await syncMotionTasks();
@@ -220,7 +220,7 @@ const [hasShownTimeUpNotification, setHasShownTimeUpNotification] = useState(fal
 
   // Sync tasks with Motion
   const syncMotionTasks = async () => {
-    if (!motionAPI.hasApiKey()) {
+    if (!motionAPI.isAuthenticated()) {
       setSyncStatus('Please connect to Motion first');
       return;
     }
@@ -1474,41 +1474,7 @@ const [hasShownTimeUpNotification, setHasShownTimeUpNotification] = useState(fal
         isDeleting={isDeleting}
       />
 
-      {/* 🚨 EMERGENCY KILL SWITCH */}
-      <button
-        onClick={() => {
-          console.log('🚨 EMERGENCY RESET - Force closing all timer notifications');
-
-          // Force close notification
-          setShowTimeUpNotification(false);
-          setTimeUpTask(null);
-          setHasShownTimeUpNotification(false);
-
-          // Stop all timers
-          if (timerInterval) {
-            clearInterval(timerInterval);
-            setTimerInterval(null);
-          }
-          setIsTimerRunning(false);
-          setTimerSeconds(0);
-          setActiveTask(null);
-
-          // Clear all timer localStorage
-          Object.keys(localStorage).forEach(key => {
-            if (key.startsWith('timer-')) {
-              localStorage.removeItem(key);
-            }
-          });
-
-          alert('🚨 Emergency reset complete! Timer notifications have been stopped.');
-        }}
-        className="fixed bottom-4 right-4 z-[999999] px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg shadow-2xl transition-all hover:scale-105"
-        style={{ zIndex: 999999 }}
-        title="Emergency stop - Force close all timer notifications"
-      >
-        🚨 STOP TIMER
-      </button>
-    </div>
+          </div>
   );
 };
 

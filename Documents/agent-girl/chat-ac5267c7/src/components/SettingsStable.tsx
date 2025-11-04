@@ -122,7 +122,7 @@ const StableMotionIntegration: React.FC = React.memo(() => {
     const initializeMotion = () => {
       try {
         const storedKey = localStorage.getItem('motion_api_key');
-        if (storedKey && motionAPI.hasApiKey()) {
+        if (storedKey && motionAPI.isAuthenticated()) {
           setApiKey(storedKey);
           setIsConnected(true);
           updateSyncStatus();
