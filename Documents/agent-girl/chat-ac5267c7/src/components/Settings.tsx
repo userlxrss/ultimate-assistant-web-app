@@ -86,15 +86,12 @@ const getApiKeyPrefix = (apiKey: string): string => {
   return apiKey.substring(0, 4) + '...';
 };
 
-// Motion Integration Component with Automatic API Key
+// Motion Integration Component with OAuth Authentication
 const MotionIntegration: React.FC = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [syncStatus, setSyncStatus] = useState<any>(null);
   const [lastSync, setLastSync] = useState<Date | null>(null);
-
-  // Hardcoded API key
-  const MOTION_API_KEY = 'AARvN4IMgBFo6Jvr5IcBHyk8vjg8Z/3h4aUB58wWW1E=';
 
   useEffect(() => {
     // Check Motion connection on component mount
@@ -103,16 +100,29 @@ const MotionIntegration: React.FC = () => {
 
   const checkMotionConnection = async () => {
     try {
-      if (typeof window !== 'undefined' && window.storage) {
-        const connected = await window.storage.get('motion-connected');
-        if (connected?.value === 'true') {
+      console.log('🔍 Checking Motion OAuth connection status...');
+
+      // Check for real OAuth authentication
+      if (motionAPI.isAuthenticated()) {
+        console.log('✅ Motion API reports authenticated via OAuth');
+
+        // Get current user info
+        const userResponse = await motionAPI.getCurrentUser();
+        if (userResponse.success && userResponse.data) {
+          console.log('✅ Motion OAuth user verified:', userResponse.data.email);
           setIsConnected(true);
           updateSyncStatus();
           return;
         }
       }
+
+      // If not authenticated via OAuth, show not connected
+      console.log('📦 Motion not authenticated via OAuth - showing as not connected');
+      setIsConnected(false);
+
     } catch (error) {
-      console.log('Persistent storage not available');
+      console.error('❌ Error checking Motion OAuth connection:', error);
+      setIsConnected(false);
     }
   };
 
@@ -144,22 +154,20 @@ const MotionIntegration: React.FC = () => {
   const handleDisconnectMotion = async () => {
     if (confirm('Are you sure you want to disconnect Motion? This will remove your connection and tasks.')) {
       try {
-        // Clear persistent storage
-        if (typeof window !== 'undefined' && window.storage) {
-          await window.storage.delete('motion-connected');
-          await window.storage.delete('motion-api-key');
-          await window.storage.delete('motion-last-sync');
-        }
+        console.log('🔌 Disconnecting Motion OAuth...');
 
-        // Clear motionAPI instance
-        motionAPI.clearApiKey();
+        // Clear OAuth tokens and user session
+        await motionAPI.disconnectMotion();
+
+        // Clear local state
         setIsConnected(false);
         setSyncStatus(null);
         setLastSync(null);
 
+        console.log('✅ Motion OAuth disconnected successfully');
         alert('✅ Disconnected from Motion');
       } catch (error) {
-        console.error('Failed to disconnect:', error);
+        console.error('Failed to disconnect Motion:', error);
         alert('Failed to disconnect from Motion');
       }
     }
