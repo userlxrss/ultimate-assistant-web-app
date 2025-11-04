@@ -16,15 +16,12 @@ interface MockUser {
 let currentUser: MockUser | null = null;
 let authStateListeners: ((user: MockUser | null) => void)[] = [];
 
-// Load user from localStorage on startup
-const storedUser = localStorage.getItem('mockAuthUser');
-if (storedUser) {
-  try {
-    currentUser = JSON.parse(storedUser);
-  } catch (e) {
-    localStorage.removeItem('mockAuthUser');
-  }
-}
+// Force clear any existing sessions for production debugging
+console.log('🔥 MOCK AUTH: Clearing existing sessions');
+localStorage.removeItem('mockAuthUser');
+sessionStorage.clear();
+currentUser = null;
+console.log('🔥 MOCK AUTH: Starting fresh - no user logged in');
 
 // Mock authentication functions
 export const signInWithGoogle = async (): Promise<MockUser> => {
