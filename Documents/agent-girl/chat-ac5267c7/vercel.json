@@ -14,8 +14,5 @@
       "src": "/(.*)",
       "dest": "/index.html"
     }
-  ],
-  "env": {
-    "VITE_GOOGLE_CLIENT_ID": "@google-client-id"
-  }
+  ]
 }
