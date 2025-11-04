@@ -124,41 +124,19 @@ const MotionIntegration: React.FC = () => {
   const handleConnectMotion = async () => {
     setIsConnecting(true);
     try {
-      // Test the API key with real Motion API
-      const response = await fetch('https://api.usemotion.com/v1/tasks', {
-        headers: {
-          'X-API-Key': MOTION_API_KEY,
-          'Content-Type': 'application/json'
-        }
-      });
+      // Redirect to Motion OAuth authorization
+      const motionOAuthUrl = 'https://app.usemotion.com/oauth/authorize?' +
+        'client_id=demo-client-id&' +
+        'redirect_uri=' + encodeURIComponent(window.location.origin + '/oauth/callback') + '&' +
+        'scope=tasks:read tasks:write&' +
+        'response_type=code&' +
+        'state=' + Math.random().toString(36).substring(7);
 
-      if (!response.ok) {
-        throw new Error(`Motion API returned ${response.status}`);
-      }
-
-      // Connection successful - save persistent state
-      if (typeof window !== 'undefined' && window.storage) {
-        await window.storage.set('motion-connected', 'true', false);
-        await window.storage.set('motion-api-key', MOTION_API_KEY, false);
-        await window.storage.set('motion-last-sync', new Date().toISOString(), false);
-      }
-
-      // Update motionAPI instance
-      motionAPI.setApiKey(MOTION_API_KEY);
-      setIsConnected(true);
-      setLastSync(new Date());
-      updateSyncStatus();
-
-      // Show success message and redirect to tasks
-      alert('✅ Successfully connected to Motion! Redirecting to Tasks...');
-      setTimeout(() => {
-        window.location.href = '/tasks';
-      }, 1000);
+      window.location.href = motionOAuthUrl;
 
     } catch (error) {
       console.error('Failed to connect Motion:', error);
       alert(`❌ Failed to connect to Motion: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    } finally {
       setIsConnecting(false);
     }
   };
