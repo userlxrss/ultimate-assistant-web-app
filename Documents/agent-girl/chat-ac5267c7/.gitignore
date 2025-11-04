@@ -152,3 +152,4 @@ site/
 .env.temp
 .env.dev
 .env.prod
+.vercel

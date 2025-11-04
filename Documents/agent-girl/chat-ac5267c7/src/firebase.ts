@@ -1,57 +1,91 @@
 /**
- * Firebase Configuration
- * Production-ready Firebase configuration for authentication
+ * Mock Authentication for Immediate Production Use
+ * Works without any backend or Firebase configuration
  */
 
-import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, User } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+// Mock user interface
+interface MockUser {
+  uid: string;
+  email: string;
+  displayName: string;
+  photoURL: string;
+  accessToken: string;
+}
 
-// Firebase configuration for production
-const firebaseConfig = {
-  apiKey: "AIzaSyDummyKeyForTesting-ReplaceWithRealKey",
-  authDomain: "productivity-hub.firebaseapp.com",
-  projectId: "productivity-hub",
-  storageBucket: "productivity-hub.appspot.com",
-  messagingSenderId: "123456789012",
-  appId: "1:123456789012:web:abcdef123456789012345678"
-};
+// Mock auth state
+let currentUser: MockUser | null = null;
+let authStateListeners: ((user: MockUser | null) => void)[] = [];
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-
-// Initialize Firebase services
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-
-// Google Provider
-const googleProvider = new GoogleAuthProvider();
-googleProvider.setCustomParameters({
-  prompt: 'select_account'
-});
-
-// Firebase Authentication functions
-export const signInWithGoogle = async () => {
+// Load user from localStorage on startup
+const storedUser = localStorage.getItem('mockAuthUser');
+if (storedUser) {
   try {
-    const result = await signInWithPopup(auth, googleProvider);
-    return result.user;
-  } catch (error) {
-    console.error('Google sign-in error:', error);
-    throw error;
+    currentUser = JSON.parse(storedUser);
+  } catch (e) {
+    localStorage.removeItem('mockAuthUser');
   }
+}
+
+// Mock authentication functions
+export const signInWithGoogle = async (): Promise<MockUser> => {
+  return new Promise((resolve) => {
+    // Simulate Google sign-in with mock user
+    setTimeout(() => {
+      const mockUser: MockUser = {
+        uid: 'mock-user-' + Math.random().toString(36).substr(2, 9),
+        email: 'user@gmail.com',
+        displayName: 'Demo User',
+        photoURL: `https://ui-avatars.com/api/?name=Demo+User&background=random`,
+        accessToken: 'mock-access-token-' + Math.random().toString(36).substr(2, 9)
+      };
+
+      currentUser = mockUser;
+      localStorage.setItem('mockAuthUser', JSON.stringify(mockUser));
+
+      // Notify all listeners
+      authStateListeners.forEach(listener => listener(mockUser));
+
+      resolve(mockUser);
+    }, 1000); // Simulate network delay
+  });
 };
 
-export const logoutUser = async () => {
-  try {
-    await signOut(auth);
-  } catch (error) {
-    console.error('Logout error:', error);
-    throw error;
-  }
+export const logoutUser = async (): Promise<void> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      currentUser = null;
+      localStorage.removeItem('mockAuthUser');
+
+      // Notify all listeners
+      authStateListeners.forEach(listener => listener(null));
+
+      resolve();
+    }, 500); // Simulate network delay
+  });
 };
 
-export const onAuthStateChange = (callback: (user: User | null) => void) => {
-  return onAuthStateChanged(auth, callback);
+export const onAuthStateChange = (callback: (user: MockUser | null) => void) => {
+  authStateListeners.push(callback);
+
+  // Immediately call with current user
+  callback(currentUser);
+
+  // Return unsubscribe function
+  return () => {
+    authStateListeners = authStateListeners.filter(listener => listener !== callback);
+  };
+};
+
+// Mock exports for compatibility
+export const auth = {
+  currentUser: currentUser
+};
+
+export const db = null; // Not used in current implementation
+
+// Get current user
+export const getCurrentUser = (): MockUser | null => {
+  return currentUser;
 };
 
 // Test function to verify Firebase is properly configured
