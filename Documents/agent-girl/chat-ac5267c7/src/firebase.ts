@@ -98,4 +98,6 @@ export const testFirebaseConnection = () => {
   }
 };
 
-export default app;
+// Note: This file is kept for backward compatibility
+// Supabase authentication is now used instead
+export default null;

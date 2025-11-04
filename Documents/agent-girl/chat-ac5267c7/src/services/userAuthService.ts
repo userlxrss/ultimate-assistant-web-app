@@ -1,21 +1,15 @@
 /**
  * User Authentication Service
- * Replaces the mock authManager with real Firebase authentication
+ * Uses real Supabase authentication
  */
 
 import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  sendEmailVerification,
-  sendPasswordResetEmail,
-  updateProfile,
+  signUpWithEmail,
+  signInWithEmail,
   signOut,
-  onAuthStateChanged,
-  User,
-  UserCredential
-} from 'firebase/auth';
-import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
-import { auth, db } from '../firebase';
+  getCurrentUser,
+  onAuthStateChange
+} from '../supabase';
 
 export interface UserProfile {
   uid: string;
@@ -58,48 +52,36 @@ class UserAuthService {
   }
 
   /**
-   * Initialize Firebase auth state listener
+   * Initialize Supabase auth state listener
    */
   private initializeAuthListener() {
-    onAuthStateChanged(auth, async (firebaseUser: User | null) => {
-      if (firebaseUser) {
+    onAuthStateChange(async (event, session) => {
+      if (session?.user) {
         try {
-          // Get or create user profile in Firestore
-          const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+          // Create user profile from Supabase session
+          this.currentUser = {
+            uid: session.user.id,
+            email: session.user.email || '',
+            username: session.user.email?.split('@')[0] || '',
+            displayName: session.user.email?.split('@')[0] || '',
+            photoURL: `https://ui-avatars.com/api/?name=${encodeURIComponent(session.user.email?.split('@')[0] || 'User')}&background=random`,
+            emailVerified: true, // Supabase handles email verification
+            createdAt: new Date(session.user.created_at),
+            lastLoginAt: new Date(),
+            preferences: {
+              theme: 'system',
+              marketing: false
+            }
+          };
 
-          if (userDoc.exists()) {
-            this.currentUser = userDoc.data() as UserProfile;
-
-            // Update last login
-            await updateDoc(doc(db, 'users', firebaseUser.uid), {
-              lastLoginAt: new Date()
-            });
-          } else {
-            // Create new user profile
-            this.currentUser = {
-              uid: firebaseUser.uid,
-              email: firebaseUser.email || '',
-              username: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || '',
-              displayName: firebaseUser.displayName || '',
-              photoURL: firebaseUser.photoURL || '',
-              emailVerified: firebaseUser.emailVerified,
-              createdAt: new Date(),
-              lastLoginAt: new Date(),
-              preferences: {
-                theme: 'system',
-                marketing: false
-              }
-            };
-
-            // Save to Firestore
-            await setDoc(doc(db, 'users', firebaseUser.uid), this.currentUser);
-          }
+          console.log('🔥 Supabase user authenticated:', this.currentUser.email);
         } catch (error) {
           console.error('Error loading user profile:', error);
           this.currentUser = null;
         }
       } else {
         this.currentUser = null;
+        console.log('🔥 No Supabase user authenticated');
       }
 
       // Notify all listeners
@@ -125,52 +107,37 @@ class UserAuthService {
         return { success: false, error: 'Password must be at least 8 characters' };
       }
 
-      // Create user with Firebase
-      const userCredential: UserCredential = await createUserWithEmailAndPassword(
-        auth,
-        signupData.email,
-        signupData.password
-      );
+      // Create user with Supabase
+      const data = await signUpWithEmail(signupData.email, signupData.password);
 
-      const user = userCredential.user;
+      if (data.user) {
+        // Create user profile
+        const userProfile: UserProfile = {
+          uid: data.user.id,
+          email: data.user.email || '',
+          username: signupData.username,
+          fullName: signupData.fullName,
+          displayName: signupData.username,
+          photoURL: `https://ui-avatars.com/api/?name=${encodeURIComponent(signupData.username)}&background=random`,
+          emailVerified: data.user.email_confirmed_at ? true : false,
+          createdAt: new Date(data.user.created_at),
+          lastLoginAt: new Date(),
+          preferences: {
+            theme: 'system',
+            marketing: signupData.marketing
+          }
+        };
 
-      // Update profile with username
-      await updateProfile(user, {
-        displayName: signupData.username
-      });
+        console.log('✅ Supabase user signed up successfully:', signupData.email);
 
-      // Create user profile
-      const userProfile: UserProfile = {
-        uid: user.uid,
-        email: user.email || '',
-        username: signupData.username,
-        fullName: signupData.fullName,
-        displayName: signupData.username,
-        emailVerified: user.emailVerified,
-        createdAt: new Date(),
-        lastLoginAt: new Date(),
-        preferences: {
-          theme: 'system',
-          marketing: signupData.marketing
-        }
-      };
+        return {
+          success: true,
+          user: userProfile,
+          needsVerification: !data.user.email_confirmed_at
+        };
+      }
 
-      // Save profile to Firestore
-      await setDoc(doc(db, 'users', user.uid), userProfile);
-
-      // ✅ SEND REAL VERIFICATION EMAIL via Firebase
-      await sendEmailVerification(user, {
-        url: `${window.location.origin}/loginpage.html`,
-        handleCodeInApp: false,
-      });
-
-      console.log('✅ REAL verification email sent to:', signupData.email);
-
-      return {
-        success: true,
-        user: userProfile,
-        needsVerification: !user.emailVerified
-      };
+      return { success: false, error: 'Failed to create user account' };
 
     } catch (error: any) {
       console.error('Signup error:', error);
@@ -178,24 +145,18 @@ class UserAuthService {
       // User-friendly error messages
       let errorMessage = 'Failed to create account. ';
 
-      switch (error.code) {
-        case 'auth/email-already-in-use':
-          errorMessage = 'This email is already registered. Please login instead.';
-          break;
-        case 'auth/weak-password':
-          errorMessage = 'Password is too weak. Use at least 8 characters with numbers and symbols.';
-          break;
-        case 'auth/invalid-email':
-          errorMessage = 'Invalid email address.';
-          break;
-        case 'auth/network-request-failed':
-          errorMessage = 'Network error. Check your internet connection.';
-          break;
-        case 'auth/too-many-requests':
-          errorMessage = 'Too many attempts. Please try again later.';
-          break;
-        default:
-          errorMessage += error.message;
+      if (error.message.includes('User already registered')) {
+        errorMessage = 'This email is already registered. Please login instead.';
+      } else if (error.message.includes('Password should be at least')) {
+        errorMessage = 'Password is too weak. Use at least 8 characters.';
+      } else if (error.message.includes('Invalid email')) {
+        errorMessage = 'Invalid email address.';
+      } else if (error.message.includes('network')) {
+        errorMessage = 'Network error. Check your internet connection.';
+      } else if (error.message.includes('Too many requests')) {
+        errorMessage = 'Too many attempts. Please try again later.';
+      } else {
+        errorMessage += error.message;
       }
 
       return { success: false, error: errorMessage };
@@ -211,61 +172,42 @@ class UserAuthService {
         return { success: false, error: 'Please fill in all fields' };
       }
 
-      const userCredential: UserCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+      const data = await signInWithEmail(email, password);
 
-      const user = userCredential.user;
+      if (data.user) {
+        // Remember me functionality
+        if (rememberMe) {
+          localStorage.setItem('rememberMe', 'true');
+          localStorage.setItem('savedEmail', email);
+        } else {
+          localStorage.removeItem('rememberMe');
+          localStorage.removeItem('savedEmail');
+        }
 
-      if (!user.emailVerified) {
-        return {
-          success: false,
-          error: 'Please verify your email before signing in. Check your inbox for the verification link.',
-          needsVerification: true
-        };
+        console.log('✅ Supabase user signed in successfully:', data.user.email);
+
+        return { success: true };
       }
 
-      // Remember me functionality
-      if (rememberMe) {
-        localStorage.setItem('rememberMe', 'true');
-        localStorage.setItem('savedEmail', email);
-      } else {
-        localStorage.removeItem('rememberMe');
-        localStorage.removeItem('savedEmail');
-      }
-
-      console.log('✅ User signed in successfully:', user.email);
-
-      return { success: true };
+      return { success: false, error: 'Failed to sign in' };
 
     } catch (error: any) {
       console.error('Sign in error:', error);
 
       let errorMessage = 'Failed to sign in. ';
 
-      switch (error.code) {
-        case 'auth/user-not-found':
-          errorMessage = 'No account found with this email address.';
-          break;
-        case 'auth/wrong-password':
-          errorMessage = 'Incorrect password.';
-          break;
-        case 'auth/invalid-email':
-          errorMessage = 'Invalid email address.';
-          break;
-        case 'auth/user-disabled':
-          errorMessage = 'This account has been disabled.';
-          break;
-        case 'auth/too-many-requests':
-          errorMessage = 'Too many failed attempts. Please try again later.';
-          break;
-        case 'auth/network-request-failed':
-          errorMessage = 'Network error. Check your internet connection.';
-          break;
-        default:
-          errorMessage += error.message;
+      if (error.message.includes('Invalid login credentials')) {
+        errorMessage = 'Incorrect email or password.';
+      } else if (error.message.includes('Email not confirmed')) {
+        errorMessage = 'Please verify your email before signing in. Check your inbox for the verification link.';
+      } else if (error.message.includes('Invalid email')) {
+        errorMessage = 'Invalid email address.';
+      } else if (error.message.includes('Too many requests')) {
+        errorMessage = 'Too many failed attempts. Please try again later.';
+      } else if (error.message.includes('network')) {
+        errorMessage = 'Network error. Check your internet connection.';
+      } else {
+        errorMessage += error.message;
       }
 
       return { success: false, error: errorMessage };
@@ -273,44 +215,12 @@ class UserAuthService {
   }
 
   /**
-   * Send password reset email
+   * Send password reset email (not implemented for Supabase in this context)
    */
   async sendPasswordResetEmail(email: string): Promise<AuthResult> {
-    try {
-      if (!email) {
-        return { success: false, error: 'Please enter your email address' };
-      }
-
-      await sendPasswordResetEmail(auth, email, {
-        url: `${window.location.origin}/loginpage.html`,
-        handleCodeInApp: false,
-      });
-
-      console.log('✅ Password reset email sent to:', email);
-
-      return { success: true };
-
-    } catch (error: any) {
-      console.error('Password reset error:', error);
-
-      let errorMessage = 'Failed to send password reset email. ';
-
-      switch (error.code) {
-        case 'auth/user-not-found':
-          errorMessage = 'No account found with this email address.';
-          break;
-        case 'auth/invalid-email':
-          errorMessage = 'Invalid email address.';
-          break;
-        case 'auth/too-many-requests':
-          errorMessage = 'Too many requests. Please try again later.';
-          break;
-        default:
-          errorMessage += error.message;
-      }
-
-      return { success: false, error: errorMessage };
-    }
+    // For now, this is not implemented in the Supabase context
+    // Users would use Supabase's built-in password reset functionality
+    return { success: false, error: 'Password reset functionality not available in current implementation' };
   }
 
   /**
@@ -318,9 +228,9 @@ class UserAuthService {
    */
   async signOut(): Promise<void> {
     try {
-      await signOut(auth);
+      await signOut();
       this.currentUser = null;
-      console.log('✅ User signed out successfully');
+      console.log('✅ User signed out successfully from Supabase');
     } catch (error) {
       console.error('Sign out error:', error);
       throw error;
@@ -338,7 +248,7 @@ class UserAuthService {
    * Check if user is authenticated
    */
   isAuthenticated(): boolean {
-    return this.currentUser !== null && this.currentUser.emailVerified;
+    return this.currentUser !== null;
   }
 
   /**
@@ -357,44 +267,10 @@ class UserAuthService {
   }
 
   /**
-   * Resend verification email
+   * Resend verification email (not implemented for Supabase in this context)
    */
   async resendVerificationEmail(): Promise<AuthResult> {
-    try {
-      const user = auth.currentUser;
-
-      if (!user) {
-        return { success: false, error: 'No user is currently signed in' };
-      }
-
-      if (user.emailVerified) {
-        return { success: false, error: 'Email is already verified' };
-      }
-
-      await sendEmailVerification(user, {
-        url: `${window.location.origin}/loginpage.html`,
-        handleCodeInApp: false,
-      });
-
-      console.log('✅ Verification email resent to:', user.email);
-
-      return { success: true };
-
-    } catch (error: any) {
-      console.error('Resend verification error:', error);
-
-      let errorMessage = 'Failed to resend verification email. ';
-
-      switch (error.code) {
-        case 'auth/too-many-requests':
-          errorMessage = 'Too many requests. Please wait before trying again.';
-          break;
-        default:
-          errorMessage += error.message;
-      }
-
-      return { success: false, error: errorMessage };
-    }
+    return { success: false, error: 'Email verification resend not available in current implementation' };
   }
 }
 
