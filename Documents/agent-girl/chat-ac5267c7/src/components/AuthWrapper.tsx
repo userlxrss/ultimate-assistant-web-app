@@ -2,6 +2,7 @@ import React, { Suspense, lazy, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, LogOut, Settings, Shield } from 'lucide-react';
 import AuthPage from '../pages/AuthPage';
+import { getCurrentUser, onAuthStateChange } from '../supabase';
 
 // Lazy load the main app
 const MainApp = lazy(() => import('../MainApp'));
@@ -13,19 +14,24 @@ const AuthWrapper: React.FC = () => {
   const [userInfo, setUserInfo] = useState<any>(null);
 
   useEffect(() => {
-    console.log('🔥 AuthWrapper: Initializing Supabase authentication...');
+    console.log('🔥 AuthWrapper: Initializing real Supabase authentication...');
 
-    // Check if user is already authenticated in localStorage
-    const checkAuthStatus = () => {
+    // Check current auth status and listen for changes
+    const checkAuthStatus = async () => {
       try {
-        const storedUser = localStorage.getItem('supabase_user');
-        if (storedUser) {
-          const user = JSON.parse(storedUser);
-          setUserInfo(user);
+        const user = await getCurrentUser();
+        if (user) {
+          const userData = {
+            id: user.id,
+            email: user.email,
+            name: user.email?.split('@')[0] || 'User',
+            picture: `https://ui-avatars.com/api/?name=${encodeURIComponent(user.email?.split('@')[0] || 'User')}&background=random`,
+          };
+          setUserInfo(userData);
           setIsAuthenticated(true);
-          console.log('🔥 AuthWrapper: User found in localStorage:', user);
+          console.log('🔥 AuthWrapper: User authenticated:', userData);
         } else {
-          console.log('🔥 AuthWrapper: No user found, showing signup page');
+          console.log('🔥 AuthWrapper: No user authenticated, showing signup page');
           setIsAuthenticated(false);
         }
       } catch (err) {
@@ -36,7 +42,32 @@ const AuthWrapper: React.FC = () => {
       }
     };
 
+    // Listen for auth state changes
+    const { data: { subscription } } = onAuthStateChange((event, session) => {
+      console.log('🔥 AuthWrapper: Auth state changed:', event, session);
+      if (event === 'SIGNED_IN' && session?.user) {
+        const userData = {
+          id: session.user.id,
+          email: session.user.email,
+          name: session.user.email?.split('@')[0] || 'User',
+          picture: `https://ui-avatars.com/api/?name=${encodeURIComponent(session.user.email?.split('@')[0] || 'User')}&background=random`,
+        };
+        setUserInfo(userData);
+        setIsAuthenticated(true);
+        console.log('🔥 AuthWrapper: User signed in:', userData);
+      } else if (event === 'SIGNED_OUT') {
+        setUserInfo(null);
+        setIsAuthenticated(false);
+        console.log('🔥 AuthWrapper: User signed out');
+      }
+    });
+
     checkAuthStatus();
+
+    // Cleanup subscription
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleAuthSuccess = (user: any) => {

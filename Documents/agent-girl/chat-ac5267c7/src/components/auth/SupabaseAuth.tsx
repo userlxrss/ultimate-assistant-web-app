@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle, AlertCircle, Loader2, Shield, User, Mail } from 'lucide-react';
+import { signUpWithEmail, signInWithEmail, signOut, getCurrentUser, onAuthStateChange } from '../../supabase';
 
 interface SupabaseAuthProps {
   onAuthSuccess?: (userInfo: any) => void;
@@ -25,14 +26,23 @@ export const SupabaseAuth: React.FC<SupabaseAuthProps> = ({
 
   const checkAuthStatus = async () => {
     try {
-      // For now, we'll use localStorage for demo purposes
-      // In real implementation, you'd use Supabase's getUser() method
-      const storedUser = localStorage.getItem('supabase_user');
-      if (storedUser) {
-        const user = JSON.parse(storedUser);
-        setUserInfo(user);
+      console.log('🔥 Checking Supabase auth status...');
+      // Use real Supabase authentication
+      const user = await getCurrentUser();
+      if (user) {
+        console.log('🔥 User found:', user);
+        const userData = {
+          id: user.id,
+          email: user.email,
+          name: user.email?.split('@')[0] || 'User',
+          picture: `https://ui-avatars.com/api/?name=${encodeURIComponent(user.email?.split('@')[0] || 'User')}&background=random`,
+          provider: 'supabase'
+        };
+        setUserInfo(userData);
         setIsAuthenticated(true);
-        onAuthSuccess?.(user);
+        onAuthSuccess?.(userData);
+      } else {
+        console.log('🔥 No authenticated user found');
       }
     } catch (err) {
       console.warn('Auth check failed:', err);
@@ -49,29 +59,29 @@ export const SupabaseAuth: React.FC<SupabaseAuthProps> = ({
     setError(null);
 
     try {
-      // Mock Supabase authentication
-      // In real implementation, you'd use:
-      // const { data, error } = isSignUp
-      //   ? await supabase.auth.signUp({ email, password })
-      //   : await supabase.auth.signInWithPassword({ email, password });
+      console.log('🔥 Attempting Supabase authentication...');
+      // Real Supabase authentication
+      const data = isSignUp
+        ? await signUpWithEmail(email, password)
+        : await signInWithEmail(email, password);
 
-      // For demo purposes:
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      if (data.user) {
+        console.log('🔥 Supabase authentication successful:', data.user);
+        const userData = {
+          id: data.user.id,
+          email: data.user.email,
+          name: data.user.email?.split('@')[0] || 'User',
+          picture: `https://ui-avatars.com/api/?name=${encodeURIComponent(data.user.email?.split('@')[0] || 'User')}&background=random`,
+          provider: 'supabase'
+        };
 
-      const mockUser = {
-        id: 'supabase-user-' + Math.random().toString(36).substr(2, 9),
-        email: email,
-        name: email.split('@')[0],
-        picture: `https://ui-avatars.com/api/?name=${encodeURIComponent(email.split('@')[0])}&background=random`,
-        provider: 'email'
-      };
-
-      localStorage.setItem('supabase_user', JSON.stringify(mockUser));
-      setUserInfo(mockUser);
-      setIsAuthenticated(true);
-      onAuthSuccess?.(mockUser);
+        setUserInfo(userData);
+        setIsAuthenticated(true);
+        onAuthSuccess?.(userData);
+      }
 
     } catch (err) {
+      console.error('🔥 Supabase authentication error:', err);
       const errorMsg = err instanceof Error ? err.message : 'Authentication failed';
       setError(errorMsg);
       onAuthError?.(errorMsg);
@@ -82,14 +92,16 @@ export const SupabaseAuth: React.FC<SupabaseAuthProps> = ({
 
   const handleSignOut = async () => {
     try {
-      localStorage.removeItem('supabase_user');
+      console.log('🔥 Signing out from Supabase...');
+      await signOut();
       setIsAuthenticated(false);
       setUserInfo(null);
       setEmail('');
       setPassword('');
       onAuthError?.('Signed out successfully');
+      console.log('🔥 Successfully signed out');
     } catch (err) {
-      console.warn('Failed to sign out:', err);
+      console.error('Failed to sign out:', err);
     }
   };
 
