@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FirebaseAuth } from '../components/auth/FirebaseAuth';
+import { SupabaseAuth } from '../components/auth/SupabaseAuth';
 import { CheckCircle, ArrowRight, Shield, Users, Mail, Calendar } from 'lucide-react';
 
 interface AuthPageProps {
@@ -128,7 +128,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onAuthSuccess }) => {
         </button>
 
         {/* Auth Component */}
-        <FirebaseAuth
+        <SupabaseAuth
           onAuthSuccess={handleAuthSuccess}
           onAuthError={handleAuthError}
         />

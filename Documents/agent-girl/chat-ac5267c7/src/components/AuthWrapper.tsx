@@ -1,7 +1,6 @@
 import React, { Suspense, lazy, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, LogOut, Settings, Shield } from 'lucide-react';
-import { onAuthStateChange } from '../firebase';
 import AuthPage from '../pages/AuthPage';
 
 // Lazy load the main app
@@ -14,35 +13,30 @@ const AuthWrapper: React.FC = () => {
   const [userInfo, setUserInfo] = useState<any>(null);
 
   useEffect(() => {
-    console.log('🔥 AuthWrapper: Initializing authentication...');
-    // FORCE SHOW SIGNUP PAGE IN PRODUCTION FOR NOW
-    console.log('🔥 AuthWrapper: FORCING SIGNUP PAGE TO SHOW IN PRODUCTION');
-    setIsAuthenticated(false);
-    setIsLoading(false);
-    return;
+    console.log('🔥 AuthWrapper: Initializing Supabase authentication...');
 
-    // Use Firebase authentication - no backend needed!
-    const unsubscribe = onAuthStateChange((user) => {
-      console.log('🔥 AuthWrapper: Auth state changed:', user);
-      if (user) {
-        const userData = {
-          id: user.uid,
-          email: user.email,
-          name: user.displayName,
-          picture: user.photoURL
-        };
-        console.log('🔥 AuthWrapper: User authenticated:', userData);
-        setUserInfo(userData);
-        setIsAuthenticated(true);
-      } else {
-        console.log('🔥 AuthWrapper: User not authenticated');
-        setUserInfo(null);
+    // Check if user is already authenticated in localStorage
+    const checkAuthStatus = () => {
+      try {
+        const storedUser = localStorage.getItem('supabase_user');
+        if (storedUser) {
+          const user = JSON.parse(storedUser);
+          setUserInfo(user);
+          setIsAuthenticated(true);
+          console.log('🔥 AuthWrapper: User found in localStorage:', user);
+        } else {
+          console.log('🔥 AuthWrapper: No user found, showing signup page');
+          setIsAuthenticated(false);
+        }
+      } catch (err) {
+        console.error('🔥 AuthWrapper: Error checking auth status:', err);
         setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
-    });
+    };
 
-    return () => unsubscribe();
+    checkAuthStatus();
   }, []);
 
   const handleAuthSuccess = (user: any) => {
