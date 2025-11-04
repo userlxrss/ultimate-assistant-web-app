@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { GoogleAuthSimple } from '../components/auth/GoogleAuthSimple';
+import { FirebaseAuth } from '../components/auth/FirebaseAuth';
 import { CheckCircle, ArrowRight, Shield, Users, Mail, Calendar } from 'lucide-react';
 
 interface AuthPageProps {
@@ -128,10 +128,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onAuthSuccess }) => {
         </button>
 
         {/* Auth Component */}
-        <GoogleAuthSimple
+        <FirebaseAuth
           onAuthSuccess={handleAuthSuccess}
           onAuthError={handleAuthError}
-          serverUrl="http://localhost:3006"
         />
 
         {/* Success Message */}
