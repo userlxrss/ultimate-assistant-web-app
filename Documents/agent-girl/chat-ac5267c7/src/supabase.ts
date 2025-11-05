@@ -1,29 +1,89 @@
 /**
- * Supabase Configuration
- * Real Supabase authentication integration
+ * 🔒 SECURE Supabase Configuration
+ * Production-ready authentication with environment-aware configuration
  */
 
 import { createClient } from '@supabase/supabase-js';
 
-// Supabase configuration
-const supabaseUrl = 'https://vacwojgxafujscxuqmpg.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZhY3dvamd4YWZ1anNjeHVxbXBnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTU5MTksImV4cCI6MjA3Nzc3MTkxOX0.RniyufeNXF9h6a9u55zGIxLRFeFDCaJxQ1ZjLv6KgxI';
+// Environment-aware configuration
+const getSupabaseConfig = () => {
+  const isDevelopment = import.meta.env.DEV;
+  const isProduction = import.meta.env.PROD;
 
-// Create Supabase client
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+  // Log environment for debugging
+  if (isDevelopment) {
+    console.log('🔧 Supabase running in DEVELOPMENT mode');
+  } else if (isProduction) {
+    console.log('🚀 Supabase running in PRODUCTION mode');
+  }
+
+  return {
+    url: import.meta.env.VITE_SUPABASE_URL || 'https://vacwojgxafujscxuqmpg.supabase.co',
+    anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZhY3dvamd4YWZ1anNjeHVxbXBnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTU5MTksImV4cCI6MjA3Nzc3MTkxOX0.RniyufeNXF9h6a9u55zGIxLRFeFDCaJxQ1ZjLv6KgxI',
+    redirectUrl: getRedirectUrl()
+  };
+};
+
+// Get correct redirect URL based on environment
+const getRedirectUrl = (): string => {
+  const isDevelopment = import.meta.env.DEV;
+  const isProduction = import.meta.env.PROD;
+
+  // Production environment
+  if (isProduction) {
+    const prodUrl = import.meta.env.VITE_PROD_URL || 'https://dailydeck.vercel.app';
+    console.log('🌐 Production redirect URL:', prodUrl);
+    return prodUrl;
+  }
+
+  // Development environment
+  if (typeof window !== 'undefined') {
+    const devUrl = window.location.origin;
+    console.log('🏠 Development redirect URL:', devUrl);
+    return devUrl;
+  }
+
+  // Fallback
+  console.log('⚠️ Using fallback redirect URL: http://localhost:5176');
+  return 'http://localhost:5176';
+};
+
+const config = getSupabaseConfig();
+
+// Create Supabase client with secure configuration
+export const supabase = createClient(config.url, config.anonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true
+  }
+});
 
 // Authentication functions
 export const signUpWithEmail = async (email: string, password: string) => {
+  console.log('🔐 Starting email sign up process...');
+  console.log('📧 Email:', email);
+  console.log('🔄 Redirect URL will be:', config.redirectUrl);
+
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      emailRedirectTo: typeof window !== 'undefined' ? `${window.location.origin}/` : 'https://dailydeck.vercel.app/',
-      // Enable email confirmation by ensuring this setting is respected
+      emailRedirectTo: config.redirectUrl,
+      data: {
+        email_confirm_url: config.redirectUrl
+      }
     }
   });
 
-  if (error) throw error;
+  if (error) {
+    console.error('❌ Sign up error:', error.message);
+    throw error;
+  }
+
+  console.log('✅ Sign up initiated successfully');
+  console.log('📊 User data:', data.user ? 'User created' : 'Confirmation required');
+
   return data;
 };
 
