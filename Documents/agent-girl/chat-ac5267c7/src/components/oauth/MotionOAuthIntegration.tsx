@@ -28,28 +28,48 @@ export const MotionOAuthIntegration: React.FC<MotionOAuthIntegrationProps> = ({
     }
   }, [isConnected, onConnect]);
 
-  const handleConnect = async () => {
-    if (!apiKey.trim()) {
-      setConnectionStatus('Please enter your Motion API key');
-      return;
-    }
-
+  const handleConnect = () => {
     setIsConnecting(true);
-    setConnectionStatus('Connecting to Motion...');
+    setConnectionStatus('Redirecting to Motion OAuth...');
 
     try {
-      const trimmedApiKey = apiKey.trim();
-      await onConnect(trimmedApiKey);
+      // REAL OAuth: Redirect user to Motion's actual login page
+      const MOTION_CLIENT_ID = import.meta.env.VITE_MOTION_CLIENT_ID || 'your-motion-client-id'; // Replace with your actual Motion client ID
+      const REDIRECT_URI = encodeURIComponent('http://localhost:5175/auth/motion/callback');
+      const SCOPE = 'tasks:read tasks:write calendar:read';
+      const STATE = Math.random().toString(36).substring(7);
 
-      // Save the API key persistently
-      authManager.saveMotionSession(trimmedApiKey);
+      // Build REAL OAuth URL - this will take user to Motion's login page
+      const motionOAuthUrl = `https://app.usemotion.com/oauth/authorize?client_id=${MOTION_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=${SCOPE}&state=${STATE}`;
 
-      setConnectionStatus('Successfully connected to Motion!');
-      setApiKey('');
-      console.log('🎯 Motion session saved persistently');
+      console.log('🔗 Redirecting to Motion OAuth page:', motionOAuthUrl);
+
+      // REDIRECT USER TO MOTION'S ACTUAL LOGIN PAGE
+      // Open OAuth popup
+      const popup = window.open(
+        motionOAuthUrl,
+        'motion-oauth',
+        'width=500,height=600,scrollbars=yes,resizable=yes'
+      );
+
+      // Check if popup was blocked
+      if (!popup || popup.closed || typeof popup.closed === 'undefined') {
+        alert('Popup blocked! Please allow popups for this site and try again.');
+        setIsConnecting(false);
+        return;
+      }
+
+      // Listen for OAuth callback
+      const handleOAuthCallback = (event) => {
+        if (event.data.type === 'motion-oauth-callback') {
+          window.removeEventListener('message', handleOAuthCallback);
+          setIsConnecting(false);
+        }
+      };
+
+      window.addEventListener('message', handleOAuthCallback);;
     } catch (error) {
-      setConnectionStatus(`Connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    } finally {
+      setConnectionStatus(`OAuth failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       setIsConnecting(false);
     }
   };

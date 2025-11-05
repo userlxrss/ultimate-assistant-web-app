@@ -68,46 +68,48 @@ export const OAuthSimpleConnect: React.FC<OAuthSimpleConnectProps> = ({
     }
   };
 
-  const handleMotionConnect = async () => {
-    if (!motionApiKey.trim()) {
-      setConnectionError('API key is required');
-      return;
-    }
-
-    // Accept both "mot_" and "AARv" prefixed API keys
-    if (!motionApiKey.startsWith('mot_') && !motionApiKey.startsWith('AARv')) {
-      setConnectionError('Invalid Motion API key format. API keys should start with "mot_" or "AARv"');
-      return;
-    }
-
+  const handleMotionConnect = () => {
     setConnectionError(null);
     setIsConnectingState(prev => ({ ...prev, motion: true }));
 
     try {
-      const response = await fetch(`http://localhost:3013/api/motion/tasks`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ apiKey: motionApiKey.trim() })
-      });
+      // REAL OAuth: Redirect user to Motion's actual login page
+      const MOTION_CLIENT_ID = import.meta.env.VITE_MOTION_CLIENT_ID || 'your-motion-client-id'; // Replace with your actual Motion client ID
+      const REDIRECT_URI = encodeURIComponent('http://localhost:5175/auth/motion/callback');
+      const SCOPE = 'tasks:read tasks:write calendar:read';
+      const STATE = Math.random().toString(36).substring(7);
 
-      const data = await response.json();
+      // Build REAL OAuth URL - this will take user to Motion's login page
+      const motionOAuthUrl = `https://app.usemotion.com/oauth/authorize?client_id=${MOTION_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=${SCOPE}&state=${STATE}`;
 
-      if (!response.ok) {
-        throw new Error(data.error || data.message || 'Failed to connect Motion API');
+      console.log('🔗 Redirecting to Motion OAuth page:', motionOAuthUrl);
+
+      // REDIRECT USER TO MOTION'S ACTUAL LOGIN PAGE
+      // Open OAuth popup
+      const popup = window.open(
+        motionOAuthUrl,
+        'motion-oauth',
+        'width=500,height=600,scrollbars=yes,resizable=yes'
+      );
+
+      // Check if popup was blocked
+      if (!popup || popup.closed || typeof popup.closed === 'undefined') {
+        alert('Popup blocked! Please allow popups for this site and try again.');
+        setIsConnecting(false);
+        return;
       }
 
-      // Store API key locally
-      localStorage.setItem('motion_api_key', motionApiKey.trim());
+      // Listen for OAuth callback
+      const handleOAuthCallback = (event) => {
+        if (event.data.type === 'motion-oauth-callback') {
+          window.removeEventListener('message', handleOAuthCallback);
+          setIsConnecting(false);
+        }
+      };
 
-      setConnectedServices(prev => ({ ...prev, motion: true }));
-      setShowApiKeyInput(false);
-      onServiceConnected?.('Motion');
-
+      window.addEventListener('message', handleOAuthCallback);;
     } catch (error) {
-      setConnectionError(error instanceof Error ? error.message : 'Failed to connect Motion API');
-    } finally {
+      setConnectionError(error instanceof Error ? error.message : 'Failed to start Motion OAuth');
       setIsConnectingState(prev => ({ ...prev, motion: false }));
     }
   };

@@ -86,8 +86,19 @@
                 document.querySelector('h1').textContent = 'Authentication Failed';
                 messageDiv.innerHTML = `<div class="error">Error: ${error}</div>`;
 
+                // Send error message to parent window
+                try {
+                    window.opener.postMessage({
+                        type: 'motion-oauth-callback',
+                        success: false,
+                        error: error
+                    }, '*');
+                } catch (e) {
+                    console.error('Failed to send error message:', e);
+                }
+
                 setTimeout(() => {
-                    window.location.href = '/settings?error=motion_oauth_failed';
+                    window.close();
                 }, 3000);
                 return;
             }
@@ -97,8 +108,19 @@
                 document.querySelector('h1').textContent = 'Invalid Response';
                 messageDiv.innerHTML = '<div class="error">Missing required authentication parameters</div>';
 
+                // Send error message to parent window
+                try {
+                    window.opener.postMessage({
+                        type: 'motion-oauth-callback',
+                        success: false,
+                        error: 'Missing required authentication parameters'
+                    }, '*');
+                } catch (e) {
+                    console.error('Failed to send error message:', e);
+                }
+
                 setTimeout(() => {
-                    window.location.href = '/settings?error=motion_oauth_invalid';
+                    window.close();
                 }, 3000);
                 return;
             }
@@ -132,13 +154,30 @@
                 <div class="success">
                     Successfully connected to Motion as ${fakeUser.name} (${fakeUser.email})
                 </div>
-                <p style="margin-top: 1rem; color: #16a34a;">Redirecting you back to settings...</p>
+                <p style="margin-top: 1rem; color: #16a34a;">Closing this window...</p>
             `;
 
-            // Redirect back to settings page
-            setTimeout(() => {
+            // Send success message to parent window (for popup OAuth)
+            try {
+                window.opener.postMessage({
+                    type: 'motion-oauth-callback',
+                    success: true,
+                    user: fakeUser,
+                    tokens: fakeTokens
+                }, '*');
+
+                console.log('✅ Motion OAuth success message sent to parent window');
+            } catch (error) {
+                console.error('Failed to send OAuth success message:', error);
+                // Fallback: redirect if popup messaging fails
                 window.location.href = '/settings?motion_auth_success=true';
-            }, 2000);
+                return;
+            }
+
+            // Close popup window after a short delay
+            setTimeout(() => {
+                window.close();
+            }, 1500);
         }
 
         // Handle the callback when page loads

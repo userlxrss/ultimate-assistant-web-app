@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Settings, Calendar, Download, Layout, Palette, ChevronDown, Link, Check, AlertCircle, RefreshCw, ExternalLink } from 'lucide-react';
-import { OAuthIntegration } from './oauth/OAuthIntegration';
 import { GmailSettings } from './email/GmailSettings';
 
 interface SettingsProps {
@@ -85,7 +84,7 @@ const getApiKeyPrefix = (apiKey: string): string => {
   return apiKey.substring(0, 4) + '...';
 };
 
-// Motion Integration Component with OAuth Authentication
+// Motion Integration Component with Email/Password Authentication
 const MotionIntegration: React.FC = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -99,43 +98,35 @@ const MotionIntegration: React.FC = () => {
 
   const checkMotionConnection = () => {
     try {
-      console.log('🔍 Checking Motion OAuth tokens...');
+      console.log('🔍 Checking Motion authentication...');
 
-      // Check for REAL OAuth tokens in localStorage
-      const motionTokens = localStorage.getItem('motion_oauth_tokens');
-      const motionUser = localStorage.getItem('motion_oauth_user');
+      // Check for email/password login token in localStorage
+      const motionToken = localStorage.getItem('motion_token');
+      const motionUser = localStorage.getItem('motion_user');
+      const motionConnected = localStorage.getItem('motion_connected');
 
-      if (motionTokens && motionUser) {
+      if (motionToken && motionUser && motionConnected === 'true') {
         try {
-          const tokens = JSON.parse(motionTokens);
           const user = JSON.parse(motionUser);
-
-          // Check if tokens are still valid (not expired)
-          const now = Date.now();
-          if (tokens.expiresAt && now < tokens.expiresAt) {
-            console.log('✅ Valid Motion OAuth tokens found for user:', user.email);
-            setIsConnected(true);
-            setSyncStatus({ connected: true, lastSync: new Date() });
-            return;
-          } else {
-            console.log('⚠️ Motion OAuth tokens expired, removing...');
-            localStorage.removeItem('motion_oauth_tokens');
-            localStorage.removeItem('motion_oauth_user');
-          }
+          console.log('✅ Valid Motion authentication found for user:', user.email);
+          setIsConnected(true);
+          setSyncStatus({ connected: true, lastSync: new Date() });
+          return;
         } catch (parseError) {
-          console.log('❌ Invalid Motion OAuth tokens, removing...');
-          localStorage.removeItem('motion_oauth_tokens');
-          localStorage.removeItem('motion_oauth_user');
+          console.log('❌ Invalid Motion user data, removing...');
+          localStorage.removeItem('motion_token');
+          localStorage.removeItem('motion_user');
+          localStorage.removeItem('motion_connected');
         }
       }
 
-      // No valid OAuth tokens found
-      console.log('📦 No Motion OAuth tokens found - showing as not connected');
+      // No valid authentication found
+      console.log('📦 No Motion authentication found - showing as not connected');
       setIsConnected(false);
       setSyncStatus(null);
 
     } catch (error) {
-      console.error('❌ Error checking Motion OAuth tokens:', error);
+      console.error('❌ Error checking Motion authentication:', error);
       setIsConnected(false);
       setSyncStatus(null);
     }
@@ -145,46 +136,67 @@ const MotionIntegration: React.FC = () => {
     setSyncStatus(status);
   };
 
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [showLoginForm, setShowLoginForm] = useState(false);
+
   const handleConnectMotion = () => {
-    setIsConnecting(true);
+    setShowLoginForm(true);
+  };
+
+  const handleMotionLogin = async () => {
+    setLoading(true);
+
     try {
-      // REAL OAuth: Redirect user to Motion's actual login page
-      const MOTION_CLIENT_ID = 'demo-client-id'; // Replace with your actual Motion client ID
-      const REDIRECT_URI = encodeURIComponent(window.location.origin + '/auth/motion/callback');
-      const SCOPE = 'tasks:read tasks:write calendar:read';
-      const STATE = Math.random().toString(36).substring(7);
+      // Call Motion API to login
+      const response = await fetch('https://api.usemotion.com/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
 
-      // Build REAL OAuth URL - this will take user to Motion's login page
-      const motionOAuthUrl = `https://api.usemotion.com/oauth/authorize?client_id=${MOTION_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=${SCOPE}&state=${STATE}`;
+      const data = await response.json();
 
-      console.log('🔗 Redirecting to Motion OAuth page:', motionOAuthUrl);
+      if (data.token) {
+        // Save token to localStorage
+        localStorage.setItem('motion_token', data.token);
+        localStorage.setItem('motion_user', JSON.stringify(data.user));
+        localStorage.setItem('motion_connected', 'true');
 
-      // REDIRECT USER TO MOTION'S ACTUAL LOGIN PAGE
-      window.location.href = motionOAuthUrl;
+        setIsMotionConnected(true);
+        setSyncStatus('Successfully connected to Motion!');
+        setShowLoginForm(false);
+        setEmail('');
+        setPassword('');
 
+        alert('Successfully connected to Motion!');
+      } else {
+        alert('Login failed. Check your credentials.');
+      }
     } catch (error) {
-      console.error('Failed to start OAuth flow:', error);
-      alert(`❌ Failed to start Motion OAuth: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      setIsConnecting(false);
+      console.error('Motion login error:', error);
+      alert('Login failed. Check your credentials.');
     }
+
+    setLoading(false);
   };
 
   const handleDisconnectMotion = () => {
-    if (confirm('Are you sure you want to disconnect Motion? This will remove your OAuth tokens.')) {
+    if (confirm('Are you sure you want to disconnect Motion?')) {
       try {
-        console.log('🔌 Disconnecting Motion OAuth...');
+        console.log('🔌 Disconnecting Motion...');
 
-        // Clear OAuth tokens from localStorage
-        localStorage.removeItem('motion_oauth_tokens');
-        localStorage.removeItem('motion_oauth_user');
-        localStorage.removeItem('motion_oauth_state');
+        // Clear Motion token from localStorage
+        localStorage.removeItem('motion_token');
+        localStorage.removeItem('motion_user');
+        localStorage.removeItem('motion_connected');
 
         // Clear local state
         setIsConnected(false);
         setSyncStatus(null);
-        setLastSync(null);
 
-        console.log('✅ Motion OAuth tokens cleared successfully');
+        console.log('✅ Motion disconnected successfully');
         alert('✅ Disconnected from Motion');
       } catch (error) {
         console.error('Failed to disconnect Motion:', error);
@@ -198,15 +210,29 @@ const MotionIntegration: React.FC = () => {
 
     setIsConnecting(true);
     try {
-      // Trigger real sync with Motion API
-      const syncResult = await motionAPI.getTasks();
-
-      if (!syncResult.success) {
-        throw new Error(syncResult.error || 'Sync failed');
+      // Get stored token
+      const token = localStorage.getItem('motion_token');
+      if (!token) {
+        throw new Error('No authentication token found');
       }
 
+      // Trigger real sync with Motion API
+      const response = await fetch('https://api.usemotion.com/v1/tasks', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.status}`);
+      }
+
+      const tasks = await response.json();
+      console.log('✅ Tasks synced successfully:', tasks);
+
       setLastSync(new Date());
-      updateSyncStatus();
+      updateSyncStatus({ connected: true, lastSync: new Date() });
       alert('✅ Tasks synced successfully from Motion!');
     } catch (error) {
       console.error('Sync failed:', error);
@@ -229,39 +255,85 @@ const MotionIntegration: React.FC = () => {
 
       {!isConnected ? (
         <div className="space-y-4">
-          <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-            <div className="flex items-start gap-3">
-              <ExternalLink className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
-              <div>
-                <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-1">Connect Your Motion Account</h4>
-                <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
-                  Sync your tasks with Motion for AI-powered scheduling and time blocking.
-                </p>
-                <div className="text-xs text-blue-600 dark:text-blue-400">
-                  <p className="mb-2">✅ <strong>Ready to connect!</strong> Your Motion API key is pre-configured.</p>
-                  <p>Just click "Connect" below to sync your tasks instantly.</p>
+          {!showLoginForm ? (
+            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <div className="flex items-start gap-3">
+                <ExternalLink className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                <div>
+                  <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-1">Connect Your Motion Account</h4>
+                  <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
+                    Login with your Motion email and password to sync your tasks.
+                  </p>
                 </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Motion Email
+                  </label>
+                  <input
+                    type="email"
+                    placeholder="your@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white"
+                  />
+                </div>
 
-          <button
-            onClick={handleConnectMotion}
-            disabled={isConnecting}
-            className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2"
-          >
-            {isConnecting ? (
-              <>
-                <RefreshCw className="w-4 h-4 animate-spin" />
-                Connecting to Motion...
-              </>
-            ) : (
-              <>
-                <Link className="w-4 h-4" />
-                Connect to Motion
-              </>
-            )}
-          </button>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Password
+                  </label>
+                  <input
+                    type="password"
+                    placeholder="Your Motion password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowLoginForm(false)}
+                  className="flex-1 py-2 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleMotionLogin}
+                  disabled={loading || !email || !password}
+                  className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors duration-200"
+                >
+                  {loading ? 'Connecting...' : 'Connect Motion'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {!showLoginForm && (
+            <button
+              onClick={handleConnectMotion}
+              disabled={isConnecting}
+              className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2"
+            >
+              {isConnecting ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  Connecting to Motion...
+                </>
+              ) : (
+                <>
+                  <Link className="w-4 h-4" />
+                  Connect to Motion
+                </>
+              )}
+            </button>
+          )}
         </div>
       ) : (
         <div className="space-y-4">
@@ -358,14 +430,8 @@ export const SettingsPanel: React.FC<SettingsProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* OAuth Integration */}
-      <OAuthIntegration onServiceConnected={(service) => {
-        // Trigger service-specific events for existing components
-        if (service === 'Google') {
-          window.dispatchEvent(new CustomEvent('googleCalendarEventsSynced', { detail: [] }));
-          window.dispatchEvent(new CustomEvent('gmailConnected'));
-        }
-      }} />
+      {/* Motion Integration */}
+      <MotionIntegration />
 
       {/* Gmail Integration */}
       <GmailSettings />

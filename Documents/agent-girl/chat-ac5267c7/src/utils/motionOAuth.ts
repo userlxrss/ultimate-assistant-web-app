@@ -25,7 +25,7 @@ class MotionOAuthService {
 
   // Motion OAuth configuration
   private readonly config = {
-    clientId: 'YOUR_MOTION_CLIENT_ID', // Replace with actual Motion client ID
+    clientId: import.meta.env.VITE_MOTION_CLIENT_ID || 'your-motion-client-id', // Replace with actual Motion client ID
     clientSecret: 'YOUR_MOTION_CLIENT_SECRET', // Replace with actual Motion client secret
     redirectUri: `${window.location.origin}/oauth/motion/callback`,
     scope: 'tasks:read tasks:write',

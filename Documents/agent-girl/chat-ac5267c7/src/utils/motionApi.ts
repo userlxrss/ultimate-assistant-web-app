@@ -118,9 +118,32 @@ class MotionAPIService {
     // Map Motion's status object to string status
     const motionStatus = motionTask.status?.name || motionTask.status || 'Todo';
 
+    // 🔧 FIXED: Enhanced task name mapping to handle multiple possible field names
+    const getTaskName = (task: any): string => {
+      // Try all possible name fields in order of preference
+      const name = task.name ||
+                   task.title ||
+                   task.subject ||
+                   task.description?.substring(0, 50) ||
+                   task.summary ||
+                   'Untitled Task';
+
+      // 🔍 DEBUG: Log name extraction
+      console.log('🏷️ Extracting task name:', {
+        taskId: task.id,
+        originalName: task.name,
+        originalTitle: task.title,
+        originalSubject: task.subject,
+        descriptionPreview: task.description?.substring(0, 50),
+        finalName: name
+      });
+
+      return name;
+    };
+
     return {
       id: motionTask.id || `motion_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      title: motionTask.name || 'Untitled Task',
+      title: getTaskName(motionTask),
       description: motionTask.description || '',
       notes: motionTask.notes || motionTask.comment || motionTask.details || '', // Include multiple possible note fields
       completed: motionStatus === 'Completed',
@@ -300,7 +323,7 @@ class MotionAPIService {
 
       // Convert our task format to Motion's format
       const motionTaskData = {
-        name: taskData.title || 'Untitled Task',
+        name: taskData.title || taskData.name || 'Untitled Task',
         description: taskData.description,
         dueDate: typeof taskData.dueDate === 'string' ? taskData.dueDate : taskData.dueDate?.toISOString(),
         priority: taskData.priority?.toUpperCase() || 'MEDIUM',

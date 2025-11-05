@@ -26,6 +26,13 @@ import {
 } from 'lucide-react';
 import { JournalEntry } from '../types';
 import { ExtendedJournalEntry } from '../types/journal';
+import {
+  saveJournalEntry,
+  updateJournalEntry,
+  loadJournalEntries,
+  migrateFromLocalStorage,
+  DatabaseJournalEntry
+} from '../supabase';
 import MoodChart from './journal/MoodChart';
 import WordCloud from './journal/WordCloud';
 import StreakTracker from './journal/StreakTracker';
@@ -48,6 +55,51 @@ const Journal: React.FC = () => {
   });
   const [view, setView] = useState<'form' | 'calendar' | 'list'>('list'); // Fixed to show month folders by default
   const [isRecording, setIsRecording] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Load journal entries from Supabase database
+  const loadJournalEntriesFromDatabase = async () => {
+    setIsLoading(true);
+    try {
+      const databaseEntries = await loadJournalEntries();
+
+      // Convert DatabaseJournalEntry to ExtendedJournalEntry format
+      const journalEntries: ExtendedJournalEntry[] = databaseEntries.map(dbEntry => ({
+        id: dbEntry.id!,
+        date: new Date(dbEntry.date),
+        title: dbEntry.title,
+        mood: dbEntry.mood,
+        energy: dbEntry.energy,
+        reflections: dbEntry.reflections,
+        gratitude: dbEntry.gratitude,
+        biggestWin: dbEntry.biggest_win,
+        challenge: dbEntry.challenge,
+        learning: dbEntry.learning,
+        tomorrowFocus: dbEntry.tomorrow_focus,
+        tags: dbEntry.tags || [],
+        affirmations: dbEntry.affirmations || [],
+        weather: dbEntry.weather,
+        location: dbEntry.location,
+        content: dbEntry.content,
+        themes: dbEntry.themes || [],
+        insights: dbEntry.insights || [],
+        template: dbEntry.template,
+        isDraft: dbEntry.is_draft,
+        lastSaved: dbEntry.last_saved ? new Date(dbEntry.last_saved) : undefined
+      }));
+
+      setEntries(journalEntries);
+      console.log(`✅ Loaded ${journalEntries.length} journal entries from Supabase database`);
+
+    } catch (error) {
+      console.error('Failed to load journal entries from database:', error);
+      // Fallback to localStorage
+      const savedEntries = JSON.parse(localStorage.getItem('journalEntries') || '[]');
+      setEntries(savedEntries);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   const [isListening, setIsListening] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -66,92 +118,24 @@ const Journal: React.FC = () => {
   const [selectedEntries, setSelectedEntries] = useState<Set<string>>(new Set());
   const [selectMode, setSelectMode] = useState(false);
 
-  // Load entries from localStorage on mount - preserve real user entries, only clear actual dummy data
+  // Load journal entries on component mount - try database first, then localStorage migration
   useEffect(() => {
-    const loadEntries = () => {
-      console.log('📔 Loading journal entries...');
+    const initializeJournal = async () => {
+      console.log('📔 Initializing journal...');
 
-      // Load entries from localStorage
-      const savedEntries = JSON.parse(localStorage.getItem('journalEntries') || '[]');
-
-      // If no entries found, try recovery
-      if (savedEntries.length === 0) {
-        console.log('🔍 No entries found, attempting recovery...');
-        const recoveryResult = JournalDataRecovery.recoverEntries();
-        if (recoveryResult.success) {
-          console.log('✅ Recovery successful:', recoveryResult.message);
-          const recoveredEntries = recoveryResult.recoveredEntries.map(entry => ({
-            id: entry.id,
-            date: new Date(entry.date),
-            title: entry.title,
-            mood: entry.mood,
-            energy: entry.energy || 7,
-            reflections: entry.reflections || entry.content || '',
-            gratitude: entry.gratitude || '',
-            biggestWin: entry.biggestWin || '',
-            learning: entry.learning || '',
-            tags: entry.tags || [],
-            content: entry.content || entry.reflections || '',
-            template: entry.template,
-            lastSaved: entry.lastSaved ? new Date(entry.lastSaved) : new Date()
-          }));
-          setEntries(recoveredEntries);
-          return;
-        }
+      try {
+        // Try to migrate any existing localStorage data first
+        await migrateFromLocalStorage();
+        console.log('🔄 Migration from localStorage completed');
+      } catch (error) {
+        console.log('ℹ️ No localStorage data to migrate or migration failed');
       }
 
-      // Filter out only obvious dummy/test entries, preserve real user entries
-      const cleanedEntries = savedEntries.filter(entry => {
-        // Remove entries that are clearly dummy data FIRST
-        if (entry.template && (entry.template.includes('Dummy') || entry.template.includes('Test') || entry.template.includes('Sample'))) return false;
-        if (entry.content && (entry.content.toLowerCase().includes('dummy') || entry.content.toLowerCase().includes('sample') || entry.content.toLowerCase().includes('test'))) return false;
-        if (entry.reflections && (entry.reflections.toLowerCase().includes('dummy') || entry.reflections.toLowerCase().includes('sample') || entry.reflections.toLowerCase().includes('test'))) return false;
-
-        // Keep entries that have real user content
-        if (entry.content && entry.content.trim().length > 20) return true;
-        if (entry.reflections && entry.reflections.trim().length > 20) return true;
-        if (entry.biggestWin && entry.biggestWin.trim().length > 10) return true;
-        if (entry.learning && entry.learning.trim().length > 10) return true;
-        if (entry.title && entry.title.trim().length > 0 && !entry.title.toLowerCase().includes('dummy') && !entry.title.toLowerCase().includes('test')) return true;
-
-        // Keep entries that have IDs that look like real user entries (timestamps)
-        if (entry.id && typeof entry.id === 'string' && entry.id.includes('journal-') && entry.id.split('-')[1]) {
-          const timestamp = parseInt(entry.id.split('-')[1]);
-          if (timestamp > 1000000000000) return true; // Keep if timestamp is recent
-        }
-
-        // Default: reject if we get here
-        return false;
-      });
-
-      // Convert to ExtendedJournalEntry format
-      const extendedEntries: ExtendedJournalEntry[] = cleanedEntries.map(entry => ({
-        id: entry.id,
-        date: new Date(entry.date),
-        title: entry.title,
-        mood: entry.mood,
-        energy: entry.energy || 7,
-        reflections: entry.reflections || entry.content || '',
-        gratitude: entry.gratitude || '',
-        biggestWin: entry.biggestWin || '',
-        learning: entry.learning || '',
-        tags: entry.tags || [],
-        content: entry.content || entry.reflections || '',
-        template: entry.template,
-        lastSaved: entry.lastSaved ? new Date(entry.lastSaved) : new Date()
-      }));
-
-      // Save the cleaned entries back to localStorage
-      localStorage.setItem('journalEntries', JSON.stringify(extendedEntries));
-
-      // Load the entries into state
-      setEntries(extendedEntries);
-
-      console.log(`✅ Loaded ${extendedEntries.length} journal entries`);
-      console.log('💡 Real user entries preserved and loaded successfully');
+      // Load entries from Supabase database
+      await loadJournalEntriesFromDatabase();
     };
 
-    loadEntries();
+    initializeJournal();
   }, []);
 
   // 🔒 SECURITY: Remove dangerous global functions from production
@@ -233,7 +217,7 @@ const Journal: React.FC = () => {
     }
   };
 
-  const saveEntry = () => {
+  const saveEntry = async () => {
     if (editingEntry === 'view') {
       // Don't save when in view mode
       setEditingEntry(null);
@@ -256,16 +240,85 @@ const Journal: React.FC = () => {
       lastSaved: new Date()
     };
 
-    let updatedEntries: ExtendedJournalEntry[];
-    if (editingEntry) {
-      updatedEntries = entries.map(e => e.id === editingEntry ? entry : e);
-      setEditingEntry(null);
-    } else {
-      updatedEntries = [entry, ...entries];
-    }
+    try {
+      if (editingEntry) {
+        // Update existing entry in database
+        const updateData: Partial<DatabaseJournalEntry> = {
+          date: entry.date.toISOString(),
+          title: entry.title,
+          mood: entry.mood,
+          energy: entry.energy,
+          reflections: entry.reflections,
+          gratitude: entry.gratitude,
+          biggest_win: entry.biggestWin,
+          challenge: entry.challenge,
+          learning: entry.learning,
+          tomorrow_focus: entry.tomorrowFocus,
+          tags: entry.tags,
+          affirmations: entry.affirmations,
+          weather: entry.weather,
+          location: entry.location,
+          content: entry.content,
+          themes: entry.themes,
+          insights: entry.insights,
+          template: entry.template,
+          is_draft: entry.isDraft
+        };
 
-    setEntries(updatedEntries);
-    localStorage.setItem('journalEntries', JSON.stringify(updatedEntries));
+        await updateJournalEntry(editingEntry, updateData);
+        console.log('✅ Journal entry updated in database');
+
+        // Update local state
+        const updatedEntries = entries.map(e => e.id === editingEntry ? entry : e);
+        setEntries(updatedEntries);
+        setEditingEntry(null);
+
+      } else {
+        // Save new entry to database
+        const dbEntryData: Omit<DatabaseJournalEntry, 'user_id'> = {
+          date: entry.date.toISOString(),
+          title: entry.title,
+          mood: entry.mood,
+          energy: entry.energy,
+          reflections: entry.reflections,
+          gratitude: entry.gratitude,
+          biggest_win: entry.biggestWin,
+          challenge: entry.challenge,
+          learning: entry.learning,
+          tomorrow_focus: entry.tomorrowFocus,
+          tags: entry.tags,
+          affirmations: entry.affirmations,
+          weather: entry.weather,
+          location: entry.location,
+          content: entry.content,
+          themes: entry.themes,
+          insights: entry.insights,
+          template: entry.template,
+          is_draft: entry.isDraft
+        };
+
+        const savedEntry = await saveJournalEntry(dbEntryData);
+        console.log('✅ New journal entry saved to database');
+
+        // Update local state with database entry
+        entry.id = savedEntry.id!;
+        const updatedEntries = [entry, ...entries];
+        setEntries(updatedEntries);
+      }
+
+    } catch (error) {
+      console.error('Failed to save journal entry to database:', error);
+      // Fallback to localStorage if database fails
+      let updatedEntries: ExtendedJournalEntry[];
+      if (editingEntry) {
+        updatedEntries = entries.map(e => e.id === editingEntry ? entry : e);
+        setEditingEntry(null);
+      } else {
+        updatedEntries = [entry, ...entries];
+      }
+      setEntries(updatedEntries);
+      localStorage.setItem('journalEntries', JSON.stringify(updatedEntries));
+    }
 
     // Reset form
     setCurrentEntry({
