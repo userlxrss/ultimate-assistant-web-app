@@ -116,7 +116,7 @@ export const SupabaseAuth: React.FC<SupabaseAuthProps> = ({
     <div className="max-w-sm mx-auto">
       {/* Logo & Brand */}
       <div className="text-center mb-6">
-        <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-xl shadow-lg shadow-indigo-500/30 mb-3">
+        <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-xl shadow-lg shadow-indigo-500/30 mb-3 transform hover:scale-105 transition-transform duration-300">
           <User className="w-6 h-6 text-white" />
         </div>
         <h2 className="text-xl font-bold text-slate-900 mb-1">
@@ -128,7 +128,7 @@ export const SupabaseAuth: React.FC<SupabaseAuthProps> = ({
       </div>
 
       {/* Login Card */}
-      <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg shadow-slate-200/50 border border-white/20 p-6">
+      <div className="bg-white/90 backdrop-blur-2xl rounded-2xl shadow-xl shadow-slate-200/60 border border-white/30 p-6 hover:shadow-2xl hover:shadow-slate-200/70 transition-all duration-300">
         {/* Error Notification */}
         {error && (
           <div className="bg-gradient-to-r from-red-50 to-rose-50 border border-red-200 rounded-xl p-4 mb-4">
@@ -150,15 +150,15 @@ export const SupabaseAuth: React.FC<SupabaseAuthProps> = ({
             <label className="block text-xs font-semibold text-slate-700 mb-1.5">
               Email Address
             </label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <div className="relative group">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors duration-200" />
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="you@company.com"
-                className="w-full px-3 py-2 pl-9 text-sm bg-slate-50 border border-slate-200 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
+                className="w-full px-3 py-2 pl-9 text-sm bg-white/70 backdrop-blur-sm border border-slate-200/50 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 focus:bg-white/90 transition-all duration-300 hover:bg-white/80 hover:border-slate-300"
               />
             </div>
           </div>
@@ -168,15 +168,15 @@ export const SupabaseAuth: React.FC<SupabaseAuthProps> = ({
             <label className="block text-xs font-semibold text-slate-700 mb-1.5">
               Password
             </label>
-            <div className="relative">
-              <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <div className="relative group">
+              <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors duration-200" />
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Enter your password"
-                className="w-full px-3 py-2 pl-9 text-sm bg-slate-50 border border-slate-200 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
+                className="w-full px-3 py-2 pl-9 text-sm bg-white/70 backdrop-blur-sm border border-slate-200/50 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 focus:bg-white/90 transition-all duration-300 hover:bg-white/80 hover:border-slate-300"
               />
             </div>
           </div>
@@ -185,7 +185,7 @@ export const SupabaseAuth: React.FC<SupabaseAuthProps> = ({
           <button
             onClick={handleEmailAuth}
             disabled={isLoading}
-            className="w-full py-2.5 px-4 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white text-sm font-semibold rounded-lg shadow-md shadow-indigo-500/30 hover:shadow-lg hover:shadow-indigo-500/40 transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            className="w-full py-2.5 px-4 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white text-sm font-semibold rounded-lg shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 transform hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none active:scale-95 active:translate-y-0"
           >
             {isLoading ? (
               <>
@@ -204,19 +204,19 @@ export const SupabaseAuth: React.FC<SupabaseAuthProps> = ({
           <div className="text-center pt-3">
             <button
               onClick={() => setIsSignUp(!isSignUp)}
-              className="text-slate-600 hover:text-slate-900 text-sm font-medium transition-colors duration-200 group"
+              className="text-slate-600 hover:text-slate-900 text-sm font-medium transition-all duration-300 group hover:bg-slate-50/50 rounded-lg py-2 px-4 -mx-4"
             >
               {isSignUp ? (
                 <>
                   Already have an account?{' '}
-                  <span className="text-indigo-600 hover:text-indigo-700 font-semibold transition-colors duration-200">
+                  <span className="text-indigo-600 hover:text-indigo-700 font-semibold transition-colors duration-300 group-hover:translate-x-1 inline-block">
                     Sign in →
                   </span>
                 </>
               ) : (
                 <>
                   Don't have an account?{' '}
-                  <span className="text-indigo-600 hover:text-indigo-700 font-semibold transition-colors duration-200">
+                  <span className="text-indigo-600 hover:text-indigo-700 font-semibold transition-colors duration-300 group-hover:translate-x-1 inline-block">
                     Get started →
                   </span>
                 </>
@@ -249,7 +249,7 @@ export const SupabaseAuth: React.FC<SupabaseAuthProps> = ({
       </div>
 
       {/* User Info Card */}
-      <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg shadow-slate-200/50 border border-white/20 p-6 mb-4">
+      <div className="bg-white/90 backdrop-blur-2xl rounded-2xl shadow-xl shadow-slate-200/60 border border-white/30 p-6 mb-4 hover:shadow-2xl hover:shadow-slate-200/70 transition-all duration-300">
         <div className="flex items-center gap-4 mb-4">
           {userInfo?.picture && (
             <div className="relative">
@@ -297,7 +297,7 @@ export const SupabaseAuth: React.FC<SupabaseAuthProps> = ({
 
       <button
         onClick={() => window.location.reload()}
-        className="w-full py-2.5 px-4 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white text-sm font-semibold rounded-lg shadow-md shadow-indigo-500/30 hover:shadow-lg hover:shadow-indigo-500/40 transform hover:-translate-y-0.5 transition-all duration-200"
+        className="w-full py-2.5 px-4 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white text-sm font-semibold rounded-lg shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 transform hover:-translate-y-0.5 transition-all duration-300 active:scale-95 active:translate-y-0"
       >
         Continue to Dashboard →
       </button>

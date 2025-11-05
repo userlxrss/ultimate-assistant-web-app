@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { SupabaseAuth } from '../components/auth/SupabaseAuth';
-import { CheckCircle, ArrowRight, Shield, Users, Mail, Calendar } from 'lucide-react';
+import { CheckCircle, ArrowRight, Shield, Calendar, Mail, Users } from 'lucide-react';
 
 interface AuthPageProps {
   onAuthSuccess?: (userInfo: any) => void;
 }
 
 export const AuthPage: React.FC<AuthPageProps> = ({ onAuthSuccess }) => {
-  const [currentStep, setCurrentStep] = useState<'welcome' | 'auth'>('welcome');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentStep, setCurrentStep] = useState<'welcome' | 'auth'>('welcome');
 
   const handleAuthSuccess = (userInfo: any) => {
     setIsAuthenticated(true);
@@ -21,6 +21,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onAuthSuccess }) => {
 
   const renderWelcomeStep = () => (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-6">
+
       <div className="w-full max-w-5xl">
         {/* Header */}
         <div className="text-center mb-12">
@@ -119,16 +120,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onAuthSuccess }) => {
 
   const renderAuthStep = () => (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-6">
-      <div className="w-full max-w-lg">
-        {/* Back Button */}
-        <button
-          onClick={() => setCurrentStep('welcome')}
-          className="mb-6 text-slate-600 hover:text-slate-900 flex items-center gap-2 p-2 bg-white/50 backdrop-blur-sm rounded-lg hover:bg-white/70 transition-all duration-200 group"
-        >
-          <ArrowRight className="w-4 h-4 rotate-180 group-hover:-translate-x-1 transition-transform duration-200" />
-          <span className="text-sm font-medium">Back to welcome</span>
-        </button>
-
+      <div className="w-full max-w-md">
         {/* Auth Component */}
         <SupabaseAuth
           onAuthSuccess={handleAuthSuccess}
@@ -138,7 +130,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onAuthSuccess }) => {
         {/* Success Message */}
         {isAuthenticated && (
           <div className="mt-6 text-center">
-            <div className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 text-emerald-800 rounded-xl shadow-md shadow-emerald-500/20">
+            <div className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 text-emerald-800 rounded-xl shadow-md shadow-emerald-500/20 backdrop-blur-xl">
               <CheckCircle className="w-5 h-5 text-emerald-600" />
               <span className="font-semibold text-sm">Authentication successful! Redirecting to dashboard...</span>
             </div>

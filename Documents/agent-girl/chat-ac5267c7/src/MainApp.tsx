@@ -160,16 +160,16 @@ const MainApp: React.FC = () => {
 
       console.log("✅ Sign out successful - redirecting");
 
-      // Force redirect
-      window.location.href = "/login";
+      // Force redirect to premium React login page
+      window.location.href = "/";
 
     } catch (error) {
       console.error("Sign out error:", error);
 
-      // EMERGENCY FALLBACK: Force redirect to login
+      // EMERGENCY FALLBACK: Force redirect to premium React login page
       localStorage.clear();
       sessionStorage.clear();
-      window.location.href = "/login";
+      window.location.href = "/";
     }
   }, []);
   const navigationItems = [
@@ -383,8 +383,8 @@ const MainApp: React.FC = () => {
                             localStorage.clear();
                             sessionStorage.clear();
 
-                            // Force redirect to login page with success message
-                            window.location.href = "/loginpage.html?signedout=true";
+                            // Force redirect to premium React login page
+                            window.location.href = "/";
                           }}
                           className="w-full px-4 py-2 flex items-center space-x-3 text-sm transition-colors text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 rounded"
                         >
