@@ -1,0 +1,2 @@
+Deployment triggered: 2025-11-05T15:39:38.256Z
+Email verification system ready for production.
