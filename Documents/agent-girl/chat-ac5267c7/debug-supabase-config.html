@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Supabase Email Configuration</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px 10px 10px 0;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        .response {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .error {
+            background: #fef2f2;
+            border-color: #ef4444;
+            color: #dc2626;
+        }
+        .success {
+            background: #f0fdf4;
+            border-color: #22c55e;
+            color: #16a34a;
+        }
+        .warning {
+            background: #fffbeb;
+            border-color: #f59e0b;
+            color: #d97706;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Debug Supabase Email Configuration</h1>
+        <p>This tool will help us understand exactly what's happening with email verification in your Supabase project.</p>
+
+        <button onclick="checkProjectInfo()">Check Project Info</button>
+        <button onclick="testSignUpFlow()">Test Sign Up Flow</button>
+        <button onclick="testSignInFlow()">Test Sign In Flow</button>
+        <button onclick="checkEmailSettings()">Check Email Settings</button>
+        <button onclick="clearAll()">Clear All</button>
+
+        <div id="status"></div>
+        <div id="response" class="response" style="display: none;"></div>
+    </div>
+
+    <script>
+        // Initialize Supabase client (same as your app)
+        const supabaseUrl = 'https://vacwojgxafujscxuqmpg.supabase.co';
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZhY3dvamd4YWZ1anNjeHVxbXBnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTU5MTksImV4cCI6MjA3Nzc3MTkxOX0.RniyufeNXF9h6a9u55zGIxLRFeFDCaJxQ1ZjLv6KgxI';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+        const testEmail = 'test.debug@example.com';
+        const testPassword = 'TestPassword123!';
+
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : 'status';
+            statusDiv.innerHTML = `<div class="status ${className}">${message}</div>`;
+        }
+
+        function showResponse(data, type = 'info') {
+            const responseDiv = document.getElementById('response');
+            responseDiv.style.display = 'block';
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : 'response';
+            responseDiv.className = `response ${className}`;
+            responseDiv.textContent = JSON.stringify(data, null, 2);
+        }
+
+        function clearAll() {
+            document.getElementById('status').innerHTML = '';
+            document.getElementById('response').style.display = 'none';
+        }
+
+        async function checkProjectInfo() {
+            showStatus('🔍 Checking Supabase project configuration...', 'info');
+
+            try {
+                // Test basic connection
+                const { data, error } = await supabase.from('_nothing_').select('*').limit(1);
+
+                const info = {
+                    projectUrl: supabaseUrl,
+                    anonKeyLength: supabaseAnonKey.length,
+                    connectionWorking: error ? false : true,
+                    error: error?.message,
+                    timestamp: new Date().toISOString()
+                };
+
+                showResponse(info, error ? 'warning' : 'success');
+                showStatus('✅ Project info retrieved', 'success');
+
+            } catch (err) {
+                showResponse({ error: err.message }, 'error');
+                showStatus('❌ Failed to check project info', 'error');
+            }
+        }
+
+        async function testSignUpFlow() {
+            showStatus('🔍 Testing sign up flow with detailed debugging...', 'info');
+
+            try {
+                console.log('🔥 DEBUG: Starting sign up test');
+
+                const { data, error } = await supabase.auth.signUp({
+                    email: testEmail,
+                    password: testPassword,
+                    options: {
+                        emailRedirectTo: 'http://localhost:5176/'
+                    }
+                });
+
+                console.log('🔥 DEBUG: Supabase response:', { data, error });
+
+                const analysis = {
+                    success: !error,
+                    error: error?.message,
+                    userExists: !!data.user,
+                    userId: data.user?.id,
+                    userEmail: data.user?.email,
+                    emailConfirmedAt: data.user?.email_confirmed_at,
+                    emailConfirmedAtType: typeof data.user?.email_confirmed_at,
+                    emailConfirmedAtValue: JSON.stringify(data.user?.email_confirmed_at),
+                    sessionCreated: !!data.session,
+                    sessionExists: !!data.session,
+                    needsVerification: !data.user?.email_confirmed_at,
+                    allUserKeys: data.user ? Object.keys(data.user) : null,
+                    fullUserObject: data.user,
+                    fullSessionObject: data.session,
+                    fullResponse: data,
+                    timestamp: new Date().toISOString()
+                };
+
+                showResponse(analysis, error ? 'error' : 'success');
+
+                if (!data.user?.email_confirmed_at) {
+                    showStatus('⚠️ Email verification is REQUIRED (email_confirmed_at is null)', 'warning');
+                } else {
+                    showStatus('✅ Email already verified or auto-confirm enabled', 'success');
+                }
+
+            } catch (err) {
+                showResponse({ error: err.message, stack: err.stack }, 'error');
+                showStatus('❌ Sign up test failed', 'error');
+            }
+        }
+
+        async function testSignInFlow() {
+            showStatus('🔍 Testing sign in flow with detailed debugging...', 'info');
+
+            try {
+                console.log('🔥 DEBUG: Starting sign in test');
+
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: testEmail,
+                    password: testPassword
+                });
+
+                console.log('🔥 DEBUG: Sign in response:', { data, error });
+
+                const analysis = {
+                    success: !error,
+                    error: error?.message,
+                    userExists: !!data.user,
+                    userId: data.user?.id,
+                    userEmail: data.user?.email,
+                    emailConfirmedAt: data.user?.email_confirmed_at,
+                    emailConfirmedAtType: typeof data.user?.email_confirmed_at,
+                    emailConfirmedAtValue: JSON.stringify(data.user?.email_confirmed_at),
+                    sessionCreated: !!data.session,
+                    canAccessDashboard: !!data.session,
+                    allUserKeys: data.user ? Object.keys(data.user) : null,
+                    fullUserObject: data.user,
+                    fullSessionObject: data.session,
+                    fullResponse: data,
+                    timestamp: new Date().toISOString()
+                };
+
+                showResponse(analysis, error ? 'error' : 'success');
+
+                if (error && error.message.includes('Email not confirmed')) {
+                    showStatus('✅ Email verification is WORKING (blocking unverified users)', 'success');
+                } else if (data.session && !data.user?.email_confirmed_at) {
+                    showStatus('❌ Email verification is NOT working (allowing unverified users)', 'error');
+                } else if (data.session && data.user?.email_confirmed_at) {
+                    showStatus('✅ User is verified and can access dashboard', 'success');
+                }
+
+            } catch (err) {
+                showResponse({ error: err.message, stack: err.stack }, 'error');
+                showStatus('❌ Sign in test failed', 'error');
+            }
+        }
+
+        async function checkEmailSettings() {
+            showStatus('🔍 Checking email verification settings...', 'info');
+
+            const info = {
+                supabaseProject: 'vacwojgxafujscxuqmpg',
+                issue: 'Email verification may be disabled in Supabase Dashboard',
+                solution: [
+                    '1. Go to https://supabase.com/dashboard',
+                    '2. Select project: vacwojgxafujscxuqmpg',
+                    '3. Navigate to: Authentication → Settings',
+                    '4. Scroll to "Email Settings"',
+                    '5. Enable "Enable email confirmations"',
+                    '6. Set "Site URL" to: http://localhost:5176/',
+                    '7. Set "Redirect URLs" to: http://localhost:5176/',
+                    '8. Save changes'
+                ],
+                note: 'If email confirmations are disabled, Supabase will auto-verify all emails'
+            };
+
+            showResponse(info, 'warning');
+            showStatus('⚠️ Check your Supabase Dashboard email settings', 'warning');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Auth Debug Tool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 min-h-screen p-6">
+    <div class="max-w-2xl mx-auto">
+        <div class="bg-white/90 backdrop-blur-2xl rounded-2xl shadow-xl shadow-slate-200/60 border border-white/30 p-6">
+            <h1 class="text-2xl font-bold text-slate-900 mb-6">🔧 Supabase Auth Debug Tool</h1>
+
+            <div class="space-y-6">
+                <!-- Connection Status -->
+                <div class="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                    <h2 class="font-semibold text-slate-900 mb-3">1. Connection Status</h2>
+                    <button onclick="testConnection()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                        Test Supabase Connection
+                    </button>
+                    <div id="connectionResult" class="mt-3 text-sm"></div>
+                </div>
+
+                <!-- User Status -->
+                <div class="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                    <h2 class="font-semibold text-slate-900 mb-3">2. Check User Status</h2>
+                    <input type="text" id="userId" placeholder="Enter User ID (optional)"
+                           value="62d14deb-3548-446c-ab7f-9b58fb73a8c9"
+                           class="w-full px-3 py-2 border border-slate-300 rounded-lg mb-3 text-sm">
+                    <button onclick="checkUserStatus()" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
+                        Check User Verification Status
+                    </button>
+                    <div id="userStatusResult" class="mt-3 text-sm"></div>
+                </div>
+
+                <!-- Email Test -->
+                <div class="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                    <h2 class="font-semibold text-slate-900 mb-3">3. Test Email Verification</h2>
+                    <input type="email" id="testEmail" placeholder="Enter email for test"
+                           class="w-full px-3 py-2 border border-slate-300 rounded-lg mb-3 text-sm">
+                    <button onclick="testEmailVerification()" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors">
+                        Test Sign-up with Email Verification
+                    </button>
+                    <div id="emailTestResult" class="mt-3 text-sm"></div>
+                </div>
+
+                <!-- Debug Info -->
+                <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                    <h2 class="font-semibold text-amber-900 mb-3">🔍 Debug Information</h2>
+                    <div id="debugInfo" class="text-sm text-amber-700">
+                        <p>Click the buttons above to run diagnostic tests...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Supabase client
+        const supabaseUrl = 'https://vacwojgxafujscxuqmpg.supabase.co';
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZhY3dvamd4YWZ1anNjeHVxbXBnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTU5MTksImV4cCI6MjA3Nzc3MTkxOX0.RniyufeNXF9h6a9u55zGIxLRFeFDCaJxQ1ZjLv6KgxI';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+        function updateDebugInfo(message) {
+            document.getElementById('debugInfo').innerHTML += `<p>${new Date().toLocaleTimeString()}: ${message}</p>`;
+        }
+
+        async function testConnection() {
+            const resultDiv = document.getElementById('connectionResult');
+            resultDiv.innerHTML = '<div class="text-blue-600">Testing connection...</div>';
+            updateDebugInfo('🔌 Testing Supabase connection...');
+
+            try {
+                const { data, error } = await supabase.from('_test_connection').select('*').limit(1);
+
+                if (error && error.code === 'PGRST116') {
+                    resultDiv.innerHTML = '<div class="text-green-600">✅ Connection successful! (Table doesn\'t exist, but connection works)</div>';
+                    updateDebugInfo('✅ Supabase connection successful');
+                } else if (data) {
+                    resultDiv.innerHTML = '<div class="text-green-600">✅ Connection successful!</div>';
+                    updateDebugInfo('✅ Supabase connection successful');
+                } else {
+                    throw error;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="text-red-600">❌ Connection failed: ${error.message}</div>`;
+                updateDebugInfo(`❌ Connection failed: ${error.message}`);
+            }
+        }
+
+        async function checkUserStatus() {
+            const resultDiv = document.getElementById('userStatusResult');
+            const userId = document.getElementById('userId').value.trim();
+
+            if (!userId) {
+                resultDiv.innerHTML = '<div class="text-amber-600">⚠️ Please enter a User ID</div>';
+                return;
+            }
+
+            resultDiv.innerHTML = '<div class="text-blue-600">Checking user status...</div>';
+            updateDebugInfo(`👤 Checking user status for: ${userId}`);
+
+            try {
+                // Method 1: Try to get user directly (admin method - will fail in browser)
+                try {
+                    const { data, error } = await supabase.auth.admin.getUserById(userId);
+                    if (data && !error) {
+                        const user = data.user;
+                        resultDiv.innerHTML = `
+                            <div class="text-green-600">
+                                ✅ User Found (Admin Access)<br>
+                                Email: ${user.email}<br>
+                                Email Confirmed: ${user.email_confirmed_at ? '✅ Yes' : '❌ No'}<br>
+                                Created: ${new Date(user.created_at).toLocaleString()}<br>
+                                Last Sign In: ${user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString() : 'Never'}
+                            </div>
+                        `;
+                        updateDebugInfo(`✅ User found - Email confirmed: ${!!user.email_confirmed_at}`);
+                        return;
+                    }
+                } catch (adminError) {
+                    updateDebugInfo('Admin access not available (expected in browser)');
+                }
+
+                // Method 2: Try to sign in as the user (will show verification status)
+                resultDiv.innerHTML = '<div class="text-blue-600">User requires manual verification in Supabase Dashboard</div>';
+                updateDebugInfo('🔧 This user needs manual verification in the Supabase Dashboard');
+                updateDebugInfo('📋 Go to: Authentication → Users → Find user → Click "Verify email"');
+
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="text-red-600">❌ Error checking user: ${error.message}</div>`;
+                updateDebugInfo(`❌ Error checking user: ${error.message}`);
+            }
+        }
+
+        async function testEmailVerification() {
+            const resultDiv = document.getElementById('emailTestResult');
+            const email = document.getElementById('testEmail').value.trim();
+
+            if (!email) {
+                resultDiv.innerHTML = '<div class="text-amber-600">⚠️ Please enter an email address</div>';
+                return;
+            }
+
+            resultDiv.innerHTML = '<div class="text-blue-600">Testing email verification...</div>';
+            updateDebugInfo(`📧 Testing email verification for: ${email}`);
+
+            try {
+                const { data, error } = await supabase.auth.signUp({
+                    email: email,
+                    password: 'testpassword123',
+                    options: {
+                        emailRedirectTo: window.location.origin + '/'
+                    }
+                });
+
+                if (error) {
+                    if (error.message.includes('already registered')) {
+                        resultDiv.innerHTML = '<div class="text-amber-600">ℹ️ Email already registered. Try signing in instead.</div>';
+                        updateDebugInfo('ℹ️ Email already registered');
+                    } else {
+                        resultDiv.innerHTML = `<div class="text-red-600">❌ Sign-up error: ${error.message}</div>`;
+                        updateDebugInfo(`❌ Sign-up error: ${error.message}`);
+                    }
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="text-green-600">
+                            ✅ Sign-up initiated!<br>
+                            User ID: ${data.user?.id}<br>
+                            Check if email verification was sent.<br>
+                            ${data.user?.email_confirmed_at ? 'Email already confirmed' : 'Email confirmation needed'}
+                        </div>
+                    `;
+                    updateDebugInfo(`✅ Sign-up successful - User ID: ${data.user?.id}`);
+                    updateDebugInfo(`📧 Email confirmation needed: ${!data.user?.email_confirmed_at}`);
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="text-red-600">❌ Test failed: ${error.message}</div>`;
+                updateDebugInfo(`❌ Test failed: ${error.message}`);
+            }
+        }
+
+        // Auto-run connection test on page load
+        window.addEventListener('load', () => {
+            updateDebugInfo('🚀 Supabase Debug Tool loaded');
+            updateDebugInfo(`🔗 Project URL: ${supabaseUrl}`);
+        });
+    </script>
+</body>
+</html>

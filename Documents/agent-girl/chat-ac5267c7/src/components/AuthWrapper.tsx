@@ -34,8 +34,13 @@ const AuthWrapper: React.FC = () => {
           console.log('🔥 AuthWrapper: No user authenticated, showing signup page');
           setIsAuthenticated(false);
         }
-      } catch (err) {
-        console.error('🔥 AuthWrapper: Error checking auth status:', err);
+      } catch (err: any) {
+        // Handle specific Supabase auth errors gracefully
+        if (err?.message?.includes('AuthSessionMissing') || err?.message?.includes('session')) {
+          console.log('🔥 AuthWrapper: No active session (normal for first-time visitors)');
+        } else {
+          console.error('🔥 AuthWrapper: Error checking auth status:', err);
+        }
         setIsAuthenticated(false);
       } finally {
         setIsLoading(false);

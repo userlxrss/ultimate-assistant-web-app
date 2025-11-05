@@ -59,29 +59,58 @@ export const SupabaseAuth: React.FC<SupabaseAuthProps> = ({
     setError(null);
 
     try {
-      console.log('🔥 Attempting Supabase authentication...');
-      // Real Supabase authentication
-      const data = isSignUp
-        ? await signUpWithEmail(email, password)
-        : await signInWithEmail(email, password);
+      // Check email verification status for sign-up
+      if (isSignUp) {
+        const data = await signUpWithEmail(email, password);
 
-      if (data.user) {
-        console.log('🔥 Supabase authentication successful:', data.user);
-        const userData = {
-          id: data.user.id,
-          email: data.user.email,
-          name: data.user.email?.split('@')[0] || 'User',
-          picture: `https://ui-avatars.com/api/?name=${encodeURIComponent(data.user.email?.split('@')[0] || 'User')}&background=random`,
-          provider: 'supabase'
-        };
+        if (data.user) {
+          // Check if email verification is required
+          if (!data.user.email_confirmed_at) {
+            setError('Please check your email and click the verification link before signing in.');
+            onAuthError?.('Please verify your email before signing in. Check your inbox for the verification link.');
+            return;
+          }
 
-        setUserInfo(userData);
-        setIsAuthenticated(true);
-        onAuthSuccess?.(userData);
+          // Email is already confirmed, proceed with login
+          const userData = {
+            id: data.user.id,
+            email: data.user.email,
+            name: data.user.email?.split('@')[0] || 'User',
+            picture: `https://ui-avatars.com/api/?name=${encodeURIComponent(data.user.email?.split('@')[0] || 'User')}&background=random`,
+            provider: 'supabase'
+          };
+
+          setUserInfo(userData);
+          setIsAuthenticated(true);
+          onAuthSuccess?.(userData);
+        }
+      } else {
+        // Sign in flow
+        const data = await signInWithEmail(email, password);
+
+        if (data.user) {
+          // Check if email is verified
+          if (!data.user.email_confirmed_at) {
+            setError('Please verify your email before signing in. Check your inbox for the verification link.');
+            onAuthError?.('Please verify your email before signing in. Check your inbox for the verification link.');
+            return;
+          }
+
+          const userData = {
+            id: data.user.id,
+            email: data.user.email,
+            name: data.user.email?.split('@')[0] || 'User',
+            picture: `https://ui-avatars.com/api/?name=${encodeURIComponent(data.user.email?.split('@')[0] || 'User')}&background=random`,
+            provider: 'supabase'
+          };
+
+          setUserInfo(userData);
+          setIsAuthenticated(true);
+          onAuthSuccess?.(userData);
+        }
       }
 
     } catch (err) {
-      console.error('🔥 Supabase authentication error:', err);
       const errorMsg = err instanceof Error ? err.message : 'Authentication failed';
       setError(errorMsg);
       onAuthError?.(errorMsg);
@@ -90,206 +119,143 @@ export const SupabaseAuth: React.FC<SupabaseAuthProps> = ({
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleEmailAuth();
-    }
-  };
-
   const handleSignOut = async () => {
     try {
-      console.log('🔥 Signing out from Supabase...');
       await signOut();
       setIsAuthenticated(false);
       setUserInfo(null);
       setEmail('');
       setPassword('');
       onAuthError?.('Signed out successfully');
-      console.log('🔥 Successfully signed out');
     } catch (err) {
       console.error('Failed to sign out:', err);
     }
   };
 
   const renderAuthForm = () => (
-    <div className="max-w-sm mx-auto">
-      {/* Logo & Brand */}
-      <div className="text-center mb-6">
-        <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-xl shadow-lg shadow-indigo-500/30 mb-3 transform hover:scale-105 transition-transform duration-300">
-          <User className="w-6 h-6 text-white" />
-        </div>
-        <h2 className="text-xl font-bold text-slate-900 mb-1">
-          {isSignUp ? 'Create Account' : 'Welcome Back'}
+    <div className="max-w-md mx-auto p-6 space-y-6">
+      <div className="text-center mb-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          {isSignUp ? 'Create Account' : 'Sign In'}
         </h2>
-        <p className="text-slate-600 text-sm">
-          {isSignUp ? 'Join Productivity Hub today' : 'Sign in to access your workspace'}
+        <p className="text-gray-600">
+          {isSignUp ? 'Join Productive Path today' : 'Welcome back to Productive Path'}
         </p>
       </div>
 
-      {/* Login Card */}
-      <div className="bg-white/90 backdrop-blur-2xl rounded-2xl shadow-xl shadow-slate-200/60 border border-white/30 p-6 hover:shadow-2xl hover:shadow-slate-200/70 transition-all duration-300">
-        {/* Error Notification */}
-        {error && (
-          <div className="bg-gradient-to-r from-red-50 to-rose-50 border border-red-200 rounded-xl p-4 mb-4">
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <AlertCircle className="w-4 h-4 text-red-600" />
-              </div>
-              <div className="flex-1">
-                <h4 className="font-semibold text-red-900 mb-1 text-sm">Authentication Error</h4>
-                <p className="text-xs text-red-700 leading-relaxed">{error}</p>
-              </div>
-            </div>
-          </div>
-        )}
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Email
+          </label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="your@email.com"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
 
-        <div className="space-y-4">
-          {/* Email Input */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-              Email Address
-            </label>
-            <div className="relative group">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors duration-200" />
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="you@company.com"
-                className="w-full px-3 py-2 pl-9 text-sm bg-white/70 backdrop-blur-sm border border-slate-200/50 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 focus:bg-white/90 transition-all duration-300 hover:bg-white/80 hover:border-slate-300"
-              />
-            </div>
-          </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Password
+          </label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
 
-          {/* Password Input */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-              Password
-            </label>
-            <div className="relative group">
-              <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors duration-200" />
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Enter your password"
-                className="w-full px-3 py-2 pl-9 text-sm bg-white/70 backdrop-blur-sm border border-slate-200/50 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-300 focus:bg-white/90 transition-all duration-300 hover:bg-white/80 hover:border-slate-300"
-              />
-            </div>
-          </div>
+        <button
+          onClick={handleEmailAuth}
+          disabled={isLoading}
+          className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="w-5 h-5 animate-spin" />
+              <span>{isSignUp ? 'Creating Account...' : 'Signing In...'}</span>
+            </>
+          ) : (
+            <>
+              <User className="w-5 h-5" />
+              <span>{isSignUp ? 'Create Account' : 'Sign In'}</span>
+            </>
+          )}
+        </button>
 
-          {/* Sign In Button */}
+        <div className="text-center">
           <button
-            onClick={handleEmailAuth}
-            disabled={isLoading}
-            className="w-full py-2.5 px-4 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white text-sm font-semibold rounded-lg shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 transform hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none active:scale-95 active:translate-y-0"
+            onClick={() => setIsSignUp(!isSignUp)}
+            className="text-blue-600 hover:text-blue-700 text-sm"
           >
-            {isLoading ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>{isSignUp ? 'Creating Account...' : 'Signing In...'}</span>
-              </>
-            ) : (
-              <>
-                <User className="w-4 h-4" />
-                <span>{isSignUp ? 'Create Account' : 'Sign In'}</span>
-              </>
-            )}
+            {isSignUp
+              ? 'Already have an account? Sign in'
+              : "Don't have an account? Sign up"
+            }
           </button>
-
-          {/* Sign Up Link */}
-          <div className="text-center pt-3">
-            <button
-              onClick={() => setIsSignUp(!isSignUp)}
-              className="text-slate-600 hover:text-slate-900 text-sm font-medium transition-all duration-300 group hover:bg-slate-50/50 rounded-lg py-2 px-4 -mx-4"
-            >
-              {isSignUp ? (
-                <>
-                  Already have an account?{' '}
-                  <span className="text-indigo-600 hover:text-indigo-700 font-semibold transition-colors duration-300 group-hover:translate-x-1 inline-block">
-                    Sign in →
-                  </span>
-                </>
-              ) : (
-                <>
-                  Don't have an account?{' '}
-                  <span className="text-indigo-600 hover:text-indigo-700 font-semibold transition-colors duration-300 group-hover:translate-x-1 inline-block">
-                    Get started →
-                  </span>
-                </>
-              )}
-            </button>
-          </div>
         </div>
       </div>
 
-      {/* Footer */}
-      <p className="text-center text-xs text-slate-500 mt-6">
-        © 2025 Productivity Hub. All rights reserved.
-      </p>
+      {/* Demo Note */}
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <div className="flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <h4 className="font-medium text-yellow-900 mb-1">Demo Mode</h4>
+            <p className="text-sm text-yellow-700">
+              This is a demo authentication. In production, this will connect to your Supabase project.
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 
   const renderUserInfo = () => (
-    <div className="max-w-sm mx-auto">
-      {/* Logo & Brand */}
-      <div className="text-center mb-6">
-        <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-emerald-500 to-green-600 rounded-xl shadow-lg shadow-emerald-500/30 mb-3">
-          <CheckCircle className="w-6 h-6 text-white" />
-        </div>
-        <h2 className="text-xl font-bold text-slate-900 mb-1">
+    <div className="max-w-md mx-auto p-6 space-y-6">
+      <div className="text-center">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
           Welcome Back!
         </h2>
-        <p className="text-slate-600 text-sm">
-          You're successfully signed in to Productivity Hub
+        <p className="text-gray-600">
+          You're successfully signed in to Productive Path
         </p>
       </div>
 
-      {/* User Info Card */}
-      <div className="bg-white/90 backdrop-blur-2xl rounded-2xl shadow-xl shadow-slate-200/60 border border-white/30 p-6 mb-4 hover:shadow-2xl hover:shadow-slate-200/70 transition-all duration-300">
+      <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
         <div className="flex items-center gap-4 mb-4">
           {userInfo?.picture && (
-            <div className="relative">
-              <img
-                src={userInfo.picture}
-                alt={userInfo.name}
-                className="w-16 h-16 rounded-xl border-3 border-white shadow-lg"
-              />
-              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center border-2 border-white shadow-md">
-                <CheckCircle className="w-3.5 h-3.5 text-white" />
-              </div>
-            </div>
+            <img
+              src={userInfo.picture}
+              alt={userInfo.name}
+              className="w-16 h-16 rounded-full border-2 border-gray-200"
+            />
           )}
           <div className="flex-1">
-            <h3 className="text-lg font-bold text-slate-900 mb-1">{userInfo?.name}</h3>
-            <p className="text-slate-600 text-sm font-medium">{userInfo?.email}</p>
-            <div className="flex items-center gap-2 mt-2">
-              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-              <span className="text-xs font-semibold text-emerald-600">Connected & Secure</span>
-            </div>
+            <h3 className="text-lg font-semibold text-gray-900">{userInfo?.name}</h3>
+            <p className="text-sm text-gray-600">{userInfo?.email}</p>
+          </div>
+          <div className="flex items-center gap-1 text-green-600">
+            <CheckCircle className="w-5 h-5" />
+            <span className="text-sm font-medium">Connected</span>
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-xl p-4 mb-4">
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
-              <Shield className="w-4 h-4 text-emerald-600" />
-            </div>
-            <div>
-              <h4 className="font-semibold text-emerald-900 mb-1 text-sm">Supabase Authentication Active</h4>
-              <p className="text-xs text-emerald-700 leading-relaxed">
-                Your session is secure and managed by Supabase with enterprise-grade encryption and security protocols.
-              </p>
-            </div>
-          </div>
+        <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+          <p className="text-sm text-green-700">
+            <strong>Supabase Authentication Active</strong><br />
+            Your session is secure and managed by Supabase.
+          </p>
         </div>
 
         <button
           onClick={handleSignOut}
-          className="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-lg transition-all duration-200 hover:shadow-md"
+          className="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors duration-200"
         >
           Sign Out
         </button>
@@ -297,15 +263,10 @@ export const SupabaseAuth: React.FC<SupabaseAuthProps> = ({
 
       <button
         onClick={() => window.location.reload()}
-        className="w-full py-2.5 px-4 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white text-sm font-semibold rounded-lg shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 transform hover:-translate-y-0.5 transition-all duration-300 active:scale-95 active:translate-y-0"
+        className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-200"
       >
-        Continue to Dashboard →
+        Continue to Dashboard
       </button>
-
-      {/* Footer */}
-      <p className="text-center text-xs text-slate-500 mt-6">
-        © 2025 Productivity Hub. All rights reserved.
-      </p>
     </div>
   );
 

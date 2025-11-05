@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Verification Helper</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 min-h-screen p-6">
+    <div class="max-w-md mx-auto">
+        <div class="bg-white/90 backdrop-blur-2xl rounded-2xl shadow-xl shadow-slate-200/60 border border-white/30 p-6">
+            <h1 class="text-xl font-bold text-slate-900 mb-4">Email Verification Helper</h1>
+
+            <div class="space-y-4">
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h2 class="font-semibold text-blue-900 mb-2">For Your Existing Account:</h2>
+                    <p class="text-blue-700 text-sm mb-3">User ID: <code class="bg-blue-100 px-2 py-1 rounded">62d14deb-3548-446c-ab7f-9b58fb73a8c9</code></p>
+                    <p class="text-blue-700 text-sm">Follow these steps to manually verify your email:</p>
+                </div>
+
+                <div class="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                    <h3 class="font-semibold text-slate-900 mb-2">🔧 Manual Verification Steps:</h3>
+                    <ol class="list-decimal list-inside space-y-2 text-sm text-slate-700">
+                        <li>Go to your <a href="https://supabase.com/dashboard" target="_blank" class="text-blue-600 hover:text-blue-700 underline">Supabase Dashboard</a></li>
+                        <li>Navigate to <strong>Authentication</strong> → <strong>Users</strong></li>
+                        <li>Find your user with ID: <code class="bg-slate-100 px-1 rounded text-xs">62d14deb-3548-446c-ab7f-9b58fb73a8c9</code></li>
+                        <li>Click on the user to open details</li>
+                        <li>Click the <strong>"Verify email"</strong> button</li>
+                        <li>Your account will be verified immediately!</li>
+                    </ol>
+                </div>
+
+                <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+                    <h3 class="font-semibold text-emerald-900 mb-2">✅ Alternative: Use the App</h3>
+                    <p class="text-emerald-700 text-sm mb-3">You can also use the manual verification feature in the app:</p>
+                    <ol class="list-decimal list-inside space-y-1 text-sm text-emerald-700">
+                        <li>Go to <a href="http://localhost:5176/" class="text-emerald-600 hover:text-emerald-700 underline">localhost:5176</a></li>
+                        <li>Try to sign in with your email and password</li>
+                        <li>If it shows a verification error, click "Manual Verification (Development)"</li>
+                        <li>Check the browser console for detailed instructions</li>
+                    </ol>
+                </div>
+
+                <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                    <h3 class="font-semibold text-amber-900 mb-2">📧 For Future Sign-ups:</h3>
+                    <p class="text-amber-700 text-sm">The email verification has been improved. New users should receive verification emails properly.</p>
+                </div>
+            </div>
+
+            <div class="mt-6 pt-4 border-t border-slate-200">
+                <p class="text-center text-xs text-slate-500">
+                    After manual verification, return to <a href="http://localhost:5176/" class="text-slate-700 hover:text-slate-900 underline">localhost:5176</a> to sign in
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
