@@ -1,8 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Handle images properly for Vercel deployment
+  // Handle images properly for deployment
   images: {
     domains: ['localhost'], // Add your Supabase storage domain if needed
+    unoptimized: true, // Required for static export compatibility
   },
   // Enable React strict mode for better development experience
   reactStrictMode: true,

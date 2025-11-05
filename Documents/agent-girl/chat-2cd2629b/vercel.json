@@ -5,34 +5,6 @@
   "outputDirectory": ".next",
   "installCommand": "npm install",
   "devCommand": "npm run dev",
-  "functions": {
-    "app/**/*.tsx": {
-      "runtime": "nodejs18.x"
-    }
-  },
-  "protection": {
-    "enabled": false,
-    "authentication": {
-      "enabled": false,
-      "mode": "open"
-    },
-    "ipAllowList": {
-      "enabled": false
-    },
-    "passwordProtection": {
-      "enabled": false
-    },
-    "bypassFor": {
-      "enabled": false,
-      "allowedTokens": []
-    }
-  },
-  "access": {
-    "type": "public",
-    "auth": {
-      "required": false
-    }
-  },
   "headers": [
     {
       "source": "/(.*)",
