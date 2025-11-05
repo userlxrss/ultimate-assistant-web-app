@@ -367,7 +367,30 @@ const TaskItem: React.FC<TaskItemProps> = ({
           <h3 className={`text-sm font-medium text-gray-900 dark:text-white truncate leading-tight hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${
             task.completed ? 'line-through opacity-60' : ''
           }`}>
-            {typeof task.title === 'string' ? task.title : String(task.title || 'Untitled Task')}
+            {(() => {
+              // 🔧 FIXED: Enhanced task name extraction for display
+              const displayName = task.title ||
+                                task.name ||
+                                task.subject ||
+                                (task.description && typeof task.description === 'string'
+                                  ? task.description.substring(0, 60) + (task.description.length > 60 ? '...' : '')
+                                  : '') ||
+                                'Untitled Task';
+
+              // 🔍 DEBUG: Log what we're displaying (only for debugging)
+              if (task.title === 'Untitled Task' || !task.title) {
+                console.log('🔍 TaskItem displaying fallback name for task:', {
+                  id: task.id,
+                  title: task.title,
+                  name: task.name,
+                  subject: task.subject,
+                  description: task.description?.substring(0, 50),
+                  displayName
+                });
+              }
+
+              return displayName;
+            })()}
           </h3>
         </button>
 

@@ -135,9 +135,13 @@ const CleanSettingsPage: React.FC = () => {
   const [motionLastSync, setMotionLastSync] = useState<Date | null>(null);
   const [motionTaskCount, setMotionTaskCount] = useState(0);
 
-  // Motion API key
-  const MOTION_API_KEY = 'AARvN4IMgBFo6Jvr5IcBHyk8vjg8Z/3h4aUB58wWW1E=';
-  const MOTION_API_BASE = 'https://api.usemotion.com/v1';
+  // Motion API key login state
+  const [showMotionLoginForm, setShowMotionLoginForm] = useState(false);
+  const [motionApiKey, setMotionApiKey] = useState('');
+  const [showMotionSuccessModal, setShowMotionSuccessModal] = useState(false);
+
+  // Motion OAuth Configuration
+  const MOTION_OAUTH_URL = 'https://app.usemotion.com/oauth/authorize';
 
   // Helper function to format time ago
   const formatTimeAgo = (date: Date): string => {
@@ -252,7 +256,11 @@ const CleanSettingsPage: React.FC = () => {
     }
 
     // Check Motion connection
-    if (motionAPI.isAuthenticated()) {
+    const motionToken = localStorage.getItem('motion_token');
+    const motionConnected = localStorage.getItem('motion_connected') === 'true';
+    if (motionToken && motionConnected) {
+      setIsMotionConnected(true);
+      setMotionLastSync(new Date());
       setConnections(prev => prev.map(conn =>
         conn.id === 'motion'
           ? {
@@ -390,82 +398,57 @@ const CleanSettingsPage: React.FC = () => {
     }
   };
 
-  // Check Motion connection status on component mount
-  useEffect(() => {
-    checkMotionConnection();
-  }, []);
+  // NOTE: Motion connection check removed - OAuth handles this automatically
 
-  const checkMotionConnection = async () => {
-    try {
-      console.log('=== MOTION CONNECTION DEBUG (Settings) ===');
-      const connected = await getStorageItem('motion-connected');
-      const apiKey = await getStorageItem('motion-api-key');
-      const lastSync = await getStorageItem('motion-last-sync');
-      const taskCount = await getStorageItem('motion-task-count');
+  // NOTE: checkMotionConnection REMOVED - No more API key authentication!
+// OAuth handles connection state automatically
 
-      console.log('Connected:', connected);
-      console.log('API Key:', apiKey ? 'Present' : 'Missing');
-      console.log('Last Sync:', lastSync);
-      console.log('Task Count:', taskCount);
-      console.log('=========================================');
-
-      const isConnected = typeof connected === 'string' ? connected === 'true' : connected?.value === 'true';
-      const hasApiKey = typeof apiKey === 'string' ? !!apiKey : !!apiKey?.value;
-
-      if (isConnected && hasApiKey) {
-        setIsMotionConnected(true);
-        setMotionTaskCount(parseInt(typeof taskCount === 'string' ? taskCount : taskCount?.value || '0'));
-        const lastSyncValue = typeof lastSync === 'string' ? lastSync : lastSync?.value;
-        if (lastSyncValue) {
-          setMotionLastSync(new Date(lastSyncValue));
-        }
-      } else {
-        setIsMotionConnected(false);
-      }
-    } catch (error) {
-      console.error('Error checking Motion connection:', error);
-      setIsMotionConnected(false);
-    }
+  const handleConnectMotion = () => {
+    setShowMotionLoginForm(true);
   };
 
-  const handleConnectMotion = async () => {
+  const handleMotionLogin = async () => {
     setConnectingMotion(true);
     try {
-      console.log('Connecting to Motion with API key...');
+      console.log('🔐 Attempting Motion API connection with key:', motionApiKey.substring(0, 8) + '...');
 
-      // Test API key by fetching tasks
-      const response = await fetch(`${MOTION_API_BASE}/tasks`, {
+      // Test the API key by making a request to get user info
+      const response = await fetch('https://api.usemotion.com/v1/users/me', {
+        method: 'GET',
         headers: {
-          'X-API-Key': MOTION_API_KEY,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'X-API-Key': motionApiKey
         }
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        const taskCount = data.tasks?.length || 0;
+      const data = await response.json();
 
-        // Save connection state to persistent storage
-        await setStorageItem('motion-connected', 'true');
-        await setStorageItem('motion-api-key', MOTION_API_KEY);
-        await setStorageItem('motion-last-sync', new Date().toISOString());
-        await setStorageItem('motion-task-count', taskCount.toString());
+      if (response.ok) {
+        // Store authentication data
+        localStorage.setItem('motion_token', motionApiKey);
+        localStorage.setItem('motion_user', JSON.stringify(data));
+        localStorage.setItem('motion_connected', 'true');
 
         setIsMotionConnected(true);
-        setMotionTaskCount(taskCount);
+        setMotionTaskCount(0); // Will be updated by real API calls
         setMotionLastSync(new Date());
+        setShowMotionLoginForm(false);
+        setMotionApiKey('');
 
-        console.log('Motion connected successfully!', { taskCount });
-        alert('✅ Successfully connected to Motion!');
+        // Show success modal instead of alert
+        setShowMotionSuccessModal(true);
 
-        // Navigate to tasks page after successful connection
-        window.location.href = '/tasks';
+        // Auto close after 2 seconds
+        setTimeout(() => {
+          setShowMotionSuccessModal(false);
+        }, 2000);
       } else {
-        throw new Error(`API returned ${response.status}`);
+        console.error('Motion API connection failed:', data);
+        alert(`❌ Connection failed: ${data.error || 'Invalid API key'}`);
       }
     } catch (error) {
-      console.error('Motion connection error:', error);
-      alert('❌ Failed to connect to Motion. Please try again.');
+      console.error('Motion API connection error:', error);
+      alert('❌ Connection failed. Please check your API key and try again.');
     } finally {
       setConnectingMotion(false);
     }
@@ -475,10 +458,9 @@ const CleanSettingsPage: React.FC = () => {
     if (confirm('Are you sure you want to disconnect Motion?')) {
       try {
         // Clear all Motion storage
-        await deleteStorageItem('motion-connected');
-        await deleteStorageItem('motion-api-key');
-        await deleteStorageItem('motion-last-sync');
-        await deleteStorageItem('motion-task-count');
+        localStorage.removeItem('motion_token');
+        localStorage.removeItem('motion_user');
+        localStorage.removeItem('motion_connected');
 
         setIsMotionConnected(false);
         setMotionTaskCount(0);
@@ -907,7 +889,99 @@ const CleanSettingsPage: React.FC = () => {
               </div>
             )}
 
-            
+            {/* Motion Login Modal */}
+            {showMotionLoginForm && (
+              <div className="motion-modal-overlay" onClick={() => setShowMotionLoginForm(false)}>
+                <div className="motion-modal" onClick={(e) => e.stopPropagation()}>
+                  <button className="close-btn" onClick={() => setShowMotionLoginForm(false)}>
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
+                    </svg>
+                  </button>
+
+                  <div className="modal-content">
+                    <div className="modal-header">
+                      <div className="logo-title-container">
+                        <div className="motion-logo-circle">
+                          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                            <path
+                              d="M8 24V12c0-2 1-3 2-3s2 1 2 3v6c0 1 .5 2 1.5 2s1.5-1 1.5-2v-8c0-2 1-3 2-3s2 1 2 3v8c0 1 .5 2 1.5 2s1.5-1 1.5-2V8"
+                              stroke="white"
+                              strokeWidth="2.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </div>
+                        <h2>Connect to Motion</h2>
+                      </div>
+                    </div>
+
+                    <div className="modal-body">
+                      <div className="input-group">
+                        <label>API Key</label>
+                        <input
+                          type="password"
+                          value={motionApiKey}
+                          onChange={(e) => setMotionApiKey(e.target.value)}
+                          className="api-key-input"
+                          autoFocus
+                        />
+                      </div>
+
+                      <button
+                        className="connect-button"
+                        onClick={handleMotionLogin}
+                        disabled={connectingMotion || !motionApiKey}
+                      >
+                        {connectingMotion ? (
+                          <>
+                            <span className="spinner"></span>
+                            Connecting...
+                          </>
+                        ) : (
+                          'Connect'
+                        )}
+                      </button>
+
+                      <a
+                        href="https://app.usemotion.com/web/settings/api"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="api-key-link"
+                      >
+                        Get your API key →
+                      </a>
+                    </div>
+
+                    <div className="modal-footer">
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                        <path d="M6 0a3 3 0 00-3 3v1H2a1 1 0 00-1 1v6a1 1 0 001 1h8a1 1 0 001-1V5a1 1 0 00-1-1H9V3a3 3 0 00-3-3zm1 4V3a1 1 0 10-2 0v1h2z"/>
+                      </svg>
+                      <span>Secure connection</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Motion Success Modal */}
+            {showMotionSuccessModal && (
+              <div className="success-overlay">
+                <div className="success-modal">
+                  <div className="success-icon">
+                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                      <circle cx="24" cy="24" r="24" fill="#10B981"/>
+                      <path d="M14 24l8 8 12-12" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  <h3>Successfully connected!</h3>
+                  <p>Your Motion account is now synced</p>
+                </div>
+              </div>
+            )}
+
+
           </div>
         )}
 
@@ -2606,6 +2680,343 @@ const CleanSettingsPage: React.FC = () => {
         .btn-modal-secondary:disabled {
           opacity: 0.6;
           cursor: not-allowed;
+        }
+
+        /* ========== MOTION BRANDED MODAL STYLES ========== */
+
+        /* Motion Modal Overlay */
+        .motion-modal-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.5);
+          backdrop-filter: blur(4px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 9999;
+          padding: 20px;
+        }
+
+        /* Motion Modal */
+        .motion-modal {
+          background: white;
+          border-radius: 16px;
+          width: 100%;
+          max-width: 420px;
+          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+                      0 10px 10px -5px rgba(0, 0, 0, 0.04);
+          position: relative;
+          animation: slideUp 0.2s ease-out;
+        }
+
+        @keyframes slideUp {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .dark .motion-modal {
+          background: #1E293B;
+          border: 1px solid #334155;
+        }
+
+        /* Close Button */
+        .close-btn {
+          position: absolute;
+          top: 20px;
+          right: 20px;
+          background: transparent;
+          border: none;
+          color: #64748b;
+          cursor: pointer;
+          padding: 4px;
+          border-radius: 6px;
+          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .close-btn:hover {
+          background: #f1f5f9;
+          color: #0f172a;
+        }
+
+        .dark .close-btn {
+          color: #94a3b8;
+        }
+
+        .dark .close-btn:hover {
+          background: #334155;
+          color: #f8fafc;
+        }
+
+        /* Modal Content */
+        .modal-content {
+          padding: 40px 40px 32px 40px;
+        }
+
+        /* Modal Header */
+        .modal-header {
+          margin-bottom: 32px;
+        }
+
+        .logo-title-container {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          justify-content: center;
+          gap: 16px;
+        }
+
+        /* Motion Logo Circle */
+        .motion-logo-circle {
+          width: 56px;
+          height: 56px;
+          background: #0F172A;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .modal-header h2 {
+          font-size: 24px;
+          font-weight: 600;
+          color: #0f172a;
+          margin: 0;
+          line-height: 1;
+        }
+
+        .dark .modal-header h2 {
+          color: #f8fafc;
+        }
+
+        /* Modal Body */
+        .modal-body {
+          margin-bottom: 24px;
+        }
+
+        .input-group {
+          margin-bottom: 20px;
+          text-align: left;
+        }
+
+        .input-group label {
+          display: block;
+          font-size: 14px;
+          font-weight: 500;
+          color: #334155;
+          margin-bottom: 8px;
+          text-align: left;
+        }
+
+        .dark .input-group label {
+          color: #cbd5e1;
+        }
+
+        .api-key-input {
+          width: 100%;
+          padding: 12px 16px;
+          border: 1.5px solid #e2e8f0;
+          border-radius: 10px;
+          font-size: 15px;
+          font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+          transition: all 0.2s;
+          background: #f8fafc;
+          text-align: left;
+        }
+
+        .dark .api-key-input {
+          background: #1e293b;
+          border-color: #334155;
+          color: #f8fafc;
+        }
+
+        .api-key-input:focus {
+          outline: none;
+          border-color: #0f172a;
+          background: white;
+          box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.1);
+        }
+
+        .dark .api-key-input:focus {
+          background: #0f172a;
+          box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.2);
+        }
+
+        /* Connect Button */
+        .connect-button {
+          width: 100%;
+          padding: 14px 20px;
+          background: #0F172A;
+          color: white;
+          border: none;
+          border-radius: 10px;
+          font-size: 15px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+        }
+
+        .connect-button:hover:not(:disabled) {
+          background: #1e293b;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
+        }
+
+        .connect-button:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+          transform: none;
+        }
+
+        .spinner {
+          width: 16px;
+          height: 16px;
+          border: 2px solid rgba(255, 255, 255, 0.3);
+          border-top-color: white;
+          border-radius: 50%;
+          animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+
+        /* API Key Link */
+        .api-key-link {
+          display: block;
+          text-align: center;
+          margin-top: 16px;
+          font-size: 14px;
+          font-weight: 500;
+          color: #0f172a;
+          text-decoration: none;
+          transition: color 0.2s;
+        }
+
+        .api-key-link:hover {
+          color: #475569;
+        }
+
+        .dark .api-key-link {
+          color: #60a5fa;
+        }
+
+        .dark .api-key-link:hover {
+          color: #93c5fd;
+        }
+
+        /* Modal Footer */
+        .modal-footer {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          padding-top: 24px;
+          border-top: 1px solid #f1f5f9;
+          font-size: 13px;
+          color: #64748b;
+        }
+
+        .dark .modal-footer {
+          border-top-color: #334155;
+          color: #94a3b8;
+        }
+
+        .modal-footer svg {
+          color: #94a3b8;
+        }
+
+        /* ========== SUCCESS MODAL STYLES ========== */
+
+        .success-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.5);
+          backdrop-filter: blur(4px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 10000;
+          animation: fadeIn 0.2s ease-out;
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        .success-modal {
+          background: white;
+          border-radius: 16px;
+          padding: 40px;
+          text-align: center;
+          max-width: 380px;
+          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+          animation: slideUp 0.3s ease-out;
+        }
+
+        .dark .success-modal {
+          background: #1e293b;
+          border: 1px solid #334155;
+        }
+
+        @keyframes slideUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .success-icon {
+          margin: 0 auto 20px;
+          animation: scaleIn 0.4s ease-out 0.1s backwards;
+        }
+
+        @keyframes scaleIn {
+          from {
+            transform: scale(0);
+          }
+          to {
+            transform: scale(1);
+          }
+        }
+
+        .success-modal h3 {
+          font-size: 20px;
+          font-weight: 600;
+          color: #0f172a;
+          margin: 0 0 8px 0;
+        }
+
+        .dark .success-modal h3 {
+          color: #f8fafc;
+        }
+
+        .success-modal p {
+          font-size: 15px;
+          color: #64748b;
+          margin: 0;
+        }
+
+        .dark .success-modal p {
+          color: #94a3b8;
         }
       `}</style>
     </div>

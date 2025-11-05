@@ -6,6 +6,14 @@ import { generateRealTasks, getTodayTasks } from '../../utils/realTaskData';
 import { motionAPI } from '../../utils/motionApi';
 import { useTimer } from '../../contexts/TimerContext';
 import { formatMinutesDisplay, calculateDailyFocusTime, formatTimerDisplay } from '../../utils/timerUtils';
+import {
+  saveTask,
+  updateTask,
+  deleteTask,
+  loadTasks,
+  migrateFromLocalStorage,
+  DatabaseTask
+} from '../../supabase';
 import TaskForm from './TaskForm';
 import TaskItem from './TaskItem';
 import TaskFilters from './TaskFilters';
@@ -122,160 +130,134 @@ const [hasShownTimeUpNotification, setHasShownTimeUpNotification] = useState(fal
     }
   };
 
-  // Check Motion connection and load tasks
-  const checkMotionConnectionAndLoadTasks = async () => {
-    setSyncStatus('Checking Motion connection...');
-    setIsMotionConnected(false);
-
-    try {
-      console.log('=== CHECKING MOTION CONNECTION PERSISTENCE ===');
-
-      // Check localStorage directly first (most reliable)
-      let localStorageConnected = false;
-      let localStorageApiKey = '';
-
-      try {
-        localStorageConnected = localStorage.getItem('motion-connected') === 'true';
-        localStorageApiKey = localStorage.getItem('motion-api-key') || '';
-        console.log('Direct localStorage check:', {
-          connected: localStorageConnected,
-          hasApiKey: !!localStorageApiKey,
-          apiKeyLength: localStorageApiKey.length
-        });
-      } catch (error) {
-        console.log('Direct localStorage check failed:', error);
-      }
-
-      // Check persistent storage functions (backup)
-      const connected = await getStorageItem('motion-connected');
-      const apiKey = await getStorageItem('motion-api-key');
-      const lastSync = await getStorageItem('motion-last-sync');
-
-      console.log('Storage function check:', {
-        connected: connected?.value,
-        hasApiKey: !!apiKey?.value,
-        lastSync: lastSync?.value
-      });
-
-      // Use whichever method worked
-      const hasConnection = localStorageConnected || connected?.value === 'true';
-      const hasApiKey = localStorageApiKey || apiKey?.value;
-
-      if (hasConnection && hasApiKey) {
-        // Found saved connection!
-        console.log('✅ FOUND SAVED MOTION CONNECTION!');
-        console.log('🔑 API Key length:', hasApiKey.length);
-        console.log('📅 Last Sync:', lastSync?.value || 'Never');
-
-        setIsMotionConnected(true);
-        motionAPI.setApiKey(hasApiKey);
-
-        // Set last sync time if available
-        if (lastSync?.value) {
-          setLastSync(new Date(lastSync.value));
-        }
-
-        // Automatically fetch tasks
-        console.log('🔄 Auto-syncing tasks...');
-        await syncMotionTasks();
-        console.log('✅ Auto-sync completed!');
-        return;
-      } else {
-        // No saved connection - use test data to demonstrate description feature
-        console.log('❌ NO SAVED MOTION CONNECTION FOUND');
-        console.log('Connection status:', hasConnection);
-        console.log('API Key present:', !!hasApiKey);
-        console.log('🎯 Using test data to demonstrate task descriptions');
-
-        setIsMotionConnected(false);
-        setSyncStatus('⚠️ Not connected to Motion (using test data)');
-        // Use test data with descriptions to demonstrate the feature
-        const testTasks = generateRealTasks();
-        setTasks(testTasks);
-        console.log('✅ Loaded test tasks with descriptions:', testTasks.length);
-      }
-    } catch (error) {
-      console.error('❌ ERROR CHECKING CONNECTION:', error);
-      setIsMotionConnected(false);
-      setSyncStatus('⚠️ Error checking connection (using test data)');
-      // Use test data as fallback
-      const testTasks = generateRealTasks();
-      setTasks(testTasks);
-      console.log('✅ Loaded test tasks as fallback:', testTasks.length);
-    }
-
-    // Fallback: Check if motionAPI already has the key (from Settings)
-    if (motionAPI.isAuthenticated()) {
-      console.log('🔄 Found API key in motionAPI, connecting...');
-      setIsMotionConnected(true);
-      await syncMotionTasks();
-    }
-
-    console.log('=== CONNECTION CHECK COMPLETE ===');
-  };
-
-  useEffect(() => {
-    checkMotionConnectionAndLoadTasks();
-  }, []);
-
-  // Sync tasks with Motion
-  const syncMotionTasks = async () => {
-    if (!motionAPI.isAuthenticated()) {
-      setSyncStatus('Please connect to Motion first');
-      return;
-    }
-
+  // Fetch Motion Tasks from API
+  // Load tasks from Supabase database
+  const loadTasksFromDatabase = async () => {
     setIsProcessing(true);
-    setSyncStatus('Syncing with Motion...');
+    setSyncStatus('Loading tasks from database...');
 
     try {
-      // Save connection state to localStorage directly (most reliable)
-      try {
-        const apiKey = motionAPI.getApiKey();
-        if (apiKey) {
-          localStorage.setItem('motion-connected', 'true');
-          localStorage.setItem('motion-api-key', apiKey);
-          console.log('💾 Saved connection state to localStorage');
-        }
-      } catch (error) {
-        console.log('Failed to save to localStorage:', error);
-      }
+      const databaseTasks = await loadTasks();
 
-      const motionTasks = await motionAPI.getTasks();
-      if (motionTasks.success && motionTasks.data?.tasks) {
-        setTasks(motionTasks.data.tasks);
-        const syncTime = new Date();
-        setLastSync(syncTime);
+      // Convert DatabaseTask to Task format (adapt type structure)
+      const tasks: Task[] = databaseTasks.map(dbTask => ({
+        id: dbTask.id!,
+        title: dbTask.title,
+        description: dbTask.description,
+        notes: dbTask.notes,
+        completed: dbTask.completed,
+        createdAt: new Date(dbTask.created_at!),
+        completedAt: dbTask.completed_at ? new Date(dbTask.completed_at) : undefined,
+        dueDate: dbTask.due_date ? new Date(dbTask.due_date) : undefined,
+        priority: dbTask.priority,
+        status: dbTask.status,
+        category: dbTask.category,
+        workspace: dbTask.workspace,
+        duration: dbTask.duration,
+        subtasks: dbTask.subtasks || [],
+        tags: dbTask.tags || [],
+        estimatedTime: dbTask.estimated_time,
+        actualTime: dbTask.actual_time,
+        recurrence: dbTask.recurrence,
+        reminder: dbTask.reminder ? new Date(dbTask.reminder) : undefined,
+        attachments: dbTask.attachments || [],
+        dependencies: dbTask.dependencies || [],
+        projectId: dbTask.project_id,
+        assignee: dbTask.assignee,
+        color: dbTask.color
+      }));
 
-        // Save last sync time to both storage methods
-        try {
-          // Direct localStorage
-          localStorage.setItem('motion-last-sync', syncTime.toISOString());
+      setTasks(tasks);
+      console.log(`✅ Loaded ${tasks.length} tasks from Supabase database`);
+      setSyncStatus(`Loaded ${tasks.length} tasks from database`);
+      setTimeout(() => setSyncStatus(''), 3000);
 
-          // Storage functions as backup
-          await setStorageItem('motion-last-sync', syncTime.toISOString());
-          await setStorageItem('motion-task-count', motionTasks.data.tasks.length.toString());
-
-          console.log('💾 Saved sync state successfully');
-        } catch (error) {
-          console.log('Could not save sync state:', error);
-        }
-
-        setSyncStatus(`✅ Synced ${motionTasks.data.tasks.length} tasks from Motion`);
-        setTimeout(() => setSyncStatus(''), 3000);
-      } else {
-        throw new Error(motionTasks.error || 'Failed to sync tasks');
-      }
     } catch (error) {
-      console.error('Motion sync error:', error);
-      setSyncStatus(`❌ Sync failed: ${error instanceof Error ? error.message : 'Unknown error'} (using test data)`);
-      // Use test data as fallback when Motion sync fails
-      const testTasks = generateRealTasks();
-      setTasks(testTasks);
-      console.log('✅ Loaded test tasks due to sync failure:', testTasks.length);
+      console.error('Failed to load tasks from database:', error);
+      setSyncStatus('Failed to load from database, using fallback tasks');
+      const fallbackTasks = generateRealTasks();
+      setTasks(fallbackTasks);
+      setTimeout(() => setSyncStatus(''), 3000);
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const fetchMotionTasks = async () => {
+    setIsProcessing(true);
+    setSyncStatus('Loading Motion tasks...');
+
+    try {
+      // Check if Motion is connected via localStorage
+      const motionToken = localStorage.getItem('motion_token');
+      const isConnected = localStorage.getItem('motion_connected') === 'true';
+
+      if (!motionToken || !isConnected) {
+        setSyncStatus('Please connect to Motion first in Settings');
+        // Load from database instead of generating test tasks
+        await loadTasksFromDatabase();
+        return;
+      }
+
+      // Fetch tasks from Motion API
+      const response = await fetch('https://api.usemotion.com/v1/tasks', {
+        method: 'GET',
+        headers: {
+          'X-API-Key': motionToken,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+
+        // 🔍 DEBUG: Log the raw Motion API response structure
+        console.log('🎯 Motion API Raw Response:', data);
+        console.log('🎯 Motion API Response keys:', Object.keys(data));
+        if (data.tasks && data.tasks.length > 0) {
+          console.log('🎯 Sample Motion task structure:', data.tasks[0]);
+          console.log('🎯 Sample task keys:', Object.keys(data.tasks[0]));
+          console.log('🎯 Task name fields:', {
+            name: data.tasks[0].name,
+            title: data.tasks[0].title,
+            description: data.tasks[0].description,
+            subject: data.tasks[0].subject
+          });
+        }
+
+        if (data.tasks && Array.isArray(data.tasks)) {
+          setTasks(data.tasks);
+          const syncTime = new Date();
+          setLastSync(syncTime);
+          setIsMotionConnected(true);
+
+          // Save sync state
+          localStorage.setItem('motion-last-sync', syncTime.toISOString());
+
+          setSyncStatus(`✅ Loaded ${data.tasks.length} tasks from Motion`);
+          setTimeout(() => setSyncStatus(''), 3000);
+        } else {
+          throw new Error('Invalid response format from Motion API');
+        }
+      } else {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error('Motion fetch error:', error);
+      setSyncStatus(`❌ Failed to load Motion tasks: ${error instanceof Error ? error.message : 'Unknown error'}`);
+
+      // Use test data as fallback
+      const testTasks = generateRealTasks();
+      setTasks(testTasks);
+      console.log('✅ Loaded test tasks due to API failure:', testTasks.length);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Sync tasks with Motion (alias for fetchMotionTasks)
+  const syncMotionTasks = async () => {
+    await fetchMotionTasks();
   };
 
   // Test storage persistence - can be called to verify connection storage
@@ -345,10 +327,10 @@ const [hasShownTimeUpNotification, setHasShownTimeUpNotification] = useState(fal
     try {
       setIsUpdating(true);
 
-      // Get API key from storage
-      const apiKeyResult = await getStorageItem('motion-api-key');
+      // Get Motion token from localStorage
+      const motionToken = localStorage.getItem('motion_token');
 
-      if (!apiKeyResult?.value) {
+      if (!motionToken) {
         showErrorNotification('Please reconnect to Motion');
         return;
       }
@@ -361,7 +343,7 @@ const [hasShownTimeUpNotification, setHasShownTimeUpNotification] = useState(fal
       const response = await fetch(`https://api.usemotion.com/v1/tasks/${taskId}`, {
         method: 'PATCH',
         headers: {
-          'X-API-Key': apiKeyResult.value,
+          'X-API-Key': motionToken,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
@@ -422,9 +404,9 @@ const [hasShownTimeUpNotification, setHasShownTimeUpNotification] = useState(fal
     try {
       setIsDeleting(true);
 
-      const apiKeyResult = await getStorageItem('motion-api-key');
+      const motionToken = localStorage.getItem('motion_token');
 
-      if (!apiKeyResult?.value) {
+      if (!motionToken) {
         showErrorNotification('Please reconnect to Motion');
         return;
       }
@@ -432,7 +414,7 @@ const [hasShownTimeUpNotification, setHasShownTimeUpNotification] = useState(fal
       const response = await fetch(`https://api.usemotion.com/v1/tasks/${taskId}`, {
         method: 'DELETE',
         headers: {
-          'X-API-Key': apiKeyResult.value,
+          'X-API-Key': motionToken,
           'Content-Type': 'application/json'
         }
       });
@@ -465,9 +447,9 @@ const [hasShownTimeUpNotification, setHasShownTimeUpNotification] = useState(fal
     const newStatus = task.status === 'Completed' ? 'Todo' : 'Completed';
 
     try {
-      const apiKeyResult = await getStorageItem('motion-api-key');
+      const motionToken = localStorage.getItem('motion_token');
 
-      if (!apiKeyResult?.value) {
+      if (!motionToken) {
         showErrorNotification('Please reconnect to Motion');
         return;
       }
@@ -475,7 +457,7 @@ const [hasShownTimeUpNotification, setHasShownTimeUpNotification] = useState(fal
       const response = await fetch(`https://api.usemotion.com/v1/tasks/${task.id}`, {
         method: 'PATCH',
         headers: {
-          'X-API-Key': apiKeyResult.value,
+          'X-API-Key': motionToken,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ status: newStatus })
@@ -538,9 +520,10 @@ const [hasShownTimeUpNotification, setHasShownTimeUpNotification] = useState(fal
   // Handle disconnect from Motion
   const handleDisconnect = async () => {
     try {
-      await deleteStorageItem('motion-connected');
-      await deleteStorageItem('motion-api-key');
-      await deleteStorageItem('motion-last-sync');
+      localStorage.removeItem('motion_connected');
+      localStorage.removeItem('motion_token');
+      localStorage.removeItem('motion_user');
+      localStorage.removeItem('motion-last-sync');
       setIsMotionConnected(false);
       setTasks([]);
       setLastSync(null);
@@ -642,9 +625,9 @@ const [hasShownTimeUpNotification, setHasShownTimeUpNotification] = useState(fal
   const handleStartTaskTimer = async (task: Task) => {
     try {
       // Update task status to In Progress
-      const apiKeyResult = await getStorageItem('motion-api-key');
+      const motionToken = localStorage.getItem('motion_token');
 
-      if (!apiKeyResult?.value) {
+      if (!motionToken) {
         showErrorNotification('Please reconnect to Motion');
         return;
       }
@@ -652,7 +635,7 @@ const [hasShownTimeUpNotification, setHasShownTimeUpNotification] = useState(fal
       const response = await fetch(`https://api.usemotion.com/v1/tasks/${task.id}`, {
         method: 'PATCH',
         headers: {
-          'X-API-Key': apiKeyResult.value,
+          'X-API-Key': motionToken,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
@@ -822,6 +805,24 @@ const [hasShownTimeUpNotification, setHasShownTimeUpNotification] = useState(fal
     return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
   };
 
+  // Load tasks on component mount - try database first, then fallback
+  useEffect(() => {
+    const initializeTasks = async () => {
+      // Try to migrate any existing localStorage data first
+      try {
+        await migrateFromLocalStorage();
+        console.log('🔄 Migration from localStorage completed');
+      } catch (error) {
+        console.log('ℹ️ No localStorage data to migrate or migration failed');
+      }
+
+      // Load tasks from database
+      await loadTasksFromDatabase();
+    };
+
+    initializeTasks();
+  }, []);
+
   // Update filtered tasks when tasks, filter, or selected month change
   useEffect(() => {
     // Temporarily show all tasks - will implement proper user filtering later
@@ -870,24 +871,107 @@ const [hasShownTimeUpNotification, setHasShownTimeUpNotification] = useState(fal
   };
 
   const handleTaskAdded = async (newTask: Task) => {
+    // First save to local state for immediate UI update
     setTasks(prev => [...prev, newTask]);
+
+    // Save to Supabase database
+    try {
+      const dbTaskData: Omit<DatabaseTask, 'user_id'> = {
+        title: newTask.title,
+        description: newTask.description,
+        notes: newTask.notes,
+        completed: newTask.completed,
+        created_at: newTask.createdAt.toISOString(),
+        completed_at: newTask.completedAt?.toISOString(),
+        due_date: newTask.dueDate?.toISOString(),
+        priority: newTask.priority,
+        status: newTask.status,
+        category: newTask.category,
+        workspace: newTask.workspace,
+        duration: newTask.duration,
+        subtasks: newTask.subtasks || [],
+        tags: newTask.tags || [],
+        estimated_time: newTask.estimatedTime,
+        actual_time: newTask.actualTime,
+        recurrence: newTask.recurrence,
+        reminder: newTask.reminder?.toISOString(),
+        attachments: newTask.attachments || [],
+        dependencies: newTask.dependencies || [],
+        sync_status: 'synced',
+        last_sync_at: new Date().toISOString(),
+        project_id: newTask.projectId,
+        assignee: newTask.assignee,
+        color: newTask.color
+      };
+
+      await saveTask(dbTaskData);
+      console.log('✅ Task saved to database:', newTask.title);
+      setSyncStatus(`✅ Task saved to database`);
+      setTimeout(() => setSyncStatus(''), 3000);
+
+    } catch (error) {
+      console.error('Failed to save task to database:', error);
+      setSyncStatus(`⚠️ Task saved locally, database sync failed`);
+      setTimeout(() => setSyncStatus(''), 3000);
+    }
 
     // Sync with Motion if connected
     if (isMotionConnected) {
       try {
         await motionAPI.createTask(newTask);
-        setSyncStatus(`✅ Task created and synced to Motion`);
+        setSyncStatus(`✅ Task saved to database and synced to Motion`);
         setTimeout(() => setSyncStatus(''), 3000);
       } catch (error) {
         console.error('Failed to sync new task to Motion:', error);
-        setSyncStatus(`⚠️ Task saved locally, sync to Motion failed`);
+        setSyncStatus(`⚠️ Task saved to database, Motion sync failed`);
         setTimeout(() => setSyncStatus(''), 3000);
       }
     }
   };
 
   const handleTaskUpdated = async (updatedTask: Task) => {
+    // Update local state first for immediate UI update
     setTasks(prev => prev.map(task => task.id === updatedTask.id ? updatedTask : task));
+
+    // Save to Supabase database
+    try {
+      const updateData: Partial<DatabaseTask> = {
+        title: updatedTask.title,
+        description: updatedTask.description,
+        notes: updatedTask.notes,
+        completed: updatedTask.completed,
+        completed_at: updatedTask.completedAt?.toISOString(),
+        due_date: updatedTask.dueDate?.toISOString(),
+        priority: updatedTask.priority,
+        status: updatedTask.status,
+        category: updatedTask.category,
+        workspace: updatedTask.workspace,
+        duration: updatedTask.duration,
+        subtasks: updatedTask.subtasks || [],
+        tags: updatedTask.tags || [],
+        estimated_time: updatedTask.estimatedTime,
+        actual_time: updatedTask.actualTime,
+        recurrence: updatedTask.recurrence,
+        reminder: updatedTask.reminder?.toISOString(),
+        attachments: updatedTask.attachments || [],
+        dependencies: updatedTask.dependencies || [],
+        sync_status: 'synced',
+        last_sync_at: new Date().toISOString(),
+        project_id: updatedTask.projectId,
+        assignee: updatedTask.assignee,
+        color: updatedTask.color
+      };
+
+      await updateTask(updatedTask.id, updateData);
+      console.log('✅ Task updated in database:', updatedTask.title);
+      setSyncStatus(`✅ Task updated in database`);
+      setTimeout(() => setSyncStatus(''), 3000);
+
+    } catch (error) {
+      console.error('Failed to update task in database:', error);
+      setSyncStatus(`⚠️ Task updated locally, database sync failed`);
+      setTimeout(() => setSyncStatus(''), 3000);
+    }
 
     // Set active task if status is pending or in-progress
     if (updatedTask.status === 'pending' || updatedTask.status === 'in-progress' || updatedTask.status === 'In Progress') {
@@ -912,28 +996,41 @@ const [hasShownTimeUpNotification, setHasShownTimeUpNotification] = useState(fal
     if (isMotionConnected) {
       try {
         await motionAPI.updateTask(updatedTask.id, updatedTask);
-        setSyncStatus(`✅ Task updated and synced to Motion`);
+        setSyncStatus(`✅ Task updated in database and synced to Motion`);
         setTimeout(() => setSyncStatus(''), 3000);
       } catch (error) {
         console.error('Failed to sync task update to Motion:', error);
-        setSyncStatus(`⚠️ Task updated locally, sync to Motion failed`);
+        setSyncStatus(`⚠️ Task updated in database, Motion sync failed`);
         setTimeout(() => setSyncStatus(''), 3000);
       }
     }
   };
 
   const handleTaskDeleted = async (taskId: string) => {
+    // Delete from local state first for immediate UI update
     setTasks(prev => prev.filter(task => task.id !== taskId));
+
+    // Delete from Supabase database
+    try {
+      await deleteTask(taskId);
+      console.log('✅ Task deleted from database:', taskId);
+      setSyncStatus(`✅ Task deleted from database`);
+      setTimeout(() => setSyncStatus(''), 3000);
+    } catch (error) {
+      console.error('Failed to delete task from database:', error);
+      setSyncStatus(`⚠️ Task deleted locally, database delete failed`);
+      setTimeout(() => setSyncStatus(''), 3000);
+    }
 
     // Sync with Motion if connected
     if (isMotionConnected) {
       try {
         await motionAPI.deleteTask(taskId);
-        setSyncStatus(`✅ Task deleted and synced to Motion`);
+        setSyncStatus(`✅ Task deleted from database and synced to Motion`);
         setTimeout(() => setSyncStatus(''), 3000);
       } catch (error) {
         console.error('Failed to sync task deletion to Motion:', error);
-        setSyncStatus(`⚠️ Task deleted locally, sync to Motion failed`);
+        setSyncStatus(`⚠️ Task deleted from database, Motion sync failed`);
         setTimeout(() => setSyncStatus(''), 3000);
       }
     }

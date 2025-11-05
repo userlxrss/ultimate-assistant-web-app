@@ -1,6 +1,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@tailwind components;
+@tailwind utilities;
 
 @layer base {
   :root {
@@ -1423,4 +1425,267 @@ textarea.template-loaded {
 /* Disable transitions during theme changes to prevent flicker */
 .theme-transitioning * {
   transition: none !important;
+}
+
+/* ===== MOTION BRANDED MODAL STYLES ===== */
+.motion-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.motion-branded-modal {
+  background: white;
+  border-radius: 12px;
+  padding: 40px;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  position: relative;
+  animation: motion-modal-slide-up 0.3s ease-out;
+}
+
+.motion-close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: #f7fafc;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: #4a5568;
+  transition: all 0.2s;
+}
+
+.motion-close-btn:hover {
+  background: #e2e8f0;
+  color: #2d3748;
+}
+
+.motion-modal-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.motion-brand-icon {
+  width: 56px;
+  height: 56px;
+  background: #fff5f5;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.15);
+}
+
+.motion-modal-header h2 {
+  font-size: 22px;
+  font-weight: 600;
+  color: #1a202c;
+  margin-bottom: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.motion-subtitle {
+  color: #718096;
+  font-size: 14px;
+  font-weight: 400;
+  margin: 0;
+}
+
+.motion-modal-body {
+  margin-bottom: 24px;
+}
+
+.motion-input-group {
+  margin-bottom: 20px;
+}
+
+.motion-input-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #2d3748;
+  margin-bottom: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.motion-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 15px;
+  transition: all 0.2s;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: white;
+  color: #2d3748;
+}
+
+.motion-input:focus {
+  border-color: #FF6B6B;
+  box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+  outline: none;
+}
+
+.motion-input::placeholder {
+  color: #a0aec0;
+}
+
+.motion-primary-btn {
+  width: 100%;
+  padding: 13px 20px;
+  background: #FF6B6B;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.motion-primary-btn:hover:not(:disabled) {
+  background: #ff5252;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+}
+
+.motion-primary-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.motion-secondary-btn {
+  width: 100%;
+  padding: 12px;
+  background: transparent;
+  color: #718096;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 12px;
+  transition: color 0.2s;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.motion-secondary-btn:hover {
+  color: #2d3748;
+}
+
+.motion-modal-footer {
+  text-align: center;
+  margin-top: 24px;
+}
+
+.motion-security-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #718096;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.motion-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: motion-spin 0.8s linear infinite;
+}
+
+@keyframes motion-modal-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes motion-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Dark mode support for Motion modal */
+.dark .motion-branded-modal {
+  background: #1a202c;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.dark .motion-modal-header h2 {
+  color: #f7fafc;
+}
+
+.dark .motion-subtitle {
+  color: #a0aec0;
+}
+
+.dark .motion-input-group label {
+  color: #e2e8f0;
+}
+
+.dark .motion-input {
+  background: #2d3748;
+  border-color: #4a5568;
+  color: #f7fafc;
+}
+
+.dark .motion-input::placeholder {
+  color: #718096;
+}
+
+.dark .motion-close-btn {
+  background: #2d3748;
+  color: #a0aec0;
+}
+
+.dark .motion-close-btn:hover {
+  background: #4a5568;
+  color: #e2e8f0;
+}
+
+.dark .motion-secondary-btn {
+  color: #a0aec0;
+}
+
+.dark .motion-secondary-btn:hover {
+  color: #e2e8f0;
+}
+
+.dark .motion-security-badge {
+  color: #a0aec0;
 }

@@ -145,34 +145,50 @@ const StableMotionIntegration: React.FC = React.memo(() => {
     }
   }, []);
 
-  const handleConnectMotion = useCallback(async () => {
-    if (!apiKey.trim()) {
-      alert('Please enter your Motion API key');
-      return;
-    }
-
+  const handleConnectMotion = useCallback(() => {
     setIsConnecting(true);
     try {
-      motionAPI.setApiKey(apiKey.trim());
-      const testResult = await motionAPI.testConnection();
+      // REAL OAuth: Redirect user to Motion's actual login page
+      const MOTION_CLIENT_ID = import.meta.env.VITE_MOTION_CLIENT_ID || 'your-motion-client-id'; // Replace with your actual Motion client ID
+      const REDIRECT_URI = encodeURIComponent('http://localhost:5175/auth/motion/callback');
+      const SCOPE = 'tasks:read tasks:write calendar:read';
+      const STATE = Math.random().toString(36).substring(7);
 
-      if (!testResult.success) {
-        throw new Error(testResult.error || 'Invalid API key');
+      // Build REAL OAuth URL - this will take user to Motion's login page
+      const motionOAuthUrl = `https://app.usemotion.com/oauth/authorize?client_id=${MOTION_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=${SCOPE}&state=${STATE}`;
+
+      console.log('🔗 Redirecting to Motion OAuth page:', motionOAuthUrl);
+
+      // REDIRECT USER TO MOTION'S ACTUAL LOGIN PAGE
+      // Open OAuth popup
+      const popup = window.open(
+        motionOAuthUrl,
+        'motion-oauth',
+        'width=500,height=600,scrollbars=yes,resizable=yes'
+      );
+
+      // Check if popup was blocked
+      if (!popup || popup.closed || typeof popup.closed === 'undefined') {
+        alert('Popup blocked! Please allow popups for this site and try again.');
+        setIsConnecting(false);
+        return;
       }
 
-      localStorage.setItem('motion_api_key', apiKey.trim());
-      setIsConnected(true);
-      setShowApiKeyInput(false);
-      updateSyncStatus();
+      // Listen for OAuth callback
+      const handleOAuthCallback = (event) => {
+        if (event.data.type === 'motion-oauth-callback') {
+          window.removeEventListener('message', handleOAuthCallback);
+          setIsConnecting(false);
+        }
+      };
+
+      window.addEventListener('message', handleOAuthCallback);;
     } catch (error) {
-      console.error('Failed to connect Motion:', error);
-      motionAPI.clearApiKey();
-      localStorage.removeItem('motion_api_key');
-      alert(`Failed to connect to Motion: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    } finally {
+      console.error('Failed to start OAuth flow:', error);
+      alert(`Failed to start Motion OAuth: ${error instanceof Error ? error.message : 'Unknown error'}`);
       setIsConnecting(false);
     }
-  }, [apiKey, updateSyncStatus]);
+  }, []);
 
   const handleDisconnectMotion = useCallback(() => {
     try {
