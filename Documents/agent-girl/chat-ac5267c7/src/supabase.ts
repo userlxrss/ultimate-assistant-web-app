@@ -32,20 +32,23 @@ const getRedirectUrl = (): string => {
   // Production environment
   if (isProduction) {
     const prodUrl = import.meta.env.VITE_PROD_URL || 'https://dailydeck.vercel.app';
-    console.log('🌐 Production redirect URL:', prodUrl);
-    return prodUrl;
+    const verifyUrl = `${prodUrl}/verify`;
+    console.log('🌐 Production email verification redirect URL:', verifyUrl);
+    return verifyUrl;
   }
 
   // Development environment
   if (typeof window !== 'undefined') {
     const devUrl = window.location.origin;
-    console.log('🏠 Development redirect URL:', devUrl);
-    return devUrl;
+    const verifyUrl = `${devUrl}/verify`;
+    console.log('🏠 Development email verification redirect URL:', verifyUrl);
+    return verifyUrl;
   }
 
   // Fallback
-  console.log('⚠️ Using fallback redirect URL: http://localhost:5176');
-  return 'http://localhost:5176';
+  const fallbackVerifyUrl = 'http://localhost:5176/verify';
+  console.log('⚠️ Using fallback email verification redirect URL:', fallbackVerifyUrl);
+  return fallbackVerifyUrl;
 };
 
 const config = getSupabaseConfig();
