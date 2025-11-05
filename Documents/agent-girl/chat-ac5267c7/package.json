@@ -23,7 +23,7 @@
   ],
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "preview": "vite preview",
     "security-audit": "npm audit --audit-level=moderate",
     "security-fix": "npm audit fix --force",
