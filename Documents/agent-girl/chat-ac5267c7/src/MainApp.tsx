@@ -3,6 +3,7 @@ import { BarChart3, PenSquare, CheckSquare, Calendar, Mail, Users, Settings, X, 
 import { authManager } from './utils/authManager';
 import { userAuthManager } from './utils/userAuth';
 import { userDataStorage } from './utils/userDataStorage';
+import { getCurrentUser, onAuthStateChange, signOut } from './supabase';
 import DashboardSimple from './components/DashboardSimple';
 import JournalApp from './JournalApp';
 import TasksApp from './TasksApp';
@@ -55,7 +56,26 @@ const MainApp: React.FC = () => {
 
     const checkAuth = async () => {
       try {
-        const user = userAuthManager.getCurrentUser();
+        // Try to get current Supabase user first, fallback to userAuthManager
+        let user = null;
+        try {
+          user = await getCurrentUser();
+          if (user) {
+            console.log('✅ Using Supabase user:', user);
+            const userData = {
+              id: user.id,
+              email: user.email,
+              name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+              username: user.user_metadata?.username || '',
+              picture: `https://ui-avatars.com/api/?name=${encodeURIComponent(user.user_metadata?.full_name || user.email?.split('@')[0] || 'User')}&background=random`,
+              provider: 'supabase'
+            };
+            user = userData;
+          }
+        } catch (supabaseError) {
+          console.log('⚠️ Supabase auth failed, using fallback');
+          user = userAuthManager.getCurrentUser();
+        }
         if (user) {
           setIsAuthenticated(true);
           setUserInfo(user);
@@ -142,16 +162,19 @@ const MainApp: React.FC = () => {
       setUserInfo(null);
       userDataStorage.removeData('currentUser');
 
-      // Attempt graceful logout
+      // Attempt graceful logout with Supabase
       // Handle secure journal storage cleanup
       try {
         SecureUserJournalStorage.handleLogout();
       } catch (cleanupError) {
         console.error("Failed to cleanup secure journal storage:", cleanupError);
-      }      try {
-        await userAuthManager.logout();
+      }
+      try {
+        await signOut();
       } catch (logoutError) {
-        console.error("Graceful logout failed:", logoutError);
+        console.error("Supabase logout failed:", logoutError);
+        // Fallback to userAuthManager
+        await userAuthManager.logout();
       }
 
       // Clear all storage
@@ -331,15 +354,15 @@ const MainApp: React.FC = () => {
                         <div className="flex items-center space-x-3">
                           <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
                             <span className="text-purple-600 dark:text-purple-300 font-semibold">
-                              {userInfo?.email?.[0]?.toUpperCase() || 'U'}
+                              {userInfo?.name?.[0]?.toUpperCase() || userInfo?.email?.[0]?.toUpperCase() || 'U'}
                             </span>
                           </div>
                           <div>
                             <p className="font-medium text-gray-900 dark:text-white">
-                              {userInfo?.email || 'Guest User'}
+                              {userInfo?.name || 'Guest User'}
                             </p>
                             <p className="text-xs text-gray-500 dark:text-gray-400">
-                              Not signed in
+                              {userInfo?.username ? `@${userInfo?.username}` : userInfo?.email || 'Not signed in'}
                             </p>
                           </div>
                         </div>
