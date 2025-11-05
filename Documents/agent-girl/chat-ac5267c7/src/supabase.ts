@@ -254,4 +254,105 @@ export const migrateFromLocalStorage = async () => {
   }
 };
 
+// ===== AVATAR STORAGE FUNCTIONS =====
+
+// Upload avatar to Supabase Storage
+export const uploadAvatar = async (file: File, userId: string): Promise<string | null> => {
+  try {
+    console.log('📤 Uploading avatar for user:', userId);
+
+    // Create unique file name
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${userId}/avatar.${fileExt}`;
+    const filePath = `avatars/${fileName}`;
+
+    // Upload file to Supabase Storage
+    const { error: uploadError, data } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: true // Overwrite existing avatar
+      });
+
+    if (uploadError) {
+      console.error('❌ Upload error:', uploadError);
+      throw uploadError;
+    }
+
+    console.log('✅ Avatar uploaded successfully:', data);
+
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(filePath);
+
+    console.log('🔗 Avatar public URL:', publicUrl);
+    return publicUrl;
+  } catch (error) {
+    console.error('❌ Avatar upload failed:', error);
+    return null;
+  }
+};
+
+// Delete avatar from Supabase Storage
+export const deleteAvatar = async (userId: string): Promise<boolean> => {
+  try {
+    console.log('🗑️ Deleting avatar for user:', userId);
+
+    // List files in user's avatar folder
+    const { data: files } = await supabase.storage
+      .from('avatars')
+      .list(`${userId}/`);
+
+    if (files && files.length > 0) {
+      // Delete all avatar files for this user
+      const { error } = await supabase.storage
+        .from('avatars')
+        .remove([`${userId}/${files[0].name}`]);
+
+      if (error) {
+        console.error('❌ Delete error:', error);
+        return false;
+      }
+
+      console.log('✅ Avatar deleted successfully');
+    }
+
+    return true;
+  } catch (error) {
+    console.error('❌ Avatar deletion failed:', error);
+    return false;
+  }
+};
+
+// Update user metadata with avatar URL
+export const updateUserAvatar = async (avatarUrl: string | null): Promise<boolean> => {
+  try {
+    console.log('👤 Updating user avatar URL in metadata...');
+
+    const { error } = await supabase.auth.updateUser({
+      data: {
+        avatar_url: avatarUrl
+      }
+    });
+
+    if (error) {
+      console.error('❌ Error updating avatar metadata:', error);
+      return false;
+    }
+
+    console.log('✅ Avatar URL updated in metadata');
+    return true;
+  } catch (error) {
+    console.error('❌ Failed to update avatar metadata:', error);
+    return false;
+  }
+};
+
+// Get current user's avatar URL from metadata
+export const getUserAvatarUrl = (): string | null => {
+  // This will be called after getting current user
+  return null; // Placeholder - will be used with actual user data
+};
+
 export default supabase;

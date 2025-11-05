@@ -45,6 +45,7 @@ const MainApp: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userInfo, setUserInfo] = useState<any>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -79,6 +80,13 @@ const MainApp: React.FC = () => {
         if (user) {
           setIsAuthenticated(true);
           setUserInfo(user);
+
+          // Set avatar URL from user metadata if available
+          if (user.user_metadata?.avatar_url) {
+            setAvatarUrl(user.user_metadata.avatar_url);
+            console.log('🖼️ MainApp loaded avatar from metadata:', user.user_metadata.avatar_url);
+          }
+
           userDataStorage.setData('currentUser', user);
           // Initialize secure journal storage for authenticated user
           try {
@@ -88,12 +96,14 @@ const MainApp: React.FC = () => {
           }        } else {
           setIsAuthenticated(false);
           setUserInfo(null);
+          setAvatarUrl(null);
           userDataStorage.removeData('currentUser');
         }
       } catch (error) {
         console.error('Auth check failed:', error);
         setIsAuthenticated(false);
         setUserInfo(null);
+        setAvatarUrl(null);
       }
     };
 
@@ -134,6 +144,46 @@ const MainApp: React.FC = () => {
     }
   }, [showProfileDropdown]);
 
+  // Listen for profile updates from Settings page
+  useEffect(() => {
+    const handleProfileUpdate = (event: CustomEvent) => {
+      console.log('🔄 MainApp received profile update:', event.detail);
+
+      // Update userInfo with new profile data
+      setUserInfo(prev => ({
+        ...prev,
+        name: event.detail.displayName,
+        username: event.detail.displayName.toLowerCase().replace(/\s+/g, '_'),
+        email: event.detail.email,
+        user_metadata: {
+          ...prev?.user_metadata,
+          avatar_url: event.detail.avatar_url
+        }
+      }));
+
+      // Update avatar URL if provided
+      if (event.detail.avatar_url) {
+        setAvatarUrl(event.detail.avatar_url);
+        console.log('🖼️ MainApp received new avatar:', event.detail.avatar_url);
+      }
+
+      // Update userDataStorage
+      userDataStorage.setData('currentUser', {
+        ...userInfo,
+        name: event.detail.displayName,
+        username: event.detail.displayName.toLowerCase().replace(/\s+/g, '_'),
+        email: event.detail.email,
+        user_metadata: {
+          ...userInfo?.user_metadata,
+          avatar_url: event.detail.avatar_url
+        }
+      });
+    };
+
+    window.addEventListener('profileUpdated', handleProfileUpdate as EventListener);
+    return () => window.removeEventListener('profileUpdated', handleProfileUpdate as EventListener);
+  }, [userInfo]);
+
   // SIMPLE profile click handler
   const handleProfileClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -160,6 +210,7 @@ const MainApp: React.FC = () => {
       // Clear local state
       setIsAuthenticated(false);
       setUserInfo(null);
+      setAvatarUrl(null); // Clear avatar URL on sign out
       userDataStorage.removeData('currentUser');
 
       // Attempt graceful logout with Supabase
@@ -352,10 +403,22 @@ const MainApp: React.FC = () => {
                       {/* User Info */}
                       <div className="p-4 border-b border-gray-200 dark:border-gray-700">
                         <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
-                            <span className="text-purple-600 dark:text-purple-300 font-semibold">
-                              {userInfo?.name?.[0]?.toUpperCase() || userInfo?.email?.[0]?.toUpperCase() || 'U'}
-                            </span>
+                          <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center overflow-hidden">
+                            {avatarUrl ? (
+                              <img
+                                src={avatarUrl}
+                                alt="Profile"
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  console.log('❌ Avatar failed to load, falling back to letter');
+                                  setAvatarUrl(null);
+                                }}
+                              />
+                            ) : (
+                              <span className="text-purple-600 dark:text-purple-300 font-semibold">
+                                {userInfo?.name?.[0]?.toUpperCase() || userInfo?.email?.[0]?.toUpperCase() || 'U'}
+                              </span>
+                            )}
                           </div>
                           <div>
                             <p className="font-medium text-gray-900 dark:text-white">
@@ -403,6 +466,7 @@ const MainApp: React.FC = () => {
                             // Clear everything
                             setIsAuthenticated(false);
                             setUserInfo(null);
+                            setAvatarUrl(null);
                             localStorage.clear();
                             sessionStorage.clear();
 
