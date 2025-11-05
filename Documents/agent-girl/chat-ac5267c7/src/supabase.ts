@@ -18,7 +18,7 @@ export const signUpWithEmail = async (email: string, password: string) => {
     email,
     password,
     options: {
-      emailRedirectTo: typeof window !== 'undefined' ? `${window.location.origin}/` : 'http://localhost:5176/',
+      emailRedirectTo: typeof window !== 'undefined' ? `${window.location.origin}/` : 'https://dailydeck.vercel.app/',
       // Enable email confirmation by ensuring this setting is respected
     }
   });
