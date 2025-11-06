@@ -1,0 +1,653 @@
+/* =============================================
+   GLASSMORPHISM ANIMATIONS & TRANSITIONS
+   ============================================= */
+
+/* Global Animation Variables */
+:root {
+  --animation-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --animation-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --animation-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --animation-elastic: cubic-bezier(0.68, -0.6, 0.32, 1.6);
+}
+
+/* Smooth Theme Transitions */
+* {
+  transition:
+    background-color var(--transition-smooth),
+    border-color var(--transition-smooth),
+    color var(--transition-smooth),
+    box-shadow var(--transition-smooth);
+}
+
+/* Disable transitions during theme switch to prevent flicker */
+*,
+*::before,
+*::after {
+  transition-duration: 0.25s !important;
+  transition-delay: 0s !important;
+}
+
+.theme-transition * {
+  transition: none !important;
+}
+
+/* Glass Entrance Animations */
+@keyframes glassSlideInLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+    filter: blur(4px);
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+@keyframes glassSlideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+    filter: blur(4px);
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+@keyframes glassSlideInTop {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+    filter: blur(4px);
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+@keyframes glassSlideInBottom {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+    filter: blur(4px);
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+@keyframes glassFadeIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
+
+@keyframes glassScaleIn {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
+
+@keyframes glassRotateIn {
+  from {
+    transform: rotate(-180deg) scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Glass Hover Animations */
+.glass-hover-bounce:hover {
+  animation: glassBounce 0.6s var(--animation-bounce);
+}
+
+@keyframes glassBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  25% {
+    transform: translateY(-8px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+  75% {
+    transform: translateY(-6px);
+  }
+}
+
+.glass-hover-pulse:hover {
+  animation: glassPulse 2s infinite;
+}
+
+@keyframes glassPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 8px 32px var(--color-glass-shadow);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 12px 48px var(--color-glass-shadow);
+  }
+}
+
+.glass-hover-glow:hover {
+  animation: glassGlow 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes glassGlow {
+  from {
+    box-shadow: 0 8px 32px var(--color-glass-shadow);
+  }
+  to {
+    box-shadow: 0 8px 32px var(--color-glass-shadow),
+                0 0 24px rgba(59, 130, 246, 0.4);
+  }
+}
+
+.glass-hover-float:hover {
+  animation: glassFloat 3s ease-in-out infinite;
+}
+
+@keyframes glassFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+/* Glass Active State Animations */
+.glass-active-ripple:active::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  animation: glassRipple 0.6s ease-out;
+}
+
+@keyframes glassRipple {
+  to {
+    width: 200px;
+    height: 200px;
+    opacity: 0;
+  }
+}
+
+.glass-active-shrink:active {
+  animation: glassShrink 0.2s ease-out;
+}
+
+@keyframes glassShrink {
+  50% {
+    transform: scale(0.95);
+  }
+}
+
+/* Glass Loading Animations */
+.glass-loading-dots::after {
+  content: '';
+  animation: glassLoadingDots 1.5s infinite;
+}
+
+@keyframes glassLoadingDots {
+  0% {
+    content: '';
+  }
+  25% {
+    content: '.';
+  }
+  50% {
+    content: '..';
+  }
+  75% {
+    content: '...';
+  }
+  100% {
+    content: '';
+  }
+}
+
+.glass-loading-spinner {
+  animation: glassSpinner 1s linear infinite;
+}
+
+@keyframes glassSpinner {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.glass-loading-wave::before,
+.glass-loading-wave::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  border: 2px solid var(--color-accent-primary);
+  border-radius: 50%;
+  opacity: 0;
+  transform: translate(-50%, -50%);
+}
+
+.glass-loading-wave::before {
+  animation: glassWave 2s linear infinite;
+}
+
+.glass-loading-wave::after {
+  animation: glassWave 2s linear infinite 1s;
+}
+
+@keyframes glassWave {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* Glass Morphing Animations */
+.glass-morph-breathing {
+  animation: glassBreathing 4s ease-in-out infinite;
+}
+
+@keyframes glassBreathing {
+  0%, 100% {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    background: var(--color-glass-bg);
+  }
+  50% {
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    background: rgba(255, 255, 255, 0.15);
+  }
+}
+
+.glass-morph-pulse {
+  animation: glassMorphPulse 2s ease-in-out infinite;
+}
+
+@keyframes glassMorphPulse {
+  0%, 100% {
+    border-color: var(--color-glass-border);
+    box-shadow: 0 8px 32px var(--color-glass-shadow);
+  }
+  50% {
+    border-color: var(--color-accent-primary);
+    box-shadow: 0 8px 32px var(--color-glass-shadow),
+                    0 0 24px rgba(59, 130, 246, 0.3);
+  }
+}
+
+/* Glass Transform Animations */
+.glass-transform-flip {
+  animation: glassFlip 0.6s ease-in-out;
+}
+
+@keyframes glassFlip {
+  0% {
+    transform: perspective(400px) rotateY(0);
+  }
+  50% {
+    transform: perspective(400px) rotateY(180deg);
+  }
+  100% {
+    transform: perspective(400px) rotateY(360deg);
+  }
+}
+
+.glass-transform-twirl {
+  animation: glassTwirl 0.8s ease-in-out;
+}
+
+@keyframes glassTwirl {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) scale(0.8);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+.glass-transform-jiggle {
+  animation: glassJiggle 0.5s ease-in-out;
+}
+
+@keyframes glassJiggle {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px) rotate(-5deg);
+  }
+  50% {
+    transform: translateX(5px) rotate(5deg);
+  }
+  75% {
+    transform: translateX(-5px) rotate(-5deg);
+  }
+}
+
+/* Glass Background Animations */
+.glass-bg-gradient-shift {
+  background: linear-gradient(
+    45deg,
+    var(--color-glass-bg),
+    rgba(255, 255, 255, 0.1),
+    var(--color-glass-bg)
+  );
+  background-size: 200% 200%;
+  animation: glassGradientShift 3s ease infinite;
+}
+
+@keyframes glassGradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.glass-bg-particle {
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-bg-particle::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.1) 1px,
+    transparent 1px
+  );
+  background-size: 20px 20px;
+  animation: glassParticle 20s linear infinite;
+}
+
+@keyframes glassParticle {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(20px, 20px);
+  }
+}
+
+/* Glass Exit Animations */
+@keyframes glassSlideOutLeft {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+    filter: blur(0);
+  }
+  to {
+    transform: translateX(-100%);
+    opacity: 0;
+    filter: blur(4px);
+  }
+}
+
+@keyframes glassSlideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+    filter: blur(0);
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+    filter: blur(4px);
+  }
+}
+
+@keyframes glassSlideOutTop {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+    filter: blur(0);
+  }
+  to {
+    transform: translateY(-100%);
+    opacity: 0;
+    filter: blur(4px);
+  }
+}
+
+@keyframes glassSlideOutBottom {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+    filter: blur(0);
+  }
+  to {
+    transform: translateY(100%);
+    opacity: 0;
+    filter: blur(4px);
+  }
+}
+
+@keyframes glassFadeOut {
+  from {
+    opacity: 1;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  to {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+  }
+}
+
+@keyframes glassScaleOut {
+  from {
+    transform: scale(1);
+    opacity: 1;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  to {
+    transform: scale(0.8);
+    opacity: 0;
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+  }
+}
+
+/* Animation Utility Classes */
+.animate-glass-slide-in-left {
+  animation: glassSlideInLeft 0.5s var(--animation-smooth) forwards;
+}
+
+.animate-glass-slide-in-right {
+  animation: glassSlideInRight 0.5s var(--animation-smooth) forwards;
+}
+
+.animate-glass-slide-in-top {
+  animation: glassSlideInTop 0.5s var(--animation-smooth) forwards;
+}
+
+.animate-glass-slide-in-bottom {
+  animation: glassSlideInBottom 0.5s var(--animation-smooth) forwards;
+}
+
+.animate-glass-fade-in {
+  animation: glassFadeIn 0.5s var(--animation-smooth) forwards;
+}
+
+.animate-glass-scale-in {
+  animation: glassScaleIn 0.5s var(--animation-bounce) forwards;
+}
+
+.animate-glass-slide-out-left {
+  animation: glassSlideOutLeft 0.5s var(--animation-smooth) forwards;
+}
+
+.animate-glass-slide-out-right {
+  animation: glassSlideOutRight 0.5s var(--animation-smooth) forwards;
+}
+
+.animate-glass-slide-out-top {
+  animation: glassSlideOutTop 0.5s var(--animation-smooth) forwards;
+}
+
+.animate-glass-slide-out-bottom {
+  animation: glassSlideOutBottom 0.5s var(--animation-smooth) forwards;
+}
+
+.animate-glass-fade-out {
+  animation: glassFadeOut 0.5s var(--animation-smooth) forwards;
+}
+
+.animate-glass-scale-out {
+  animation: glassScaleOut 0.5s var(--animation-smooth) forwards;
+}
+
+/* Animation Duration Classes */
+.animate-duration-fast {
+  animation-duration: var(--transition-fast);
+}
+
+.animate-duration-normal {
+  animation-duration: var(--transition-normal);
+}
+
+.animate-duration-slow {
+  animation-duration: var(--transition-slow);
+}
+
+.animate-duration-slower {
+  animation-duration: 1s;
+}
+
+/* Animation Delay Classes */
+.animate-delay-75 {
+  animation-delay: 75ms;
+}
+
+.animate-delay-100 {
+  animation-delay: 100ms;
+}
+
+.animate-delay-150 {
+  animation-delay: 150ms;
+}
+
+.animate-delay-200 {
+  animation-delay: 200ms;
+}
+
+.animate-delay-300 {
+  animation-delay: 300ms;
+}
+
+.animate-delay-500 {
+  animation-delay: 500ms;
+}
+
+/* Animation Fill Mode Classes */
+.animate-fill-forwards {
+  animation-fill-mode: forwards;
+}
+
+.animate-fill-backwards {
+  animation-fill-mode: backwards;
+}
+
+.animate-fill-both {
+  animation-fill-mode: both;
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .animate-glass-slide-in-left,
+  .animate-glass-slide-in-right,
+  .animate-glass-slide-in-top,
+  .animate-glass-slide-in-bottom,
+  .animate-glass-fade-in,
+  .animate-glass-scale-in,
+  .animate-glass-slide-out-left,
+  .animate-glass-slide-out-right,
+  .animate-glass-slide-out-top,
+  .animate-glass-slide-out-bottom,
+  .animate-glass-fade-out,
+  .animate-glass-scale-out {
+    animation: none;
+  }
+
+  .glass-hover-bounce:hover,
+  .glass-hover-pulse:hover,
+  .glass-hover-glow:hover,
+  .glass-hover-float:hover {
+    animation: none;
+  }
+
+  .glass-morph-breathing,
+  .glass-morph-pulse,
+  .glass-bg-gradient-shift,
+  .glass-bg-particle::before {
+    animation: none;
+  }
+}
