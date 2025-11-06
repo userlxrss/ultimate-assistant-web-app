@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Verification Error Check</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .error { background: #fee; padding: 10px; border-radius: 4px; margin: 10px 0; border-left: 4px solid #f44; }
+        .success { background: #efe; padding: 10px; border-radius: 4px; margin: 10px 0; border-left: 4px solid #4f4; }
+        .info { background: #eef; padding: 10px; border-radius: 4px; margin: 10px 0; border-left: 4px solid #44f; }
+        pre { background: #f8f8f8; padding: 10px; border-radius: 4px; overflow-x: auto; }
+        button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0056b3; }
+        .notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            display: none;
+        }
+        .notification-content {
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+        .notification.success .notification-content {
+            background: #4CAF50;
+            color: white;
+        }
+        .notification.error .notification-content {
+            background: #f44336;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Email Verification Error Diagnosis</h1>
+        <p>This page will check for stored email verification errors and provide diagnostic information.</p>
+
+        <div id="results"></div>
+
+        <div style="margin-top: 20px;">
+            <button onclick="checkErrors()">Check Errors</button>
+            <button onclick="checkMonitoring()">Check Monitoring Data</button>
+            <button onclick="clearAllData()">Clear All Data</button>
+            <button onclick="exportData()">Export Data</button>
+        </div>
+    </div>
+
+    <!-- Centered Notification -->
+    <div id="notification" class="notification">
+        <div class="notification-content">
+            <span id="notification-text"></span>
+        </div>
+    </div>
+
+    <script>
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            const notificationText = document.getElementById('notification-text');
+
+            // Remove existing type classes
+            notification.classList.remove('success', 'error');
+
+            // Add new type class
+            notification.classList.add(type);
+
+            // Set message
+            notificationText.textContent = message;
+
+            // Show notification
+            notification.style.display = 'block';
+
+            // Hide after 3 seconds
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        function checkErrors() {
+            const results = document.getElementById('results');
+            let html = '<h2>Email Verification Errors</h2>';
+
+            try {
+                const errors = JSON.parse(localStorage.getItem('email_verification_errors') || '[]');
+
+                if (errors.length === 0) {
+                    html += '<div class="success">✅ No email verification errors found in localStorage</div>';
+                } else {
+                    html += `<div class="error">❌ Found ${errors.length} error(s):</div>`;
+                    html += '<pre>' + JSON.stringify(errors, null, 2) + '</pre>';
+
+                    // Group by error type
+                    const errorsByType = {};
+                    errors.forEach(error => {
+                        errorsByType[error.type] = (errorsByType[error.type] || 0) + 1;
+                    });
+
+                    html += '<h3>Error Summary by Type:</h3><ul>';
+                    Object.entries(errorsByType).forEach(([type, count]) => {
+                        html += `<li><strong>${type}:</strong> ${count} occurrences</li>`;
+                    });
+                    html += '</ul>';
+                }
+            } catch (error) {
+                html += `<div class="error">❌ Error reading localStorage: ${error.message}</div>`;
+            }
+
+            results.innerHTML = html;
+        }
+
+        function checkMonitoring() {
+            const results = document.getElementById('results');
+            let html = '<h2>Monitoring Data</h2>';
+
+            try {
+                const monitoring = JSON.parse(localStorage.getItem('email_verification_monitor') || '{}');
+
+                if (Object.keys(monitoring).length === 0) {
+                    html += '<div class="info">ℹ️ No monitoring data found</div>';
+                } else {
+                    html += '<div class="info">ℹ️ Monitoring data found:</div>';
+                    html += '<pre>' + JSON.stringify(monitoring, null, 2) + '</pre>';
+
+                    if (monitoring.events && monitoring.events.length > 0) {
+                        html += `<h3>Recent Events (${monitoring.events.length} total):</h3><ul>`;
+                        monitoring.events.slice(-10).forEach(event => {
+                            html += `<li><strong>${event.type}:</strong> ${new Date(event.timestamp).toLocaleString()}</li>`;
+                        });
+                        html += '</ul>';
+                    }
+
+                    if (monitoring.alerts && monitoring.alerts.length > 0) {
+                        html += `<h3>Active Alerts (${monitoring.alerts.length} total):</h3><ul>`;
+                        monitoring.alerts.filter(a => !a.resolved).forEach(alert => {
+                            html += `<li><strong>${alert.type} (${alert.severity}):</strong> ${alert.message}</li>`;
+                        });
+                        html += '</ul>';
+                    }
+                }
+            } catch (error) {
+                html += `<div class="error">❌ Error reading monitoring data: ${error.message}</div>`;
+            }
+
+            results.innerHTML = html;
+        }
+
+        function clearAllData() {
+            if (confirm('This will clear all email verification error and monitoring data. Are you sure?')) {
+                localStorage.removeItem('email_verification_errors');
+                localStorage.removeItem('email_verification_monitor');
+                document.getElementById('results').innerHTML = '<div class="success">✅ All data cleared</div>';
+                showNotification('All data cleared successfully');
+            }
+        }
+
+        function exportData() {
+            const data = {
+                errors: JSON.parse(localStorage.getItem('email_verification_errors') || '[]'),
+                monitoring: JSON.parse(localStorage.getItem('email_verification_monitor') || '{}'),
+                timestamp: new Date().toISOString(),
+                environment: window.location.origin,
+                userAgent: navigator.userAgent
+            };
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `email-verification-export-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            document.getElementById('results').innerHTML = '<div class="success">✅ Data exported successfully</div>';
+            showNotification('Data exported successfully');
+        }
+
+        // Auto-check on page load
+        window.onload = function() {
+            checkErrors();
+        };
+    </script>
+</body>
+</html>
