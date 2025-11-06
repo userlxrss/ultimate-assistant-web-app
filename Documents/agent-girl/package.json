@@ -1,0 +1,54 @@
+{
+  "name": "react-dashboard-with-theme-system",
+  "version": "1.0.0",
+  "description": "A comprehensive dashboard with dark/light mode theme system and glassmorphism effects",
+  "main": "index.tsx",
+  "types": "index.ts",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "type-check": "tsc --noEmit",
+    "demo": "open demo.html"
+  },
+  "keywords": [
+    "react",
+    "dashboard",
+    "theme",
+    "dark-mode",
+    "light-mode",
+    "glassmorphism",
+    "typescript",
+    "context",
+    "theme-provider",
+    "responsive",
+    "charts",
+    "analytics"
+  ],
+  "author": "Dashboard Theme System",
+  "license": "MIT",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.79.0",
+    "@tailwindcss/postcss": "^4.1.16",
+    "@types/node": "^24.10.0",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "tailwindcss": "^4.1.16"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^4.0.0",
+    "typescript": "^5.0.0",
+    "vite": "^4.4.0"
+  },
+  "files": [
+    "*.ts",
+    "*.tsx",
+    "styles/**/*",
+    "components/**/*",
+    "README.md"
+  ]
+}

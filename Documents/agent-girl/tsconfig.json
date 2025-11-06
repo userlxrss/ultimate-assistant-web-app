@@ -1,0 +1,47 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": false,
+    "noImplicitAny": false,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"],
+      "@/components/*": ["./components/*"],
+      "@/styles/*": ["./styles/*"]
+    }
+  },
+  "include": [
+    "index.tsx",
+    "Dashboard.tsx",
+    "ThemeContext.tsx",
+    "ThemeToggle.tsx",
+    "themes.ts",
+    "components/**/*",
+    "styles/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "vite.config.ts",
+    "TasksPage*.tsx",
+    "CleanSettingsPage.tsx",
+    "CompactTimerCard.tsx",
+    "PremiumTimerCard.tsx",
+    "TinyTimerCard.tsx",
+    "EnhancedDashboard.tsx",
+    "ExampleUsage.tsx",
+    "OriginalDashboard.tsx",
+    "SimpleDashboard.tsx",
+    "Journal*.tsx",
+    "UserContext.tsx"
+  ]
+}
