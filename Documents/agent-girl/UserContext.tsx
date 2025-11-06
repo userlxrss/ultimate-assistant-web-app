@@ -28,7 +28,7 @@ interface UserProviderProps {
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   // For demo purposes, set a default user
   // In a real app, this would come from your authentication system
-  const [currentUser, setCurrentUser] = useState<User>({
+  const [currentUser, setCurrentUser] = useState<User | null>({
     id: 'user-123',
     email: 'user@example.com',
     name: 'Current User'

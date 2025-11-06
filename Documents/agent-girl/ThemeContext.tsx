@@ -58,17 +58,17 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 
       // Update CSS custom properties
       const root = document.documentElement;
-      Object.entries(newTheme.colors).forEach(([key, value]) => {
+      Object.entries(newTheme.colors).forEach(([key, value]: [string, string]) => {
         root.style.setProperty(`--color-${key}`, value);
       });
 
       // Update transition durations
-      Object.entries(newTheme.transitions).forEach(([key, value]) => {
+      Object.entries(newTheme.transitions).forEach(([key, value]: [string, string]) => {
         root.style.setProperty(`--transition-${key}`, value);
       });
 
       // Update border radius values
-      Object.entries(newTheme.radii).forEach(([key, value]) => {
+      Object.entries(newTheme.radii).forEach(([key, value]: [string, string]) => {
         root.style.setProperty(`--radius-${key}`, value);
       });
     }
