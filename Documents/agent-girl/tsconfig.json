@@ -24,6 +24,7 @@
     "Dashboard.tsx",
     "ThemeContext.tsx",
     "ThemeToggle.tsx",
+    "UserContext.tsx",
     "themes.ts",
     "components/**/*",
     "styles/**/*"
@@ -41,7 +42,6 @@
     "ExampleUsage.tsx",
     "OriginalDashboard.tsx",
     "SimpleDashboard.tsx",
-    "Journal*.tsx",
-    "UserContext.tsx"
+    "Journal*.tsx"
   ]
 }
