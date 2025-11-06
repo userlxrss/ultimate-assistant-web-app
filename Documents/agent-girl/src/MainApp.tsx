@@ -12,30 +12,66 @@ import EmailApp from './EmailApp';
 import ContactsApp from './components/contacts/ContactsApp';
 import CleanSettingsPage from './components/CleanSettingsPage';
 import { NotificationProvider } from './components/NotificationSystem';
-import { SecureUserJournalStorage } from './utils/secureUserJournalStorage';// EMERGENCY: DISABLE TimerProvider and ThemeProvider to fix performance issues
-//
-//
-
-// DISABLED: EMERGENCY CRITICAL FIXES - Break React event system
-// import {
-//   disableAppearanceStorage,
-//   performEmergencySignOut,
-//   clearAllTimers,
-//   forceThemeOverride
-// } from '../CRITICAL-FIXES';
-console.log('🚫 Emergency fixes import disabled - React event system protection applied');
+import { SecureUserJournalStorage } from './utils/secureUserJournalStorage';
 
 type ActiveModule = 'dashboard' | 'journal' | 'tasks' | 'calendar' | 'email' | 'contacts' | 'settings';
 
-// Simplified theme management
-const toggleTheme = () => {
-  const isDark = document.documentElement.classList.contains('dark');
-  if (isDark) {
-    document.documentElement.classList.remove('dark');
-    localStorage.setItem('theme', 'light');
+// Global theme management - unified with settings page
+const GLOBAL_THEME_KEY = 'app-theme';
+
+const getStoredTheme = (): 'light' | 'dark' => {
+  const stored = localStorage.getItem(GLOBAL_THEME_KEY);
+  const fallback = localStorage.getItem('theme'); // Check old key for compatibility
+  const theme = stored || fallback || 'light';
+
+  // Migrate old theme key to new unified key
+  if (fallback && !stored) {
+    localStorage.setItem(GLOBAL_THEME_KEY, theme);
+    localStorage.removeItem('theme');
+  }
+
+  return theme === 'light' || theme === 'dark' ? theme : 'light';
+};
+
+const setGlobalTheme = (theme: 'light' | 'dark') => {
+  const htmlElement = document.documentElement;
+  const bodyElement = document.body;
+
+  // Force theme removal first
+  htmlElement.classList.remove('dark', 'light');
+  bodyElement.classList.remove('dark', 'light');
+  htmlElement.removeAttribute('data-theme');
+  bodyElement.removeAttribute('data-theme');
+
+  if (theme === 'dark') {
+    htmlElement.classList.add('dark');
+    bodyElement.classList.add('dark');
+    htmlElement.setAttribute('data-theme', 'dark');
+    bodyElement.setAttribute('data-theme', 'dark');
   } else {
-    document.documentElement.classList.add('dark');
-    localStorage.setItem('theme', 'dark');
+    htmlElement.classList.add('light');
+    bodyElement.classList.add('light');
+    htmlElement.setAttribute('data-theme', 'light');
+    bodyElement.setAttribute('data-theme', 'light');
+  }
+
+  // Save to both keys for compatibility
+  localStorage.setItem(GLOBAL_THEME_KEY, theme);
+  localStorage.setItem('theme', theme);
+
+  window.dispatchEvent(new CustomEvent('global-theme-changed', {
+    detail: { theme }
+  }));
+};
+
+const toggleTheme = () => {
+  // Use unified theme manager if available, otherwise fallback
+  if (typeof window !== 'undefined' && window.toggleTheme) {
+    window.toggleTheme();
+  } else {
+    const currentTheme = getStoredTheme();
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    setGlobalTheme(newTheme);
   }
 };
 
@@ -109,9 +145,25 @@ const MainApp: React.FC = () => {
 
     checkAuth();
 
+    // Initialize global theme on app startup
+    const currentTheme = getStoredTheme();
+    if (document.documentElement.classList.contains('dark') !== (currentTheme === 'dark')) {
+      setGlobalTheme(currentTheme);
+    }
+
+    // Listen for global theme changes from Settings page
+    const handleGlobalThemeChange = (e: CustomEvent) => {
+      console.log('🌙 MainApp received global theme change:', e.detail);
+      // Force re-render to update UI elements that depend on theme
+      setUserInfo(prev => prev ? {...prev} : null);
+    };
+
+    window.addEventListener('global-theme-changed', handleGlobalThemeChange as EventListener);
+
     // Normal cleanup without breaking React events
     return () => {
       console.log('🧹 Normal MainApp component cleanup');
+      window.removeEventListener('global-theme-changed', handleGlobalThemeChange as EventListener);
     };
   }, []);
 
@@ -193,7 +245,6 @@ const MainApp: React.FC = () => {
   }, []);
 
   // EMERGENCY: FIXED sign out handler
-  // EMERGENCY OPTIMIZED SIGN OUT HANDLER
   const handleSignOut = useCallback(async () => {
     console.log("🚨 SIGN OUT BUTTON CLICKED - handleSignOut function called");
 
@@ -246,6 +297,7 @@ const MainApp: React.FC = () => {
       window.location.href = "/";
     }
   }, []);
+
   const navigationItems = [
     { icon: BarChart3, label: 'Dashboard', id: 'dashboard' as ActiveModule },
     { icon: PenSquare, label: 'Journal', id: 'journal' as ActiveModule },
@@ -262,7 +314,6 @@ const MainApp: React.FC = () => {
 
     switch (activeModule) {
       case 'dashboard':
-        // EMERGENCY: DISABLE TimerProvider to prevent memory leaks
         return <DashboardSimple />;
       case 'journal':
         return <JournalApp />;
@@ -290,18 +341,18 @@ const MainApp: React.FC = () => {
 
   return (
     <NotificationProvider>
-      {/* EMERGENCY: Apply performance fixes and stable theme */}
-      <div className={`flex h-screen bg-gray-50`}>
+      {/* Apply global theme classes */}
+      <div className="flex h-screen theme-bg-primary">
         {/* Sidebar */}
-        <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-r transition-all duration-300 flex flex-col`}>
+        <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} theme-bg-card theme-border-primary border-r transition-all duration-300 flex flex-col`}>
           {/* Logo */}
-          <div className={`p-4 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+          <div className="p-4 border-b theme-border-primary">
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">P</span>
               </div>
               {sidebarOpen && (
-                <span className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Productivity Hub</span>
+                <span className="font-semibold theme-text-primary">Productivity Hub</span>
               )}
             </div>
           </div>
@@ -330,12 +381,10 @@ const MainApp: React.FC = () => {
           </nav>
 
           {/* Sidebar Toggle */}
-          <div className={`p-4 border-t ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+          <div className="p-4 border-t theme-border-primary">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className={`w-full flex items-center justify-center px-3 py-3 rounded-lg transition-colors ${
-                isDark ? 'text-gray-400 hover:bg-gray-700 hover:text-gray-200' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-              }`}
+              className="w-full flex items-center justify-center px-3 py-3 rounded-lg transition-colors theme-text-secondary hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-gray-200"
             >
               <X className={`w-5 h-5 transform transition-transform ${sidebarOpen ? 'rotate-180' : ''}`} />
             </button>
@@ -343,15 +392,15 @@ const MainApp: React.FC = () => {
         </aside>
 
         {/* Main Content */}
-        <main className={`flex-1 ${isDark ? 'bg-gray-900' : 'bg-gray-50'} flex flex-col`}>
+        <main className="flex-1 theme-bg-primary flex flex-col">
           {/* Header */}
-          <header className={`p-6 border-b ${isDark ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'}`}>
+          <header className="p-6 border-b theme-border-primary theme-bg-card">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                <h2 className="text-2xl font-bold theme-text-primary">
                   {isAuthenticated ? `Welcome back, ${userInfo?.name || 'User'}! 👋` : 'Welcome! 👋'}
                 </h2>
-                <p className={isDark ? 'text-gray-400' : 'text-gray-500'}>
+                <p className="theme-text-secondary">
                   {activeModule === 'dashboard' && 'Here\'s your productivity overview'}
                   {activeModule === 'journal' && 'Track your thoughts and emotions'}
                   {activeModule === 'tasks' && 'Manage your tasks and projects'}

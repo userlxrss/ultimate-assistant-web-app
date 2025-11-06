@@ -1301,7 +1301,7 @@ const DashboardSimple: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 p-6 theme-bg-primary">
       {/* Timer moved to Tasks tab only - removed from Dashboard */}
 
       {/* Stats Cards */}

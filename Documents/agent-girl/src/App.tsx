@@ -43,16 +43,54 @@ const LoadingSpinner = () => (
 function App() {
   // EMERGENCY: DISABLE appearance initialization to prevent conflicts
   useEffect(() => {
-    console.log('🚨 EMERGENCY: Skipping appearance initialization to prevent conflicts');
+    console.log('🌙 Initializing global theme system');
 
-    // Apply simple stable defaults without async storage
-    try {
-      document.documentElement.classList.remove('dark', 'font-small', 'font-medium', 'font-large', 'compact-mode');
-      document.documentElement.classList.add('font-medium');
-      console.log('✅ Emergency: Applied stable appearance defaults');
-    } catch (error) {
-      console.error('❌ Emergency appearance setup failed:', error);
-    }
+    // Global theme initialization function
+    const initializeGlobalTheme = () => {
+      const GLOBAL_THEME_KEY = 'app-theme';
+      const storedTheme = localStorage.getItem(GLOBAL_THEME_KEY);
+      const theme = storedTheme === 'light' || storedTheme === 'dark' ? storedTheme : 'light';
+
+      // Apply theme to DOM
+      const htmlElement = document.documentElement;
+      const bodyElement = document.body;
+
+      if (theme === 'dark') {
+        htmlElement.classList.add('dark');
+        bodyElement.classList.add('dark');
+      } else {
+        htmlElement.classList.remove('dark');
+        bodyElement.classList.remove('dark');
+      }
+
+      console.log(`✅ Global theme initialized: ${theme}`);
+    };
+
+    // Initialize theme on app start
+    initializeGlobalTheme();
+
+    // Listen for global theme changes
+    const handleGlobalThemeChange = (e: CustomEvent) => {
+      console.log('🌙 App received global theme change:', e.detail);
+      const { theme } = e.detail;
+
+      const htmlElement = document.documentElement;
+      const bodyElement = document.body;
+
+      if (theme === 'dark') {
+        htmlElement.classList.add('dark');
+        bodyElement.classList.add('dark');
+      } else {
+        htmlElement.classList.remove('dark');
+        bodyElement.classList.remove('dark');
+      }
+    };
+
+    window.addEventListener('global-theme-changed', handleGlobalThemeChange as EventListener);
+
+    return () => {
+      window.removeEventListener('global-theme-changed', handleGlobalThemeChange as EventListener);
+    };
   }, []);
 
   return (

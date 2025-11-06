@@ -17,29 +17,45 @@ interface AppConnection {
   targetTab: string;
 }
 
-// Direct theme management functions - bypass context completely
-const getCurrentTheme = (): 'light' | 'dark' => {
-  const stored = localStorage.getItem('user_preferences:theme');
-  if (stored === 'light' || stored === 'dark') {
-    return stored;
+// GLOBAL THEME MANAGEMENT - Single source of truth
+const GLOBAL_THEME_KEY = 'app-theme';
+
+const getStoredTheme = (): 'light' | 'dark' => {
+  const stored = localStorage.getItem(GLOBAL_THEME_KEY);
+  return stored === 'light' || stored === 'dark' ? stored : 'light';
+};
+
+const setGlobalTheme = (theme: 'light' | 'dark') => {
+  // Apply to both html and body elements for maximum compatibility
+  const htmlElement = document.documentElement;
+  const bodyElement = document.body;
+
+  if (theme === 'dark') {
+    htmlElement.classList.add('dark');
+    bodyElement.classList.add('dark');
+  } else {
+    htmlElement.classList.remove('dark');
+    bodyElement.classList.remove('dark');
   }
+
+  // Save to localStorage
+  localStorage.setItem(GLOBAL_THEME_KEY, theme);
+
+  // Dispatch global theme change event
+  window.dispatchEvent(new CustomEvent('global-theme-changed', {
+    detail: { theme }
+  }));
+
+  console.log(`🌙 Global theme changed to ${theme}`);
+};
+
+const getCurrentTheme = (): 'light' | 'dark' => {
   return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
 };
 
-const setThemeDirect = (newTheme: 'light' | 'dark') => {
-  // Apply to DOM immediately
-  if (newTheme === 'dark') {
-    document.documentElement.classList.add('dark');
-    document.body.classList.add('dark');
-  } else {
-    document.documentElement.classList.remove('dark');
-    document.body.classList.remove('dark');
-  }
-
-  // Save to localStorage directly
-  localStorage.setItem('user_preferences:theme', newTheme);
-
-  console.log(`🎨 Theme set to ${newTheme} (direct DOM manipulation)`);
+const initializeTheme = () => {
+  const theme = getStoredTheme();
+  setGlobalTheme(theme);
 };
 
 const CleanSettingsPage: React.FC = () => {
@@ -52,50 +68,31 @@ const CleanSettingsPage: React.FC = () => {
 
   // Sync theme state with DOM on mount and storage changes
   useEffect(() => {
-    const updateThemeFromStorage = () => {
-      const currentTheme = getCurrentTheme();
-      setThemeState(currentTheme);
+    // Initialize global theme on mount
+    initializeTheme();
+    setThemeState(getCurrentTheme());
 
-      // Ensure theme is applied to DOM
-      if (currentTheme === 'dark') {
-        document.documentElement.classList.add('dark');
-        document.body.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-        document.body.classList.remove('dark');
-      }
+    // Listen for global theme changes
+    const handleGlobalThemeChange = (e: CustomEvent) => {
+      console.log('🌙 Settings received global theme change:', e.detail);
+      setThemeState(e.detail.theme);
     };
-
-    // Initial sync and DOM application
-    updateThemeFromStorage();
 
     // Listen for storage changes from other tabs
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'user_preferences:theme') {
-        updateThemeFromStorage();
+      if (e.key === GLOBAL_THEME_KEY) {
+        const newTheme = e.newValue === 'light' || e.newValue === 'dark' ? e.newValue : 'light';
+        setGlobalTheme(newTheme);
+        setThemeState(newTheme);
       }
     };
 
-    // Listen for custom theme change events
-    const handleThemeChange = (e: CustomEvent) => {
-      console.log('🎨 Settings received theme change event:', e.detail);
-      setThemeState(e.detail.theme);
-      // Apply theme immediately when event is received
-      if (e.detail.theme === 'dark') {
-        document.documentElement.classList.add('dark');
-        document.body.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-        document.body.classList.remove('dark');
-      }
-    };
-
+    window.addEventListener('global-theme-changed', handleGlobalThemeChange as EventListener);
     window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('themeChanged', handleThemeChange as EventListener);
 
     return () => {
+      window.removeEventListener('global-theme-changed', handleGlobalThemeChange as EventListener);
       window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('themeChanged', handleThemeChange as EventListener);
     };
   }, []);
 
@@ -763,14 +760,10 @@ const CleanSettingsPage: React.FC = () => {
   };
 
   const handleThemeChange = (newTheme: 'light' | 'dark') => {
-    setThemeDirect(newTheme);
+    // Use the global theme system
+    setGlobalTheme(newTheme);
     setThemeState(newTheme);
-    console.log(`Settings page theme changed to ${newTheme} (direct DOM manipulation)`);
-
-    // Dispatch a custom event to notify all components of theme change
-    window.dispatchEvent(new CustomEvent('themeChanged', {
-      detail: { theme: newTheme }
-    }));
+    console.log(`🌙 Settings theme changed to ${newTheme} (global system)`);
   };
 
   const handleProfileUpdate = (field: string, value: string) => {
@@ -779,7 +772,7 @@ const CleanSettingsPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+    <div className="min-h-screen theme-bg-primary p-6">
       <div className="max-w-6xl mx-auto">
         {/* Page Header */}
         <div className="mb-10">
@@ -1154,7 +1147,15 @@ const CleanSettingsPage: React.FC = () => {
                           ? 'border-blue-500 shadow-lg shadow-blue-200'
                           : 'border-gray-300 dark:border-gray-600'
                       } rounded-xl cursor-pointer transition-all duration-200 overflow-hidden hover:scale-105 hover:-translate-y-1`}
-                      onClick={() => handleThemeChange('light')}
+                      data-theme-option="light"
+                      onClick={() => {
+                      // DIRECT THEME FIX - NO MORE COMPLICATED SYSTEMS
+                      document.documentElement.classList.remove('dark');
+                      document.body.classList.remove('dark');
+                      document.documentElement.setAttribute('data-theme', 'light');
+                      localStorage.setItem('theme', 'light');
+                      console.log('☀️ LIGHT THEME APPLIED - DIRECT METHOD');
+                    }}
                     >
                       <div className="theme-preview light w-full h-20 p-3 flex flex-col gap-2">
                         <div className="preview-bar h-2 bg-white rounded shadow-sm w-1/2"></div>
@@ -1170,7 +1171,15 @@ const CleanSettingsPage: React.FC = () => {
                           ? 'border-blue-500 shadow-lg shadow-blue-200'
                           : 'border-gray-300 dark:border-gray-600'
                       } rounded-xl cursor-pointer transition-all duration-200 overflow-hidden hover:scale-105 hover:-translate-y-1`}
-                      onClick={() => handleThemeChange('dark')}
+                      data-theme-option="dark"
+                      onClick={() => {
+                      // DIRECT THEME FIX - NO MORE COMPLICATED SYSTEMS
+                      document.documentElement.classList.add('dark');
+                      document.body.classList.add('dark');
+                      document.documentElement.setAttribute('data-theme', 'dark');
+                      localStorage.setItem('theme', 'dark');
+                      console.log('🌙 DARK THEME APPLIED - DIRECT METHOD');
+                    }}
                     >
                       <div className="theme-preview dark w-full h-20 p-3 flex flex-col gap-2">
                         <div className="preview-bar h-2 bg-gray-700 rounded shadow-sm w-1/2"></div>
