@@ -128,8 +128,6 @@ export const testSupabaseConnection = () => {
   }
 };
 
-<<<<<<< HEAD
-=======
 // ===== DATABASE FUNCTIONS =====
 
 // Basic task functions
@@ -357,5 +355,4 @@ export const getUserAvatarUrl = (): string | null => {
   return null; // Placeholder - will be used with actual user data
 };
 
->>>>>>> b3c04e5e5d0ccdd49a81ec84957e158d21dac81a
 export default supabase;
