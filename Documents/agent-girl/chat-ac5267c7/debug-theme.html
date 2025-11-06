@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme Debug Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    <style>
+        /* Copy the exact styles from index.css */
+        :root {
+            --bg-primary: 249 250 251;
+            --bg-secondary: 255 255 255;
+            --bg-tertiary: 243 244 246;
+            --text-primary: 17 24 39;
+            --text-secondary: 75 85 99;
+            --text-tertiary: 156 163 175;
+            --border-primary: 229 231 235;
+            --border-secondary: 209 213 219;
+            --accent-blue: 59 130 246;
+            --accent-purple: 99 102 241;
+        }
+
+        .dark {
+            --bg-primary: 15 23 42;
+            --bg-secondary: 30 41 59;
+            --bg-tertiary: 51 65 85;
+            --text-primary: 248 250 252;
+            --text-secondary: 203 213 225;
+            --text-tertiary: 148 163 184;
+            --border-primary: 71 85 105;
+            --border-secondary: 51 65 85;
+            --accent-blue: 96 165 250;
+            --accent-purple: 167 139 250;
+        }
+
+        body {
+            @apply bg-gray-50 dark:bg-slate-900 min-h-screen transition-colors duration-300;
+        }
+
+        .card {
+            @apply bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl shadow-sm transition-all duration-300;
+        }
+
+        .text-primary {
+            @apply text-gray-900 dark:text-white;
+        }
+
+        .text-secondary {
+            @apply text-gray-600 dark:text-slate-300;
+        }
+    </style>
+</head>
+<body class="p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-primary mb-6">Dark Mode Debug Test</h1>
+
+        <div class="mb-6">
+            <button onclick="toggleTheme()" class="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors">
+                Toggle Theme
+            </button>
+            <span class="ml-4 text-secondary">Current theme: <span id="theme-status" class="font-mono bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">light</span></span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="card p-6">
+                <h2 class="text-xl font-semibold text-primary mb-3">Test Card 1</h2>
+                <p class="text-secondary mb-4">This is a test paragraph to check text readability in dark mode. The text should be clearly visible and have good contrast.</p>
+                <div class="bg-gray-100 dark:bg-gray-700 p-3 rounded">
+                    <code class="text-sm text-primary">console.log('Testing code blocks');</code>
+                </div>
+            </div>
+
+            <div class="card p-6">
+                <h2 class="text-xl font-semibold text-primary mb-3">Test Card 2</h2>
+                <div class="space-y-2">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-4 h-4 bg-green-500 rounded"></div>
+                        <span class="text-secondary">Status: Working</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="w-4 h-4 bg-blue-500 rounded"></div>
+                        <span class="text-secondary">Status: Processing</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="w-4 h-4 bg-red-500 rounded"></div>
+                        <span class="text-secondary">Status: Error</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-6 card p-6">
+            <h2 class="text-xl font-semibold text-primary mb-3">Theme Information</h2>
+            <div id="debug-info" class="text-sm text-secondary font-mono space-y-1"></div>
+        </div>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const isDark = html.classList.contains('dark');
+
+            if (isDark) {
+                html.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+
+            updateDebugInfo();
+        }
+
+        function updateDebugInfo() {
+            const html = document.documentElement;
+            const isDark = html.classList.contains('dark');
+            const storedTheme = localStorage.getItem('theme');
+
+            document.getElementById('theme-status').textContent = isDark ? 'dark' : 'light';
+
+            const debugInfo = `
+                <div>HTML classes: ${html.className}</div>
+                <div>localStorage theme: ${storedTheme}</div>
+                <div>Computed style (background): ${getComputedStyle(document.body).backgroundColor}</div>
+                <div>Computed style (color): ${getComputedStyle(document.body).color}</div>
+                <div>Dark mode active: ${isDark}</div>
+            `;
+
+            document.getElementById('debug-info').innerHTML = debugInfo;
+        }
+
+        // Initialize theme on load
+        document.addEventListener('DOMContentLoaded', () => {
+            const storedTheme = localStorage.getItem('theme');
+            if (storedTheme === 'dark') {
+                document.documentElement.classList.add('dark');
+            }
+            updateDebugInfo();
+        });
+
+        // Listen for theme changes
+        const observer = new MutationObserver(updateDebugInfo);
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['class']
+        });
+    </script>
+</body>
+</html>
