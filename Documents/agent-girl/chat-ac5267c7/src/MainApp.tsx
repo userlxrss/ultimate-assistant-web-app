@@ -3,6 +3,7 @@ import { BarChart3, PenSquare, CheckSquare, Calendar, Mail, Users, Settings, X, 
 import { authManager } from './utils/authManager';
 import { userAuthManager } from './utils/userAuth';
 import { userDataStorage } from './utils/userDataStorage';
+import { getCurrentUser, onAuthStateChange, signOut } from './supabase';
 import DashboardSimple from './components/DashboardSimple';
 import JournalApp from './JournalApp';
 import TasksApp from './TasksApp';
@@ -44,6 +45,7 @@ const MainApp: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userInfo, setUserInfo] = useState<any>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -55,10 +57,36 @@ const MainApp: React.FC = () => {
 
     const checkAuth = async () => {
       try {
-        const user = userAuthManager.getCurrentUser();
+        // Try to get current Supabase user first, fallback to userAuthManager
+        let user = null;
+        try {
+          user = await getCurrentUser();
+          if (user) {
+            console.log('✅ Using Supabase user:', user);
+            const userData = {
+              id: user.id,
+              email: user.email,
+              name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+              username: user.user_metadata?.username || '',
+              picture: `https://ui-avatars.com/api/?name=${encodeURIComponent(user.user_metadata?.full_name || user.email?.split('@')[0] || 'User')}&background=random`,
+              provider: 'supabase'
+            };
+            user = userData;
+          }
+        } catch (supabaseError) {
+          console.log('⚠️ Supabase auth failed, using fallback');
+          user = userAuthManager.getCurrentUser();
+        }
         if (user) {
           setIsAuthenticated(true);
           setUserInfo(user);
+
+          // Set avatar URL from user metadata if available
+          if (user.user_metadata?.avatar_url) {
+            setAvatarUrl(user.user_metadata.avatar_url);
+            console.log('🖼️ MainApp loaded avatar from metadata:', user.user_metadata.avatar_url);
+          }
+
           userDataStorage.setData('currentUser', user);
           // Initialize secure journal storage for authenticated user
           try {
@@ -68,12 +96,14 @@ const MainApp: React.FC = () => {
           }        } else {
           setIsAuthenticated(false);
           setUserInfo(null);
+          setAvatarUrl(null);
           userDataStorage.removeData('currentUser');
         }
       } catch (error) {
         console.error('Auth check failed:', error);
         setIsAuthenticated(false);
         setUserInfo(null);
+        setAvatarUrl(null);
       }
     };
 
@@ -114,6 +144,46 @@ const MainApp: React.FC = () => {
     }
   }, [showProfileDropdown]);
 
+  // Listen for profile updates from Settings page
+  useEffect(() => {
+    const handleProfileUpdate = (event: CustomEvent) => {
+      console.log('🔄 MainApp received profile update:', event.detail);
+
+      // Update userInfo with new profile data
+      setUserInfo(prev => ({
+        ...prev,
+        name: event.detail.displayName,
+        username: event.detail.displayName.toLowerCase().replace(/\s+/g, '_'),
+        email: event.detail.email,
+        user_metadata: {
+          ...prev?.user_metadata,
+          avatar_url: event.detail.avatar_url
+        }
+      }));
+
+      // Update avatar URL if provided
+      if (event.detail.avatar_url) {
+        setAvatarUrl(event.detail.avatar_url);
+        console.log('🖼️ MainApp received new avatar:', event.detail.avatar_url);
+      }
+
+      // Update userDataStorage
+      userDataStorage.setData('currentUser', {
+        ...userInfo,
+        name: event.detail.displayName,
+        username: event.detail.displayName.toLowerCase().replace(/\s+/g, '_'),
+        email: event.detail.email,
+        user_metadata: {
+          ...userInfo?.user_metadata,
+          avatar_url: event.detail.avatar_url
+        }
+      });
+    };
+
+    window.addEventListener('profileUpdated', handleProfileUpdate as EventListener);
+    return () => window.removeEventListener('profileUpdated', handleProfileUpdate as EventListener);
+  }, [userInfo]);
+
   // SIMPLE profile click handler
   const handleProfileClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -140,18 +210,22 @@ const MainApp: React.FC = () => {
       // Clear local state
       setIsAuthenticated(false);
       setUserInfo(null);
+      setAvatarUrl(null); // Clear avatar URL on sign out
       userDataStorage.removeData('currentUser');
 
-      // Attempt graceful logout
+      // Attempt graceful logout with Supabase
       // Handle secure journal storage cleanup
       try {
         SecureUserJournalStorage.handleLogout();
       } catch (cleanupError) {
         console.error("Failed to cleanup secure journal storage:", cleanupError);
-      }      try {
-        await userAuthManager.logout();
+      }
+      try {
+        await signOut();
       } catch (logoutError) {
-        console.error("Graceful logout failed:", logoutError);
+        console.error("Supabase logout failed:", logoutError);
+        // Fallback to userAuthManager
+        await userAuthManager.logout();
       }
 
       // Clear all storage
@@ -160,16 +234,16 @@ const MainApp: React.FC = () => {
 
       console.log("✅ Sign out successful - redirecting");
 
-      // Force redirect
-      window.location.href = "/login";
+      // Force redirect to premium React login page
+      window.location.href = "/";
 
     } catch (error) {
       console.error("Sign out error:", error);
 
-      // EMERGENCY FALLBACK: Force redirect to login
+      // EMERGENCY FALLBACK: Force redirect to premium React login page
       localStorage.clear();
       sessionStorage.clear();
-      window.location.href = "/login";
+      window.location.href = "/";
     }
   }, []);
   const navigationItems = [
@@ -329,17 +403,29 @@ const MainApp: React.FC = () => {
                       {/* User Info */}
                       <div className="p-4 border-b border-gray-200 dark:border-gray-700">
                         <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
-                            <span className="text-purple-600 dark:text-purple-300 font-semibold">
-                              {userInfo?.email?.[0]?.toUpperCase() || 'U'}
-                            </span>
+                          <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center overflow-hidden">
+                            {avatarUrl ? (
+                              <img
+                                src={avatarUrl}
+                                alt="Profile"
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  console.log('❌ Avatar failed to load, falling back to letter');
+                                  setAvatarUrl(null);
+                                }}
+                              />
+                            ) : (
+                              <span className="text-purple-600 dark:text-purple-300 font-semibold">
+                                {userInfo?.name?.[0]?.toUpperCase() || userInfo?.email?.[0]?.toUpperCase() || 'U'}
+                              </span>
+                            )}
                           </div>
                           <div>
                             <p className="font-medium text-gray-900 dark:text-white">
-                              {userInfo?.email || 'Guest User'}
+                              {userInfo?.name || 'Guest User'}
                             </p>
                             <p className="text-xs text-gray-500 dark:text-gray-400">
-                              Not signed in
+                              {userInfo?.username ? `@${userInfo?.username}` : userInfo?.email || 'Not signed in'}
                             </p>
                           </div>
                         </div>
@@ -380,11 +466,12 @@ const MainApp: React.FC = () => {
                             // Clear everything
                             setIsAuthenticated(false);
                             setUserInfo(null);
+                            setAvatarUrl(null);
                             localStorage.clear();
                             sessionStorage.clear();
 
-                            // Force redirect to login page with success message
-                            window.location.href = "/loginpage.html?signedout=true";
+                            // Force redirect to premium React login page
+                            window.location.href = "/";
                           }}
                           className="w-full px-4 py-2 flex items-center space-x-3 text-sm transition-colors text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 rounded"
                         >

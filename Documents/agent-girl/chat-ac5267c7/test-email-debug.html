@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Email Sending</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+        .test-section { background: #f5f5f5; padding: 20px; margin: 20px 0; border-radius: 8px; }
+        .result { background: #e8f5e8; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .error { background: #ffe8e8; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0056b3; }
+        input { padding: 8px; margin: 5px; width: 300px; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Supabase Email Debug Tool</h1>
+
+    <div class="test-section">
+        <h2>Step 1: Test Supabase Connection</h2>
+        <button onclick="testSupabaseConnection()">Test Connection</button>
+        <div id="connection-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Step 2: Send Test Verification Email</h2>
+        <input type="email" id="test-email" placeholder="Enter your email" value="">
+        <button onclick="sendTestEmail()">Send Test Email</button>
+        <div id="email-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Step 3: Check Auth Settings</h2>
+        <button onclick="checkAuthSettings()">Check Settings</button>
+        <div id="settings-result"></div>
+    </div>
+
+    <script>
+        // Initialize Supabase
+        const supabaseUrl = 'https://vacwojgxafujscxuqmpg.supabase.co';
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZhY3dvamd4YWZ1anNjeHVxbXBnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxOTU5MTksImV4cCI6MjA3Nzc3MTkxOX0.RniyufeNXF9h6a9u55zGIxLRFeFDCaJxQ1ZjLv6KgxI';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+        function testSupabaseConnection() {
+            const resultDiv = document.getElementById('connection-result');
+            resultDiv.innerHTML = '<div class="result">🔄 Testing connection...</div>';
+
+            try {
+                console.log('🔥 Testing Supabase connection...');
+                console.log('📊 URL:', supabaseUrl);
+                console.log('🔑 Auth client ready:', !!supabase.auth);
+
+                resultDiv.innerHTML = '<div class="result">✅ Supabase connection successful!</div>';
+            } catch (error) {
+                console.error('❌ Connection failed:', error);
+                resultDiv.innerHTML = `<div class="error">❌ Connection failed: ${error.message}</div>`;
+            }
+        }
+
+        async function sendTestEmail() {
+            const email = document.getElementById('test-email').value;
+            const resultDiv = document.getElementById('email-result');
+
+            if (!email) {
+                resultDiv.innerHTML = '<div class="error">❌ Please enter an email address</div>';
+                return;
+            }
+
+            resultDiv.innerHTML = '<div class="result">🔄 Sending test email...</div>';
+
+            try {
+                console.log('🔥 Sending test verification email to:', email);
+
+                const { data, error } = await supabase.auth.resend({
+                    type: 'signup',
+                    email: email,
+                    options: {
+                        emailRedirectTo: window.location.origin + '/',
+                    }
+                });
+
+                if (error) {
+                    console.error('❌ Email send failed:', error);
+                    resultDiv.innerHTML = `<div class="error">❌ Email send failed: ${error.message}</div>`;
+                } else {
+                    console.log('✅ Email sent successfully:', data);
+                    resultDiv.innerHTML = '<div class="result">✅ Test email sent! Check your inbox (and spam folder).</div>';
+                }
+
+            } catch (err) {
+                console.error('❌ Unexpected error:', err);
+                resultDiv.innerHTML = `<div class="error">❌ Unexpected error: ${err.message}</div>`;
+            }
+        }
+
+        async function checkAuthSettings() {
+            const resultDiv = document.getElementById('settings-result');
+            resultDiv.innerHTML = '<div class="result">🔄 Checking auth settings...</div>';
+
+            try {
+                // Test signup to see if email confirmation is required
+                const testEmail = 'test+' + Date.now() + '@example.com';
+                const { data, error } = await supabase.auth.signUp({
+                    email: testEmail,
+                    password: 'testpassword123',
+                    options: {
+                        emailRedirectTo: window.location.origin + '/',
+                    }
+                });
+
+                if (error) {
+                    console.log('❌ Signup test failed:', error);
+                    resultDiv.innerHTML = `<div class="error">❌ Signup test failed: ${error.message}</div>`;
+                } else {
+                    console.log('🔍 Signup response:', data);
+
+                    if (data.user && !data.user.email_confirmed_at) {
+                        resultDiv.innerHTML = '<div class="result">✅ Email confirmation is ENABLED ✅<br>Verification emails should be sent.</div>';
+                    } else if (data.user && data.user.email_confirmed_at) {
+                        resultDiv.innerHTML = '<div class="error">❌ Email confirmation is DISABLED ❌<br>Users are automatically verified without email.</div>';
+                    } else {
+                        resultDiv.innerHTML = '<div class="result">✅ Settings check completed - see console for details</div>';
+                    }
+                }
+
+            } catch (err) {
+                console.error('❌ Settings check failed:', err);
+                resultDiv.innerHTML = `<div class="error">❌ Settings check failed: ${err.message}</div>`;
+            }
+        }
+
+        // Auto-test connection on page load
+        window.onload = function() {
+            testSupabaseConnection();
+        };
+    </script>
+</body>
+</html>

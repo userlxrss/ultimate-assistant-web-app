@@ -128,6 +128,16 @@ class UserAuthService {
           }
         };
 
+        // TODO: Email verification will be handled by Supabase automatically if enabled in settings
+        // if (!data.user.email_confirmed_at) {
+        //   try {
+        //     await resendVerificationEmail(signupData.email);
+        //     console.log('✅ Verification email sent to:', signupData.email);
+        //   } catch (emailError) {
+        //     console.warn('⚠️ Failed to send verification email:', emailError);
+        //   }
+        // }
+
         console.log('✅ Supabase user signed up successfully:', signupData.email);
 
         return {
@@ -175,6 +185,15 @@ class UserAuthService {
       const data = await signInWithEmail(email, password);
 
       if (data.user) {
+        // Check if email is verified
+        if (!data.user.email_confirmed_at) {
+          return {
+            success: false,
+            error: 'Please verify your email before signing in. Check your inbox for the verification link.',
+            needsVerification: true
+          };
+        }
+
         // Remember me functionality
         if (rememberMe) {
           localStorage.setItem('rememberMe', 'true');
@@ -267,10 +286,12 @@ class UserAuthService {
   }
 
   /**
-   * Resend verification email (not implemented for Supabase in this context)
+   * Resend verification email (TODO: implement using Supabase functions)
    */
-  async resendVerificationEmail(): Promise<AuthResult> {
-    return { success: false, error: 'Email verification resend not available in current implementation' };
+  async resendVerificationEmail(email: string): Promise<AuthResult> {
+    // TODO: Implement this function using Supabase's resend functionality
+    // For now, this is not used in the simple auth flow
+    return { success: false, error: 'Email verification resend not implemented yet' };
   }
 }
 

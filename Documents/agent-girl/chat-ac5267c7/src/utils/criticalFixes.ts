@@ -39,8 +39,8 @@ export const performEmergencySignOut = () => {
       indexedDB.deleteDatabase('productivity_hub');
     }
 
-    // Force redirect to login
-    window.location.href = window.location.origin + '/login';
+    // Force redirect to premium React login page
+    window.location.href = window.location.origin + '/';
 
     console.log('✅ Emergency sign out completed');
   } catch (error) {

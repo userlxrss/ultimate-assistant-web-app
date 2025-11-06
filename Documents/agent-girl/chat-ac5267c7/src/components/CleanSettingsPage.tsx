@@ -3,6 +3,7 @@ import { Mail, CheckCircle2, Link, Palette, User, Camera } from 'lucide-react';
 import { motionAPI } from '../utils/motionApi';
 import { realGmailAPI } from '../utils/realGmailAPI';
 import { AppearanceStorage, FontSize } from '../utils/appearanceStorage';
+import { getCurrentUser, supabase, uploadAvatar, deleteAvatar, updateUserAvatar } from '../supabase';
 
 interface AppConnection {
   id: string;
@@ -44,6 +45,10 @@ const setThemeDirect = (newTheme: 'light' | 'dark') => {
 const CleanSettingsPage: React.FC = () => {
   // Use direct theme state instead of context
   const [theme, setThemeState] = useState<'light' | 'dark'>(() => getCurrentTheme());
+
+  // User data state
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [loadingUser, setLoadingUser] = useState(true);
 
   // Sync theme state with DOM on mount and storage changes
   useEffect(() => {
@@ -94,6 +99,40 @@ const CleanSettingsPage: React.FC = () => {
     };
   }, []);
 
+  // Load current user data on component mount
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        const user = await getCurrentUser();
+        if (user) {
+          console.log('✅ Settings: Loaded user data:', user);
+          setCurrentUser(user);
+
+          // Pre-fill profile data with user metadata
+          setProfileData(prev => ({
+            ...prev,
+            displayName: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+            bio: user.user_metadata?.bio || ''
+          }));
+
+          // Set profile image from avatar URL if available
+          if (user.user_metadata?.avatar_url) {
+            setProfileImage(user.user_metadata.avatar_url);
+            console.log('🖼️ Loaded avatar from metadata:', user.user_metadata.avatar_url);
+          }
+        } else {
+          console.log('⚠️ Settings: No user found');
+        }
+      } catch (error) {
+        console.error('❌ Settings: Error loading user data:', error);
+      } finally {
+        setLoadingUser(false);
+      }
+    };
+
+    loadUserData();
+  }, []);
+
   // Tab state
   const [activeTab, setActiveTab] = useState('integrations');
   const [fontSize, setFontSize] = useState<FontSize>('medium');
@@ -104,13 +143,10 @@ const CleanSettingsPage: React.FC = () => {
   const [dangerOpen, setDangerOpen] = useState(false);
   const [showEmail, setShowEmail] = useState(false);
 
-  // Form Data State
+  // Form Data State - Removed Regional section as requested
   const [profileData, setProfileData] = useState({
     displayName: 'User',
     bio: '',
-    timezone: 'America/New_York (EST)',
-    language: 'English',
-    dateFormat: 'MM/DD/YYYY',
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
@@ -516,40 +552,137 @@ const CleanSettingsPage: React.FC = () => {
     setHasChanges(true);
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === 'string') {
-          setProfileImage(reader.result);
-          setHasChanges(true);
+    if (file && currentUser) {
+      try {
+        console.log('📤 Starting avatar upload...');
+
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          alert('File size must be less than 5MB');
+          return;
         }
-      };
-      reader.readAsDataURL(file);
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+          alert('Please select an image file');
+          return;
+        }
+
+        // Show loading state
+        setSaving(true);
+
+        // Upload to Supabase Storage
+        const avatarUrl = await uploadAvatar(file, currentUser.id);
+
+        if (avatarUrl) {
+          // Update user metadata with avatar URL
+          const success = await updateUserAvatar(avatarUrl);
+
+          if (success) {
+            setProfileImage(avatarUrl);
+            setHasChanges(true);
+
+            // Update local user state
+            setCurrentUser(prev => ({
+              ...prev,
+              user_metadata: {
+                ...prev?.user_metadata,
+                avatar_url: avatarUrl
+              }
+            }));
+
+            console.log('✅ Avatar uploaded and saved successfully');
+
+            // Dispatch event to update MainApp dropdown
+            window.dispatchEvent(new CustomEvent('profileUpdated', {
+              detail: {
+                displayName: profileData.displayName,
+                bio: profileData.bio,
+                email: currentUser.email,
+                avatar_url: avatarUrl
+              }
+            }));
+
+            // Show success message
+            setShowSuccess(true);
+            setTimeout(() => setShowSuccess(false), 3000);
+          } else {
+            alert('Failed to save avatar to profile');
+          }
+        } else {
+          alert('Failed to upload avatar');
+        }
+      } catch (error) {
+        console.error('❌ Avatar upload error:', error);
+        alert('Failed to upload avatar. Please try again.');
+      } finally {
+        setSaving(false);
+      }
     }
   };
 
   const handleSaveProfile = async () => {
+    if (!currentUser) {
+      console.error('❌ No user logged in');
+      return;
+    }
+
     setSaving(true);
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('💾 Saving profile data to Supabase...');
 
-      // Save to localStorage
+      // Update user metadata in Supabase
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          full_name: profileData.displayName,
+          bio: profileData.bio
+        }
+      });
+
+      if (error) {
+        console.error('❌ Error updating user metadata:', error);
+        throw error;
+      }
+
+      // Also save to localStorage as backup
       localStorage.setItem('profileData', JSON.stringify(profileData));
       if (profileImage) {
         localStorage.setItem('profileImage', profileImage);
       }
 
+      // Update local user state
+      setCurrentUser(prev => ({
+        ...prev,
+        user_metadata: {
+          ...prev?.user_metadata,
+          full_name: profileData.displayName,
+          bio: profileData.bio
+        }
+      }));
+
       setHasChanges(false);
       setShowSuccess(true);
+
+      console.log('✅ Profile saved successfully to Supabase');
+
+      // Dispatch custom event to notify other components (like MainApp) of profile changes
+      window.dispatchEvent(new CustomEvent('profileUpdated', {
+        detail: {
+          displayName: profileData.displayName,
+          bio: profileData.bio,
+          email: currentUser.email,
+          avatar_url: currentUser.user_metadata?.avatar_url
+        }
+      }));
 
       // Hide success message after 3 seconds
       setTimeout(() => setShowSuccess(false), 3000);
     } catch (error) {
-      console.error('Save failed:', error);
+      console.error('❌ Save failed:', error);
+      alert('Failed to save profile. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -654,7 +787,12 @@ const CleanSettingsPage: React.FC = () => {
             Settings
           </h1>
           <p className="section-subtitle text-gray-600 dark:text-gray-400">
-            Manage your productivity hub preferences and connected apps
+            {loadingUser
+              ? 'Loading your preferences...'
+              : currentUser
+                ? `Welcome back, ${currentUser.user_metadata?.username || currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'User'}! ✅`
+                : 'Manage your productivity hub preferences and connected apps'
+            }
           </p>
         </div>
 
@@ -1121,13 +1259,16 @@ const CleanSettingsPage: React.FC = () => {
                       {profileImage ? (
                         <img src={profileImage} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '11px' }} />
                       ) : (
-                        'U'
+                        profileData.displayName ? profileData.displayName.charAt(0).toUpperCase() : 'U'
                       )}
                     </div>
                     <div className="user-details">
                       <h3>{profileData.displayName}</h3>
                       <span className="email-badge">
-                        {showEmail ? 'user@example.com' : 'u••••@example.com'}
+                        {showEmail
+                          ? (currentUser?.email || 'user@example.com')
+                          : (currentUser?.email ? `${currentUser.email[0]}••••@${currentUser.email.split('@')[1]}` : 'u••••@example.com')
+                        }
                         <button onClick={() => setShowEmail(!showEmail)}>
                           {showEmail ? 'Hide' : 'Show'}
                         </button>
@@ -1175,50 +1316,6 @@ const CleanSettingsPage: React.FC = () => {
                             onChange={(e) => handleProfileChange('bio', e.target.value)}
                           />
                           <span className="hint">{profileData.bio.length}/150 characters</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Regional Settings */}
-                    <div className="settings-group">
-                      <div className="group-header">
-                        <h4>Regional</h4>
-                      </div>
-                      <div className="group-content">
-                        <div className="field-row">
-                          <div className="field-half">
-                            <label>Timezone</label>
-                            <select
-                              value={profileData.timezone}
-                              onChange={(e) => handleProfileChange('timezone', e.target.value)}
-                            >
-                              <option>America/New_York (EST)</option>
-                              <option>Europe/London (GMT)</option>
-                              <option>Asia/Tokyo (JST)</option>
-                            </select>
-                          </div>
-                          <div className="field-half">
-                            <label>Language</label>
-                            <select
-                              value={profileData.language}
-                              onChange={(e) => handleProfileChange('language', e.target.value)}
-                            >
-                              <option>English</option>
-                              <option>Spanish</option>
-                              <option>French</option>
-                            </select>
-                          </div>
-                        </div>
-                        <div className="field">
-                          <label>Date Format</label>
-                          <select
-                            value={profileData.dateFormat}
-                            onChange={(e) => handleProfileChange('dateFormat', e.target.value)}
-                          >
-                            <option>MM/DD/YYYY</option>
-                            <option>DD/MM/YYYY</option>
-                            <option>YYYY-MM-DD</option>
-                          </select>
                         </div>
                       </div>
                     </div>
