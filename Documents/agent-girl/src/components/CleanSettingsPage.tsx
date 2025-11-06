@@ -870,8 +870,8 @@ const CleanSettingsPage: React.FC = () => {
                       </svg>
                     </div>
                     <div className="integration-details">
-                      <h3>Gmail</h3>
-                      <p>Email integration</p>
+                      <h3 className="text-gray-900 dark:text-white">Gmail</h3>
+                      <p className="text-gray-600 dark:text-gray-300">Email integration</p>
                     </div>
                   </div>
 
@@ -880,7 +880,7 @@ const CleanSettingsPage: React.FC = () => {
                       <span className="status-dot"></span>
                       Connected
                     </span>
-                    <span className="status-time">Last checked just now</span>
+                    <span className="status-time text-gray-600 dark:text-gray-300">Last checked just now</span>
                   </div>
 
                   <div className="integration-actions">
@@ -909,8 +909,8 @@ const CleanSettingsPage: React.FC = () => {
                       </svg>
                     </div>
                     <div className="integration-details">
-                      <h3>Motion (Task)</h3>
-                      <p>Task management</p>
+                      <h3 className="text-gray-900 dark:text-white">Motion (Task)</h3>
+                      <p className="text-gray-600 dark:text-gray-300">Task management</p>
                     </div>
                   </div>
 
@@ -921,7 +921,7 @@ const CleanSettingsPage: React.FC = () => {
                           <span className="status-dot"></span>
                           Connected
                         </span>
-                        <span className="status-time">
+                        <span className="status-time text-gray-600 dark:text-gray-300">
                           Last checked {motionLastSync ? formatTimeAgo(motionLastSync) : 'just now'} · {motionTaskCount} tasks today
                         </span>
                       </>
@@ -931,7 +931,7 @@ const CleanSettingsPage: React.FC = () => {
                           <span className="status-dot"></span>
                           Not Connected
                         </span>
-                        <span className="status-time">Connect to sync your tasks</span>
+                        <span className="status-time text-gray-600 dark:text-gray-300">Connect to sync your tasks</span>
                       </>
                     )}
                   </div>
@@ -1263,7 +1263,7 @@ const CleanSettingsPage: React.FC = () => {
                       )}
                     </div>
                     <div className="user-details">
-                      <h3>{profileData.displayName}</h3>
+                      <h3 className="text-gray-900 dark:text-white">{profileData.displayName}</h3>
                       <span className="email-badge">
                         {showEmail
                           ? (currentUser?.email || 'user@example.com')
@@ -1295,27 +1295,30 @@ const CleanSettingsPage: React.FC = () => {
                     {/* Account */}
                     <div className="settings-group">
                       <div className="group-header">
-                        <h4>Account</h4>
+                        <h4 className="text-gray-900 dark:text-white">Account</h4>
                       </div>
                       <div className="group-content">
                         <div className="field">
-                          <label>Display Name</label>
+                          <label className="text-gray-900 dark:text-white">Display Name</label>
                           <input
                             type="text"
                             value={profileData.displayName}
                             onChange={(e) => handleProfileChange('displayName', e.target.value)}
+                            placeholder="Enter your display name"
+                            className="text-gray-900 dark:text-white bg-white dark:bg-gray-700"
                           />
                         </div>
                         <div className="field">
-                          <label>Bio</label>
+                          <label className="text-gray-900 dark:text-white">Bio</label>
                           <textarea
                             placeholder="Tell us about yourself"
                             rows={2}
                             maxLength={150}
                             value={profileData.bio}
                             onChange={(e) => handleProfileChange('bio', e.target.value)}
+                            className="text-gray-900 dark:text-white bg-white dark:bg-gray-700"
                           />
-                          <span className="hint">{profileData.bio.length}/150 characters</span>
+                          <span className="hint text-gray-500 dark:text-gray-400">{profileData.bio.length}/150 characters</span>
                         </div>
                       </div>
                     </div>
@@ -1328,7 +1331,7 @@ const CleanSettingsPage: React.FC = () => {
                     {/* Security */}
                     <div className="settings-group">
                       <div className="group-header">
-                        <h4>Security</h4>
+                        <h4 className="text-gray-900 dark:text-white">Security</h4>
                         <button
                           className="expand-btn"
                           onClick={() => setSecurityOpen(!securityOpen)}
@@ -1379,11 +1382,11 @@ const CleanSettingsPage: React.FC = () => {
                     {/* Notifications */}
                     <div className="settings-group">
                       <div className="group-header">
-                        <h4>Notifications</h4>
+                        <h4 className="text-gray-900 dark:text-white">Notifications</h4>
                       </div>
                       <div className="group-content">
                         <div className="switch-item">
-                          <span>Email Notifications</span>
+                          <span className="text-gray-900 dark:text-white">Email Notifications</span>
                           <label className="switch">
                             <input
                               type="checkbox"
@@ -1394,7 +1397,7 @@ const CleanSettingsPage: React.FC = () => {
                           </label>
                         </div>
                         <div className="switch-item">
-                          <span>Desktop Notifications</span>
+                          <span className="text-gray-900 dark:text-white">Desktop Notifications</span>
                           <label className="switch">
                             <input
                               type="checkbox"
@@ -1405,7 +1408,7 @@ const CleanSettingsPage: React.FC = () => {
                           </label>
                         </div>
                         <div className="switch-item">
-                          <span>Weekly Summary</span>
+                          <span className="text-gray-900 dark:text-white">Weekly Summary</span>
                           <label className="switch">
                             <input
                               type="checkbox"
@@ -1425,7 +1428,7 @@ const CleanSettingsPage: React.FC = () => {
                 {/* Danger Zone - Full Width */}
                 <div className="settings-group danger-group">
                   <div className="group-header">
-                    <h4>Delete Account</h4>
+                    <h4 className="text-gray-900 dark:text-white">Delete Account</h4>
                     <button
                       className="expand-btn"
                       onClick={() => setDangerOpen(!dangerOpen)}
@@ -1437,7 +1440,7 @@ const CleanSettingsPage: React.FC = () => {
                     <div className="group-content">
                       <p className="danger-warning">Permanently delete your account and all associated data. This action cannot be undone.</p>
                       <button
-                        className="btn-delete"
+                        className="btn-delete text-white"
                         onClick={handleDeleteAccount}
                       >
                         Delete Account
@@ -1449,14 +1452,14 @@ const CleanSettingsPage: React.FC = () => {
                 {/* Footer Actions */}
                 <div className="profile-footer">
                   <button
-                    className="btn-save-primary"
+                    className="btn-save-primary text-white"
                     onClick={handleSaveProfile}
                     disabled={!hasChanges || saving}
                   >
                     {saving ? 'Saving...' : 'Save Changes'}
                   </button>
                   <button
-                    className="btn-cancel-secondary"
+                    className="btn-cancel-secondary text-gray-900 dark:text-white"
                     onClick={handleCancel}
                     disabled={!hasChanges || saving}
                   >
@@ -1644,7 +1647,7 @@ const CleanSettingsPage: React.FC = () => {
         .dark .email-badge {
           background: #0F172A;
           border-color: #334155;
-          color: #94A3B8;
+          color: #D1D5DB;
         }
 
         .email-badge button {
@@ -2143,8 +2146,9 @@ const CleanSettingsPage: React.FC = () => {
         }
 
         .dark .security-notice {
-          background: linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(37,99,235,0.1) 100%);
-          border-color: rgba(59,130,246,0.3);
+          background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);
+          border-color: rgba(139, 92, 246, 0.3);
+          box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
         }
 
         .notice-icon {
@@ -2160,18 +2164,21 @@ const CleanSettingsPage: React.FC = () => {
         }
 
         .dark .notice-content h4 {
-          color: #93C5FD;
+          color: #FFFFFF;
+          font-weight: 700;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
         }
 
         .notice-content p {
           font-size: 13px;
-          color: #3B82F6;
+          color: #F9FAFB;
           line-height: 1.5;
           margin: 0;
+          font-weight: 500;
         }
 
         .dark .notice-content p {
-          color: #BFDBFE;
+          color: #F9FAFB;
         }
 
         /* Integrations Grid */
@@ -2189,22 +2196,25 @@ const CleanSettingsPage: React.FC = () => {
           border-radius: 12px;
           padding: 20px;
           transition: all 200ms ease;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         .dark .integration-item {
-          background: #1E293B;
-          border-color: #334155;
+          background: rgba(30, 41, 59, 0.95);
+          border: 1px solid rgba(71, 85, 105, 0.6);
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
         }
 
         .integration-item:hover {
           border-color: #CBD5E1;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+          box-shadow: 0 8px 16px rgba(0,0,0,0.1);
           transform: translateY(-2px);
         }
 
         .dark .integration-item:hover {
-          border-color: #475569;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+          border-color: rgba(148, 163, 184, 0.4);
+          box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+          background: rgba(30, 41, 59, 0.98);
         }
 
         /* Integration Header */
@@ -2240,20 +2250,24 @@ const CleanSettingsPage: React.FC = () => {
           font-weight: 700;
           color: #0F172A;
           margin-bottom: 2px;
+          text-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
         }
 
         .dark .integration-details h3 {
-          color: #F8FAFC;
+          color: #FFFFFF;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
         }
 
         .integration-details p {
           font-size: 13px;
           color: #64748B;
           margin: 0;
+          font-weight: 500;
         }
 
         .dark .integration-details p {
-          color: #94A3B8;
+          color: #E2E8F0;
+          font-weight: 500;
         }
 
         /* Integration Status */
@@ -2267,7 +2281,7 @@ const CleanSettingsPage: React.FC = () => {
         }
 
         .dark .integration-status {
-          border-bottom-color: #334155;
+          border-bottom-color: rgba(71, 85, 105, 0.4);
         }
 
         .status-badge {
@@ -2279,6 +2293,7 @@ const CleanSettingsPage: React.FC = () => {
           font-size: 12px;
           font-weight: 600;
           width: fit-content;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
         .status-badge.connected {
@@ -2288,9 +2303,10 @@ const CleanSettingsPage: React.FC = () => {
         }
 
         .dark .status-badge.connected {
-          background: rgba(16,185,129,0.15);
-          border-color: rgba(16,185,129,0.3);
+          background: rgba(16,185,129,0.2);
+          border-color: rgba(16,185,129,0.4);
           color: #6EE7B7;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
         }
 
         .status-dot {
@@ -2328,12 +2344,13 @@ const CleanSettingsPage: React.FC = () => {
           font-weight: 600;
           cursor: pointer;
           transition: all 150ms ease;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
 
         .btn-integration-primary:hover {
           background: #2563EB;
           transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+          box-shadow: 0 6px 16px rgba(59,130,246,0.4);
         }
 
         .btn-integration-secondary {
@@ -2347,20 +2364,26 @@ const CleanSettingsPage: React.FC = () => {
           font-weight: 600;
           cursor: pointer;
           transition: all 150ms ease;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
         .btn-integration-secondary:hover {
           background: #F9FAFB;
           border-color: #CBD5E1;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         .dark .btn-integration-secondary {
-          color: #94A3B8;
-          border-color: #334155;
+          color: #E2E8F0;
+          border-color: rgba(71, 85, 105, 0.6);
+          background: rgba(51, 65, 85, 0.3);
         }
 
         .dark .btn-integration-secondary:hover {
-          background: #334155;
+          background: rgba(71, 85, 105, 0.5);
+          border-color: rgba(148, 163, 184, 0.4);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
 
         /* Available Section */
@@ -3114,6 +3137,146 @@ const CleanSettingsPage: React.FC = () => {
 
         .dark .success-modal p {
           color: #94a3b8;
+        }
+
+        /* ===== PREMIUM SETTINGS PAGE FIXES ===== */
+        /* Page Header & Section Titles */
+        .section-title {
+          color: #0F172A !important;
+          text-shadow: 0 1px 1px rgba(0, 0, 0, 0.05) !important;
+        }
+
+        .dark .section-title {
+          color: #FFFFFF !important;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+        }
+
+        .section-subtitle {
+          color: #64748B !important;
+          font-weight: 500 !important;
+        }
+
+        .dark .section-subtitle {
+          color: #E2E8F0 !important;
+          font-weight: 500 !important;
+        }
+
+        /* Premium Settings Tabs */
+        .settings-tabs {
+          background: #F8FAFC !important;
+          border: 1px solid #E5E7EB !important;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        .dark .settings-tabs {
+          background: rgba(30, 41, 59, 0.95) !important;
+          border: 1px solid rgba(71, 85, 105, 0.4) !important;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        .settings-tab {
+          position: relative !important;
+          overflow: hidden !important;
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+
+        .settings-tab:hover {
+          transform: translateY(-1px) !important;
+        }
+
+        .dark .settings-tab {
+          color: #94A3B8 !important;
+          font-weight: 600 !important;
+        }
+
+        .dark .settings-tab:hover {
+          color: #E2E8F0 !important;
+        }
+
+        .dark .settings-tab.bg-white,
+        .dark .settings-tab.bg-gray-700 {
+          background: rgba(51, 65, 85, 0.8) !important;
+          color: #FFFFFF !important;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        .dark .settings-tab.shadow-sm {
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+        }
+
+        /* Tab Icons */
+        .dark .settings-tab svg {
+          color: #94A3B8 !important;
+        }
+
+        .dark .settings-tab:hover svg {
+          color: #E2E8F0 !important;
+        }
+
+        .dark .settings-tab.bg-white svg,
+        .dark .settings-tab.bg-gray-700 svg {
+          color: #FFFFFF !important;
+        }
+
+        /* Status Time Text */
+        .status-time {
+          font-size: 12px !important;
+          color: #94A3B8 !important;
+          font-weight: 500 !important;
+        }
+
+        .dark .status-time {
+          color: #CBD5E1 !important;
+        }
+
+        /* Not Connected Badge */
+        .status-badge.not-connected {
+          background: #FEF2F2 !important;
+          color: #991B1B !important;
+          border: 1px solid #FCA5A5 !important;
+        }
+
+        .dark .status-badge.not-connected {
+          background: rgba(239, 68, 68, 0.15) !important;
+          border-color: rgba(239, 68, 68, 0.3) !important;
+          color: #F87171 !important;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        /* Background improvements */
+        .dark .min-h-screen {
+          background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%) !important;
+        }
+
+        /* Connected Apps heading improvements */
+        .dark .tab-content h2.section-title {
+          color: #FFFFFF !important;
+          font-weight: 700 !important;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+        }
+
+        .dark .tab-content p.section-subtitle {
+          color: #E2E8F0 !important;
+          font-weight: 500 !important;
+        }
+
+        /* ===== CRITICAL AVATAR FIX ===== */
+        /* Fix avatar letter readability - CRITICAL URGENT */
+        .avatar-premium {
+          color: #FFFFFF !important;
+          font-size: 22px !important;
+          font-weight: 700 !important;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+        }
+
+        .dark .avatar-premium {
+          color: #FFFFFF !important;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+        }
+
+        /* Double-check for any black text */
+        .avatar-premium * {
+          color: #FFFFFF !important;
         }
       `}</style>
     </div>
