@@ -1,0 +1,122 @@
+/* SIMPLE DARK MODE - Just colors, no complexity */
+/* Use this to fix basic light/dark mode without destroying your app */
+
+/* ===== BASIC LIGHT MODE COLORS ===== */
+body {
+  background-color: #f9fafb !important;
+}
+
+.dark body {
+  background-color: #111827 !important;
+}
+
+/* ===== FIX COMMON BACKGROUND CLASSES ===== */
+.bg-white {
+  background-color: #ffffff !important;
+}
+
+.bg-gray-50 {
+  background-color: #f9fafb !important;
+}
+
+.bg-gray-100 {
+  background-color: #f3f4f6 !important;
+}
+
+.dark .bg-white {
+  background-color: #1f2937 !important;
+}
+
+.dark .bg-gray-50 {
+  background-color: #111827 !important;
+}
+
+.dark .bg-gray-100 {
+  background-color: #1f2937 !important;
+}
+
+.dark .bg-gray-800 {
+  background-color: #374151 !important;
+}
+
+.dark .bg-gray-900 {
+  background-color: #111827 !important;
+}
+
+/* ===== FIX COMMON TEXT CLASSES ===== */
+.text-gray-900 {
+  color: #111827 !important;
+}
+
+.text-gray-800 {
+  color: #1f2937 !important;
+}
+
+.text-gray-700 {
+  color: #374151 !important;
+}
+
+.text-gray-600 {
+  color: #4b5563 !important;
+}
+
+.text-white {
+  color: #ffffff !important;
+}
+
+.dark .text-gray-900 {
+  color: #f9fafb !important;
+}
+
+.dark .text-gray-800 {
+  color: #f3f4f6 !important;
+}
+
+.dark .text-gray-700 {
+  color: #d1d5db !important;
+}
+
+.dark .text-gray-600 {
+  color: #9ca3af !important;
+}
+
+/* ===== FIX GLASS EFFECTS ===== */
+.glass, .glass-card, .stat-card, .activity-item {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.dark .glass, .dark .glass-card, .dark .stat-card, .dark .activity-item {
+  background-color: rgba(31, 41, 55, 0.9) !important;
+}
+
+/* ===== FIX INPUTS AND FORMS ===== */
+input, textarea, select, button {
+  background-color: #ffffff !important;
+  color: #111827 !important;
+  border-color: #d1d5db !important;
+}
+
+.dark input, .dark textarea, .dark select, .dark button {
+  background-color: #374151 !important;
+  color: #f9fafb !important;
+  border-color: #4b5563 !important;
+}
+
+/* ===== FIX BORDERS ===== */
+.border-gray-200 {
+  border-color: #e5e7eb !important;
+}
+
+.border-gray-300 {
+  border-color: #d1d5db !important;
+}
+
+.dark .border-gray-200 {
+  border-color: #374151 !important;
+}
+
+.dark .border-gray-300 {
+  border-color: #4b5563 !important;
+}
+
+/* ===== NO NUCLEAR RESETS - LET TAILWIND DO ITS JOB ===== */

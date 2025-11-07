@@ -3600,46 +3600,39 @@ const JournalSimple: React.FC = () => {
           </div>
         )}
 
-        {/* NEW FEATURE: Password Modal - Improved Version */}
+        {/* NEW FEATURE: Compact Notion-Style Password Modal */}
         {showPasswordModal && (
           <div className="modal-overlay" onClick={() => setShowPasswordModal(false)}>
-            <div className="modal" onClick={(e) => e.stopPropagation()}>
-              <div className="modal-header">
-                <h2 className="modal-title">
-                  {passwordModalMode === 'set' ? '🔒 Set Password' : '🔐 Enter Password'}
-                </h2>
-                <button className="modal-close" onClick={() => setShowPasswordModal(false)}>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                  </svg>
+            <div className="notion-modal" onClick={(e) => e.stopPropagation()}>
+              {/* Compact Header */}
+              <div className="notion-modal-header">
+                <div className="notion-modal-title">
+                  <span className="notion-lock-icon">🔒</span>
+                  <span>{passwordModalMode === 'set' ? 'Set Password' : 'Enter Password'}</span>
+                </div>
+                <button className="notion-modal-close" onClick={() => setShowPasswordModal(false)}>
+                  ✕
                 </button>
               </div>
 
-              <div className="modal-body" style={{ padding: '24px' }}>
-                <p style={{ marginBottom: '16px', color: '#374151', lineHeight: '1.5' }}>
+              {/* Compact Content */}
+              <div className="notion-modal-content">
+                <p className="notion-modal-description">
                   {passwordModalMode === 'set'
-                    ? `Set a password to protect ${selectedMonth} journal entries.`
+                    ? `Create a password for ${selectedMonth} journal entries.`
                     : `Enter password to view ${selectedMonth} journal entries.`
                   }
                 </p>
 
-                <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>
-                    Password
-                  </label>
+                <div className="notion-form-group">
+                  <label htmlFor="passwordInput" className="notion-form-label">Password</label>
                   <input
+                    id="passwordInput"
                     type="password"
                     value={tempPassword}
                     onChange={(e) => setTempPassword(e.target.value)}
-                    placeholder={passwordModalMode === 'set' ? 'Create a password (min 4 characters)' : 'Enter password'}
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      border: passwordError ? '1px solid #DC2626' : '1px solid #D1D5DB',
-                      borderRadius: '8px',
-                      fontSize: '14px'
-                    }}
+                    placeholder={passwordModalMode === 'set' ? 'Create a strong password' : 'Enter your password'}
+                    className={`notion-form-input ${passwordError ? 'error' : ''}`}
                     autoFocus
                     onKeyPress={(e) => {
                       if (e.key === 'Enter') {
@@ -3650,50 +3643,26 @@ const JournalSimple: React.FC = () => {
                 </div>
 
                 {passwordError && (
-                  <div style={{
-                    padding: '8px 12px',
-                    background: '#FEE2E2',
-                    border: '1px solid #FECACA',
-                    borderRadius: '6px',
-                    color: '#DC2626',
-                    fontSize: '13px',
-                    marginBottom: '16px'
-                  }}>
+                  <div className="notion-error-message">
                     {passwordError}
                   </div>
                 )}
 
-                <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                <div className="notion-modal-actions">
                   <button
+                    className="notion-btn notion-btn-cancel"
                     onClick={() => {
                       setShowPasswordModal(false);
                       setTempPassword('');
                       setPasswordError('');
                       setMonthToLock('');
                     }}
-                    style={{
-                      padding: '8px 16px',
-                      border: '1px solid #D1D5DB',
-                      borderRadius: '6px',
-                      background: 'white',
-                      color: '#6B7280',
-                      cursor: 'pointer',
-                      fontSize: '14px'
-                    }}
                   >
                     Cancel
                   </button>
                   <button
+                    className="notion-btn notion-btn-primary"
                     onClick={passwordModalMode === 'set' ? handleSetPassword : handleVerifyPassword}
-                    style={{
-                      padding: '8px 16px',
-                      border: 'none',
-                      borderRadius: '6px',
-                      background: '#3B82F6',
-                      color: 'white',
-                      cursor: 'pointer',
-                      fontSize: '14px'
-                    }}
                   >
                     {passwordModalMode === 'set' ? 'Set Password' : 'Unlock Month'}
                   </button>

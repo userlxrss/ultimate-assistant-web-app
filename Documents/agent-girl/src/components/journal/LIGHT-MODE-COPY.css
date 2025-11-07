@@ -1,0 +1,71 @@
+/* COPY EXACT LIGHT MODE LAYOUT TO DARK MODE */
+
+/* Force modal entry cards to be identical */
+.dark [data-modal="journal-month-entries"] .glass {
+  /* Copy exact layout from light mode */
+  padding: 16px !important;
+  border-radius: 12px !important;
+  margin: 0 !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Force header layout */
+.dark [data-modal="journal-month-entries"] .flex.items-start.justify-between {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+}
+
+/* Force mood emoji size */
+.dark [data-modal="journal-month-entries"] .text-2xl {
+  font-size: 24px !important;
+  line-height: 32px !important;
+}
+
+/* Force header items layout */
+.dark [data-modal="journal-month-entries"] .flex.items-center.gap-3 {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  margin-bottom: 12px !important;
+}
+
+/* Force icon and text layout */
+.dark [data-modal="journal-month-entries"] .flex.items-center.gap-2 {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+/* Force content layout */
+.dark [data-modal="journal-month-entries"] .flex-1 {
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+
+/* Force action buttons layout */
+.dark [data-modal="journal-month-entries"] .flex.items-center.gap-1 {
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+
+/* ONLY change colors, never layout */
+.dark [data-modal="journal-month-entries"] {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+.dark [data-modal="journal-month-entries"] * {
+  color: #f1f5f9 !important;
+}
+
+/* Preserve all light mode layout properties exactly */
+.dark [data-modal="journal-month-entries"] [class*="w-"],
+.dark [data-modal="journal-month-entries"] [class*="h-"] {
+  width: inherit !important;
+  height: inherit !important;
+}

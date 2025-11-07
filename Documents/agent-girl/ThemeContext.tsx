@@ -67,11 +67,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
         root.style.setProperty(`--transition-${key}`, value);
       });
 
-      // Update border radius values
-      Object.entries(newTheme.radii).forEach(([key, value]: [string, string]) => {
-        root.style.setProperty(`--radius-${key}`, value);
-      });
-    }
+          }
   }, [isDark]);
 
   const toggleTheme = () => {

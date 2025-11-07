@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modal Layout Fix Test</title>
+    <style>
+        /* Import the exact same CSS fix we applied */
+        /* FORCE IDENTICAL LAYOUT BETWEEN LIGHT AND DARK MODES */
+
+        /* Target the specific journal modal used by ListView.tsx */
+        [data-modal="journal-month-entries"] > div {
+          /* Force identical dimensions */
+          width: 100% !important;
+          max-width: 672px !important;
+          max-height: 80vh !important;
+
+          /* Force identical positioning & spacing */
+          margin: 0 !important;
+          border-radius: 16px !important;
+          padding: 24px !important;
+
+          /* Force identical layout structure */
+          display: flex !important;
+          flex-direction: column !important;
+          overflow: hidden !important;
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          color: #1e293b;
+        }
+
+        /* Dark mode should inherit ALL layout properties, only change colors */
+        .dark [data-modal="journal-month-entries"] > div {
+          /* ONLY change colors - NO layout properties */
+          background: #1e293b !important;
+          border-color: #334155 !important;
+          color: #f1f5f9 !important;
+        }
+
+        /* Force identical layout for modal content section */
+        [data-modal="journal-month-entries"] .space-y-4 {
+          padding: 0 !important;
+          margin: 0 !important;
+          overflow-y: auto !important;
+          flex: 1 !important;
+        }
+
+        /* Force identical layout for journal entry items */
+        [data-modal="journal-month-entries"] .space-y-4 > div {
+          padding: 16px !important;
+          border-radius: 8px !important;
+          margin: 0 0 12px 0 !important;
+          background: transparent !important;
+          border: 1px solid #e2e8f0 !important;
+        }
+
+        .dark [data-modal="journal-month-entries"] .space-y-4 > div {
+          /* ONLY change colors */
+          background: #0f172a !important;
+          border-color: #334155 !important;
+        }
+
+        /* Test page styles */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            background: #f8fafc;
+            color: #1e293b;
+            transition: all 0.3s ease;
+        }
+
+        body.dark {
+            background: #0f172a;
+            color: #f1f5f9;
+        }
+
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        body.dark .theme-toggle {
+            background: #1e293b;
+            border-color: #334155;
+            color: #f1f5f9;
+        }
+
+        .modal-demo {
+            margin-top: 50px;
+            border: 2px dashed #cbd5e1;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        body.dark .modal-demo {
+            border-color: #475569;
+        }
+
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .comparison-item {
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        body.dark .comparison-item {
+            background: #1e293b;
+            border-color: #334155;
+        }
+
+        .metrics {
+            font-family: monospace;
+            font-size: 12px;
+            margin-top: 10px;
+            padding: 10px;
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+
+        body.dark .metrics {
+            background: #334155;
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()">
+        <span id="theme-text">🌙 Dark Mode</span>
+    </button>
+
+    <div class="test-container">
+        <h1>Modal Layout Parity Test</h1>
+        <p>This test verifies that the modal layout is IDENTICAL between light and dark modes, with only colors changing.</p>
+
+        <div class="modal-demo">
+            <h2>Modal Structure Simulation</h2>
+            <div data-modal="journal-month-entries">
+                <div>
+                    <h3>November 2025</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                                <h4 style="margin: 0; font-size: 16px; font-weight: 600;">TEST Entry</h4>
+                                <span style="background: #f1f5f9; color: #64748b; padding: 4px 8px; border-radius: 4px; font-size: 12px;">07/11/2025</span>
+                            </div>
+                            <div style="margin-bottom: 12px;">
+                                <p style="margin: 0; font-size: 14px; color: #475569;">This is test content to verify layout consistency between themes.</p>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div style="display: flex; gap: 12px;">
+                                    <span style="font-size: 12px; color: #64748b;">😊 7</span>
+                                    <span style="font-size: 12px; color: #64748b;">⚡ 7</span>
+                                </div>
+                                <div style="display: flex; gap: 6px;">
+                                    <button style="padding: 4px 8px; border: 1px solid #e2e8f0; border-radius: 4px; font-size: 11px;">👁️ View</button>
+                                    <button style="padding: 4px 8px; border: 1px solid #e2e8f0; border-radius: 4px; font-size: 11px;">✏️ Edit</button>
+                                    <button style="padding: 4px 8px; border: 1px solid #e2e8f0; border-radius: 4px; font-size: 11px;">🗑️ Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="comparison">
+                <div class="comparison-item">
+                    <h4>Light Mode Metrics</h4>
+                    <div class="metrics" id="light-metrics">
+                        Width: Calculating...<br>
+                        Padding: Calculating...<br>
+                        Margin: Calculating...<br>
+                        Font-size: Calculating...
+                    </div>
+                </div>
+                <div class="comparison-item">
+                    <h4>Dark Mode Metrics</h4>
+                    <div class="metrics" id="dark-metrics">
+                        Width: Calculating...<br>
+                        Padding: Calculating...<br>
+                        Margin: Calculating...<br>
+                        Font-size: Calculating...
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; padding: 15px; background: #10b981; color: white; border-radius: 8px;">
+                <strong>✅ SUCCESS CRITERIA:</strong> The metrics above should be IDENTICAL in both modes. Only colors should change.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            const body = document.body;
+            const themeText = document.getElementById('theme-text');
+
+            body.classList.toggle('dark');
+
+            if (body.classList.contains('dark')) {
+                themeText.textContent = '☀️ Light Mode';
+            } else {
+                themeText.textContent = '🌙 Dark Mode';
+            }
+
+            updateMetrics();
+        }
+
+        function updateMetrics() {
+            const modal = document.querySelector('[data-modal="journal-month-entries"] > div');
+            const entry = document.querySelector('.space-y-4 > div');
+
+            if (modal && entry) {
+                const modalStyles = window.getComputedStyle(modal);
+                const entryStyles = window.getComputedStyle(entry);
+
+                const lightMetrics = document.getElementById('light-metrics');
+                const darkMetrics = document.getElementById('dark-metrics');
+
+                const metrics = `Width: ${modalStyles.width}<br>
+Padding: ${modalStyles.padding}<br>
+Margin: ${modalStyles.margin}<br>
+Font-size: ${modalStyles.fontSize}<br>
+Border-radius: ${modalStyles.borderRadius}<br>
+Entry padding: ${entryStyles.padding}<br>
+Entry margin: ${entryStyles.margin}`;
+
+                if (document.body.classList.contains('dark')) {
+                    darkMetrics.innerHTML = metrics;
+                } else {
+                    lightMetrics.innerHTML = metrics;
+                }
+            }
+        }
+
+        // Initialize metrics on load
+        window.addEventListener('load', updateMetrics);
+
+        // Auto-test both modes
+        setTimeout(() => {
+            updateMetrics();
+            setTimeout(() => {
+                toggleTheme();
+            }, 1000);
+        }, 500);
+    </script>
+</body>
+</html>

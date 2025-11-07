@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { Search, Edit3, Trash2, Calendar, Tag, TrendingUp, Clock, List, Folder } from 'lucide-react';
 import { ExtendedJournalEntry } from '../../types/journal';
+import './ListView-Fix.css';
+import './FINAL-MODAL-FIX.css';
+import './LIGHT-MODE-COPY.css';
 
 interface ListViewProps {
   entries: ExtendedJournalEntry[];
@@ -258,7 +261,16 @@ const ListView: React.FC<ListViewProps> = ({
               data-modal="journal-month-entries"
             >
               <div
-                className="relative bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden transform transition-all duration-300 scale-100 opacity-100 modal-enter"
+                className="relative bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-xl overflow-hidden transform transition-all duration-300 scale-100 opacity-100 modal-enter"
+                style={{
+                  width: '672px',
+                  maxWidth: '672px',
+                  minWidth: '672px',
+                  maxHeight: '80vh',
+                  margin: '0 auto',
+                  flex: '0 0 672px',
+                  boxSizing: 'border-box'
+                }}
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Modal Header */}
@@ -266,8 +278,8 @@ const ListView: React.FC<ListViewProps> = ({
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">{getMonthEmoji(organizeEntriesByMonth()[activeFolder]?.avgMood || 'N/A')}</span>
                     <div>
-                      <h2 id="modal-title" className="text-xl font-bold text-gray-900 dark:text-white">{activeFolder}</h2>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                      <h2 id="modal-title" className="text-xl font-bold text-gray-900 dark:text-slate-100">{activeFolder}</h2>
+                      <p className="text-sm text-gray-500 dark:text-slate-400">
                         {organizeEntriesByMonth()[activeFolder]?.entries.length || 0} entries
                       </p>
                     </div>
@@ -288,10 +300,10 @@ const ListView: React.FC<ListViewProps> = ({
                     </button>
                     <button
                       onClick={closeFolder}
-                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
+                      className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors duration-200"
                       aria-label="Close modal"
                     >
-                      <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-gray-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
@@ -301,35 +313,35 @@ const ListView: React.FC<ListViewProps> = ({
                 {/* Modal Content - Entries List */}
                 <div className="overflow-y-auto max-h-[50vh] space-y-3 mb-6">
                   {organizeEntriesByMonth()[activeFolder]?.entries.map(entry => (
-                    <div key={entry.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-200">
+                    <div key={entry.id} className="bg-gray-50 dark:bg-slate-700 rounded-lg p-4 hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors duration-200">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
-                            <h4 className="font-medium text-gray-900 dark:text-white">
+                            <h4 className="font-medium text-gray-900 dark:text-slate-100">
                               {entry.template || 'Untitled Entry'}
                             </h4>
-                            <span className="text-sm text-gray-500 dark:text-gray-400">
+                            <span className="text-sm text-gray-500 dark:text-slate-400">
                               {formatEntryDate(entry.date)}
                             </span>
                           </div>
 
                           {entry.content && (
-                            <p className="text-sm text-gray-600 dark:text-gray-300 mb-2 line-clamp-2">
+                            <p className="text-sm text-gray-600 dark:text-slate-300 mb-2 line-clamp-2">
                               {entry.content.substring(0, 120)}{entry.content.length > 120 ? '...' : ''}
                             </p>
                           )}
 
                           <div className="flex items-center gap-4 text-sm">
-                            <span className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
+                            <span className="flex items-center gap-1 text-gray-500 dark:text-slate-400">
                               😊 {entry.mood}/10
                             </span>
                             {entry.biggestWin && (
-                              <span className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
+                              <span className="flex items-center gap-1 text-gray-500 dark:text-slate-400">
                                 🏆 Win
                               </span>
                             )}
                             {entry.learning && (
-                              <span className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
+                              <span className="flex items-center gap-1 text-gray-500 dark:text-slate-400">
                                 💡 Learning
                               </span>
                             )}
@@ -339,14 +351,14 @@ const ListView: React.FC<ListViewProps> = ({
                         <div className="flex items-center gap-2 ml-4">
                           <button
                             onClick={() => onViewEntry && onViewEntry(entry)}
-                            className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200"
+                            className="p-2 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-lg transition-colors duration-200"
                             title="View entry"
                           >
                             👁️
                           </button>
                           <button
                             onClick={() => onEditEntry(entry)}
-                            className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200"
+                            className="p-2 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-lg transition-colors duration-200"
                             title="Edit entry"
                           >
                             ✏️

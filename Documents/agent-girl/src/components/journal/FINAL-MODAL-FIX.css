@@ -1,0 +1,47 @@
+/* FINAL FIX: Make dark mode EXACTLY copy light mode layout */
+
+/* Copy light mode modal layout to dark mode */
+.dark [data-modal="journal-month-entries"] > div {
+  /* Use EXACT same dimensions as light mode */
+  width: inherit !important;
+  max-width: inherit !important;
+  min-width: inherit !important;
+
+  /* Use EXACT same positioning as light mode */
+  margin: inherit !important;
+  padding: inherit !important;
+
+  /* Use EXACT same structure as light mode */
+  display: inherit !important;
+  flex-direction: inherit !important;
+
+  /* ONLY change colors - NOTHING else */
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f1f5f9 !important;
+}
+
+/* Copy all light mode element layouts to dark mode */
+.dark [data-modal="journal-month-entries"] * {
+  /* Force layout inheritance from light mode */
+  width: inherit !important;
+  max-width: inherit !important;
+  min-width: inherit !important;
+  padding: inherit !important;
+  margin: inherit !important;
+  display: inherit !important;
+  flex-direction: inherit !important;
+}
+
+/* Dark mode text colors only */
+.dark [data-modal="journal-month-entries"] h3,
+.dark [data-modal="journal-month-entries"] p,
+.dark [data-modal="journal-month-entries"] span {
+  color: #f1f5f9 !important;
+}
+
+.dark [data-modal="journal-month-entries"] button {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f1f5f9 !important;
+}

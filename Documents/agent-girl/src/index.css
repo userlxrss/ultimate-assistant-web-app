@@ -142,6 +142,771 @@ html.dark .text-gray-500,
   color: #94A3B8 !important;
 }
 
+/* CALENDAR FIX - JOURNAL TAB ONLY */
+html[data-theme="dark"] .calendar-widget,
+html.dark .calendar-widget,
+.dark .calendar-widget,
+html[data-theme="dark"] .calendar-header,
+html.dark .calendar-header,
+.dark .calendar-header,
+html[data-theme="dark"] .calendar-grid,
+html.dark .calendar-grid,
+.dark .calendar-grid,
+html[data-theme="dark"] .calendar-day,
+html.dark .calendar-day,
+.dark .calendar-day,
+html[data-theme="dark"] .calendar-nav,
+html.dark .calendar-nav,
+.dark .calendar-nav {
+  background-color: #1E293B !important;
+}
+
+html[data-theme="dark"] .calendar-day:hover,
+html.dark .calendar-day:hover,
+.dark .calendar-day:hover,
+html[data-theme="dark"] .calendar-day.today,
+html.dark .calendar-day.today,
+.dark .calendar-day.today {
+  background-color: #334155 !important;
+}
+
+html[data-theme="dark"] .calendar-day.has-entries,
+html.dark .calendar-day.has-entries,
+.dark .calendar-day.has-entries {
+  background-color: #065F46 !important;
+}
+
+html[data-theme="dark"] .calendar-popup,
+html.dark .calendar-popup,
+.dark .calendar-popup,
+html[data-theme="dark"] .calendar-modal,
+html.dark .calendar-modal,
+.dark .calendar-modal,
+html[data-theme="dark"] .calendar-overlay,
+html.dark .calendar-overlay,
+.dark .calendar-overlay {
+  background-color: #1E293B !important;
+  border-color: #475569 !important;
+}
+
+html[data-theme="dark"] .calendar-text,
+html.dark .calendar-text,
+.dark .calendar-text,
+html[data-theme="dark"] .calendar-day-text,
+html.dark .calendar-day-text,
+.dark .calendar-day-text {
+  color: #F8FAFC !important;
+}
+
+html[data-theme="dark"] .calendar-secondary-text,
+html.dark .calendar-secondary-text,
+.dark .calendar-secondary-text {
+  color: #94A3B8 !important;
+}
+
+/* BRUTAL CALENDAR FIX - TARGET ALL WHITE BACKGROUNDS */
+html[data-theme="dark"] div[style*="background: white"],
+html.dark div[style*="background: white"],
+.dark div[style*="background: white"],
+html[data-theme="dark"] div[style*="background: #fff"],
+html.dark div[style*="background: #fff"],
+.dark div[style*="background: #fff"],
+html[data-theme="dark"] div[style*="background-color: white"],
+html.dark div[style*="background-color: white"],
+.dark div[style*="background-color: white"],
+html[data-theme="dark"] div[style*="background-color: #fff"],
+html.dark div[style*="background-color: #fff"],
+.dark div[style*="background-color: #fff"] {
+  background-color: #1E293B !important;
+}
+
+/* BRUTAL CALENDAR TEXT FIX - TARGET ALL BLACK TEXT */
+html[data-theme="dark"] div[style*="color: black"],
+html.dark div[style*="color: black"],
+.dark div[style*="color: black"],
+html[data-theme="dark"] div[style*="color: #000"],
+html.dark div[style*="color: #000"],
+.dark div[style*="color: #000"],
+html[data-theme="dark"] div[style*="color: #000000"],
+html.dark div[style*="color: #000000"],
+.dark div[style*="color: #000000"] {
+  color: #F8FAFC !important;
+}
+
+/* TARGET COMMON CALENDAR CLASSES */
+html[data-theme="dark"] .react-calendar,
+html.dark .react-calendar,
+.dark .react-calendar,
+html[data-theme="dark"] .calendar,
+html.dark .calendar,
+.dark .calendar {
+  background-color: #1E293B !important;
+  border-color: #475569 !important;
+}
+
+html[data-theme="dark"] .react-calendar__tile,
+html.dark .react-calendar__tile,
+.dark .react-calendar__tile,
+html[data-theme="dark"] .react-calendar__month-view__days__day,
+html.dark .react-calendar__month-view__days__day,
+.dark .react-calendar__month-view__days__day {
+  background-color: #334155 !important;
+  color: #F8FAFC !important;
+}
+
+html[data-theme="dark"] .react-calendar__tile:hover,
+html.dark .react-calendar__tile:hover,
+.dark .react-calendar__tile:hover,
+html[data-theme="dark"] .react-calendar__month-view__days__day:hover,
+html.dark .react-calendar__month-view__days__day:hover,
+.dark .react-calendar__month-view__days__day:hover {
+  background-color: #475569 !important;
+}
+
+html[data-theme="dark"] .react-calendar__tile--active,
+html.dark .react-calendar__tile--active,
+.dark .react-calendar__tile--active,
+html[data-theme="dark"] .react-calendar__month-view__days__day--active,
+html.dark .react-calendar__month-view__days__day--active,
+.dark .react-calendar__month-view__days__day--active {
+  background-color: #1E40AF !important;
+  color: #FFFFFF !important;
+  border: 1px solid #475569 !important;
+}
+
+/* REMOVE WHITE OUTLINES FROM CALENDAR */
+html[data-theme="dark"] .react-calendar,
+html.dark .react-calendar,
+.dark .react-calendar,
+html[data-theme="dark"] .react-calendar__tile,
+html.dark .react-calendar__tile,
+.dark .react-calendar__tile,
+html[data-theme="dark"] .react-calendar__month-view__days__day,
+html.dark .react-calendar__month-view__days__day,
+.dark .react-calendar__month-view__days__day,
+html[data-theme="dark"] div[style*="border: 1px solid white"],
+html.dark div[style*="border: 1px solid white"],
+.dark div[style*="border: 1px solid white"] {
+  border-color: #475569 !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* JOURNAL PASSWORD MODAL FIX - DARK MODE */
+html[data-theme="dark"] .modal,
+html.dark .modal,
+.dark .modal,
+/* ===== NOTION-STYLE COMPACT PASSWORD MODAL ===== */
+
+/* Modal Overlay - Both Themes */
+.modal-overlay {
+  background: rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: blur(8px) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 20px !important;
+  min-height: 100vh !important;
+}
+
+/* Modal Container - Light Mode */
+.notion-modal {
+  background: #ffffff !important;
+  border: 1px solid #e1e5e9 !important;
+  border-radius: 8px !important;
+  color: #1a1a1a !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  width: min(420px, 90vw) !important;
+  max-width: 420px !important;
+  margin: 0 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+/* Modal Container - Dark Mode - ONLY COLORS */
+html[data-theme="dark"] .notion-modal,
+html.dark .notion-modal,
+.dark .notion-modal {
+  background: #1e1e1e !important;
+  border-color: #333333 !important;
+  color: #ffffff !important;
+}
+
+/* ===== NOTION-STYLE MODAL COMPONENTS ===== */
+
+/* Header - Compact and Clean */
+
+/* Header - Light Mode */
+.notion-modal-header {
+  padding: 16px 20px !important;
+  border-bottom: 1px solid #e1e5e9 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  min-height: 52px !important;
+}
+
+.notion-modal-title {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  color: #1a1a1a !important;
+}
+
+.notion-lock-icon {
+  font-size: 16px !important;
+}
+
+.notion-modal-close {
+  background: none !important;
+  border: none !important;
+  color: #6b7280 !important;
+  font-size: 18px !important;
+  cursor: pointer !important;
+  padding: 4px !important;
+  border-radius: 4px !important;
+  transition: all 0.2s ease !important;
+}
+
+.notion-modal-close:hover {
+  background: rgba(0, 0, 0, 0.05) !important;
+  color: #1a1a1a !important;
+}
+
+/* Header - Dark Mode */
+html[data-theme="dark"] .notion-modal-header,
+html.dark .notion-modal-header,
+.dark .notion-modal-header {
+  border-bottom: 1px solid #333333 !important;
+}
+
+html[data-theme="dark"] .notion-modal-title,
+html.dark .notion-modal-title,
+.dark .notion-modal-title {
+  color: #ffffff !important;
+}
+
+html[data-theme="dark"] .notion-modal-close,
+html.dark .notion-modal-close,
+.dark .notion-modal-close {
+  color: #9b9b9b !important;
+}
+
+html[data-theme="dark"] .notion-modal-close:hover,
+html.dark .notion-modal-close:hover,
+.dark .notion-modal-close:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+}
+
+/* Content Area - Compact and Clean */
+
+/* Content - Light Mode */
+.notion-modal-content {
+  padding: 20px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+}
+
+.notion-modal-description {
+  color: #6b7280 !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  margin: 0 !important;
+}
+
+/* Content - Dark Mode */
+html[data-theme="dark"] .notion-modal-content,
+html.dark .notion-modal-content,
+.dark .notion-modal-content {
+  /* Uses same as light mode */
+}
+
+html[data-theme="dark"] .notion-modal-description,
+html.dark .notion-modal-description,
+.dark .notion-modal-description {
+  color: #9b9b9b !important;
+}
+
+/* Form Group - Compact Spacing */
+
+/* Form - Light Mode */
+.notion-form-group {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  margin-bottom: 4px !important;
+}
+
+.notion-form-label {
+  color: #6b7280 !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  margin: 0 !important;
+}
+
+/* Form - Dark Mode */
+html[data-theme="dark"] .notion-form-group,
+html.dark .notion-form-group,
+.dark .notion-form-group {
+  /* Uses same as light mode */
+}
+
+html[data-theme="dark"] .notion-form-label,
+html.dark .notion-form-label,
+.dark .notion-form-label {
+  color: #7f7f7f !important;
+}
+
+/* Input Field - Notion Style */
+
+/* Input - Light Mode */
+.notion-form-input {
+  background: #ffffff !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 4px !important;
+  color: #1a1a1a !important;
+  font-size: 14px !important;
+  padding: 10px 12px !important;
+  height: 40px !important;
+  outline: none !important;
+  transition: all 0.2s ease !important;
+}
+
+.notion-form-input::placeholder {
+  color: #9ca3af !important;
+}
+
+.notion-form-input:focus {
+  border-color: #2383e2 !important;
+  box-shadow: 0 0 0 1px #2383e2 !important;
+}
+
+.notion-form-input.error {
+  border-color: #e53e3e !important;
+}
+
+.notion-form-input.error:focus {
+  border-color: #e53e3e !important;
+  box-shadow: 0 0 0 1px #e53e3e !important;
+}
+
+/* Input - Dark Mode */
+html[data-theme="dark"] .notion-form-input,
+html.dark .notion-form-input,
+.dark .notion-form-input {
+  background: #2f2f2f !important;
+  border: 1px solid #404040 !important;
+  color: #ffffff !important;
+}
+
+html[data-theme="dark"] .notion-form-input::placeholder,
+html.dark .notion-form-input::placeholder,
+.dark .notion-form-input::placeholder {
+  color: #7f7f7f !important;
+}
+
+/* Error Message - Compact */
+
+/* Error - Light Mode */
+.notion-error-message {
+  color: #e53e3e !important;
+  font-size: 13px !important;
+  margin: 0 !important;
+  padding: 8px 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+/* Error - Dark Mode */
+html[data-theme="dark"] .notion-error-message,
+html.dark .notion-error-message,
+.dark .notion-error-message {
+  /* Uses same as light mode */
+}
+
+/* Actions Area - Compact Buttons */
+
+/* Actions - Light Mode */
+.notion-modal-actions {
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+  margin-top: 8px !important;
+}
+
+/* Buttons - Light Mode */
+.notion-btn {
+  padding: 8px 16px !important;
+  border-radius: 4px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  border: none !important;
+  outline: none !important;
+  height: 36px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.notion-btn-cancel {
+  background: transparent !important;
+  color: #6b7280 !important;
+  border: 1px solid #d1d5db !important;
+}
+
+.notion-btn-cancel:hover {
+  background: rgba(0, 0, 0, 0.05) !important;
+  color: #1a1a1a !important;
+  border-color: #9ca3af !important;
+}
+
+.notion-btn-primary {
+  background: #2383e2 !important;
+  color: #ffffff !important;
+  border: 1px solid #2383e2 !important;
+}
+
+.notion-btn-primary:hover {
+  background: #1a6fd2 !important;
+  border-color: #1a6fd2 !important;
+}
+
+/* Actions - Dark Mode */
+html[data-theme="dark"] .notion-modal-actions,
+html.dark .notion-modal-actions,
+.dark .notion-modal-actions {
+  /* Uses same as light mode */
+}
+
+html[data-theme="dark"] .notion-btn-cancel,
+html.dark .notion-btn-cancel,
+.dark .notion-btn-cancel {
+  background: transparent !important;
+  color: #7f7f7f !important;
+  border: 1px solid #404040 !important;
+}
+
+html[data-theme="dark"] .notion-btn-cancel:hover,
+html.dark .notion-btn-cancel:hover,
+.dark .notion-btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #ffffff !important;
+  border-color: #555555 !important;
+}
+
+/* Form Groups - Better spacing and structure */
+html[data-theme="dark"] .form-group,
+html.dark .form-group,
+.dark .form-group {
+  margin-bottom: 24px !important;
+}
+
+/* Form Labels - Make them visible! */
+html[data-theme="dark"] .modal-body label,
+html.dark .modal-body label,
+.dark .modal-body label,
+html[data-theme="dark"] label,
+html.dark label,
+.dark label {
+  color: #f1f5f9 !important;
+  font-weight: 600 !important;
+  margin-bottom: 10px !important;
+  letter-spacing: 0.025em !important;
+  text-transform: uppercase !important;
+  opacity: 1 !important;
+  display: block !important;
+  font-size: 14px !important;
+}
+
+/* Error state for inputs */
+html[data-theme="dark"] input.error,
+html.dark input.error,
+.dark input.error {
+  border-color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.05) !important;
+}
+
+html[data-theme="dark"] input.error:focus,
+html.dark input.error:focus,
+.dark input.error:focus {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12) !important;
+}
+
+/* Password Input - Premium Styling */
+html[data-theme="dark"] input[type="password"],
+html.dark input[type="password"],
+.dark input[type="password"],
+html[data-theme="dark"] .password-input,
+html.dark .password-input,
+.dark .password-input {
+  background: #0f172a !important;
+  border: 2px solid rgba(148, 163, 184, 0.15) !important;
+  border-radius: 14px !important;
+  color: #ffffff !important;
+  font-size: 16px !important;
+  padding: 16px 20px !important;
+  transition: all 0.25s ease !important;
+  outline: none !important;
+  font-weight: 400 !important;
+}
+
+html[data-theme="dark"] input[type="password"]::placeholder,
+html.dark input[type="password"]::placeholder,
+.dark input[type="password"]::placeholder {
+  color: #64748b !important;
+  font-weight: 400 !important;
+}
+
+html[data-theme="dark"] input[type="password"]:focus,
+html.dark input[type="password"]:focus,
+.dark input[type="password"]:focus {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12) !important;
+  background: #0f172a !important;
+}
+
+/* Modal Footer - Premium Styling */
+html[data-theme="dark"] .modal-footer,
+html.dark .modal-footer,
+.dark .modal-footer {
+  background: rgba(30, 41, 59, 0.6) !important;
+  border-top: 1px solid rgba(148, 163, 184, 0.08) !important;
+}
+
+/* Buttons - Clear Hierarchy and Better Contrast */
+html[data-theme="dark"] .modal-footer button,
+html.dark .modal-footer button,
+.dark .modal-footer button {
+  cursor: pointer !important;
+  transition: all 0.25s ease !important;
+  border: none !important;
+  outline: none !important;
+  letter-spacing: 0.015em !important;
+}
+
+/* Cancel Button - Subtle */
+html[data-theme="dark"] .modal-footer button:first-child,
+html.dark .modal-footer button:first-child,
+.dark .modal-footer button:first-child {
+  background: rgba(100, 116, 139, 0.1) !important;
+  color: #94a3b8 !important;
+  border: 1px solid rgba(100, 116, 139, 0.2) !important;
+}
+
+html[data-theme="dark"] .modal-footer button:first-child:hover,
+html.dark .modal-footer button:first-child:hover,
+.dark .modal-footer button:first-child:hover {
+  background: rgba(100, 116, 139, 0.15) !important;
+  color: #cbd5e1 !important;
+  border-color: rgba(100, 116, 139, 0.3) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Primary Button - Prominent */
+html[data-theme="dark"] .modal-footer button:last-child,
+html.dark .modal-footer button:last-child,
+.dark .modal-footer button:last-child {
+  background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3) !important;
+  min-width: 140px !important;
+}
+
+html[data-theme="dark"] .modal-footer button:last-child:hover,
+html.dark .modal-footer button:last-child:hover,
+.dark .modal-footer button:last-child:hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4) !important;
+  transform: translateY(-2px) !important;
+}
+
+html[data-theme="dark"] .modal-footer button:last-child:active,
+html.dark .modal-footer button:last-child:active,
+.dark .modal-footer button:last-child:active {
+  transform: translateY(-1px) !important;
+}
+
+/* Close Button - Premium Styling */
+html[data-theme="dark"] .modal-close,
+html.dark .modal-close,
+.dark .modal-close {
+  background: rgba(100, 116, 139, 0.1) !important;
+  border: none !important;
+  color: #94a3b8 !important;
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 10px !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 20px !important;
+  transition: all 0.2s ease !important;
+  flex-shrink: 0 !important;
+}
+
+html[data-theme="dark"] .modal-close:hover,
+html.dark .modal-close:hover,
+.dark .modal-close:hover {
+  background: rgba(100, 116, 139, 0.18) !important;
+  color: #cbd5e1 !important;
+  transform: scale(1.05) !important;
+}
+
+/* Error Messages - Better Contrast */
+html[data-theme="dark"] .modal-body div[style*="color: red"],
+html.dark .modal-body div[style*="color: red"],
+.dark .modal-body div[style*="color: red"],
+html[data-theme="dark"] .modal-body .error-message,
+html.dark .modal-body .error-message,
+.dark .modal-body .error-message {
+  color: #f87171 !important;
+  font-size: 13px !important;
+  margin-top: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  animation: slideDown 0.2s ease-out !important;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Modal Animations */
+html[data-theme="dark"] .modal,
+html.dark .modal,
+.dark .modal {
+  animation: modalSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* FIX JOURNAL PAGE BACKGROUND DISAPPEARING */
+html[data-theme="dark"] body,
+html.dark body,
+.dark body,
+html[data-theme="dark"] html,
+html.dark html,
+.dark html,
+html[data-theme="dark"] #root,
+html.dark #root,
+.dark #root {
+  background-color: #0F172A !important;
+  background-image: none !important;
+}
+
+/* FIX ALL CONTAINERS AND OVERLAYS */
+html[data-theme="dark"] .journal-page,
+html.dark .journal-page,
+.dark .journal-page,
+html[data-theme="dark"] .journal-container,
+html.dark .journal-container,
+.dark .journal-container,
+html[data-theme="dark"] .entries-container,
+html.dark .entries-container,
+.dark .entries-container,
+html[data-theme="dark"] .month-entries,
+html.dark .month-entries,
+.dark .month-entries {
+  background-color: #0F172A !important;
+  min-height: 100vh !important;
+}
+
+/* FIX ANY ELEMENT WITH TRANSPARENT BACKGROUND */
+html[data-theme="dark"] [style*="background: transparent"],
+html.dark [style*="background: transparent"],
+.dark [style*="background: transparent"],
+html[data-theme="dark"] [style*="background: rgba(0,0,0,0)"],
+html.dark [style*="background: rgba(0,0,0,0)"],
+.dark [style*="background: rgba(0,0,0,0)"] {
+  background-color: #0F172A !important;
+}
+
+/* JOURNAL ENTRY CARDS */
+html[data-theme="dark"] .entry-card,
+html.dark .entry-card,
+.dark .entry-card,
+html[data-theme="dark"] .journal-entry,
+html.dark .journal-entry,
+.dark .journal-entry,
+html[data-theme="dark"] .month-entry,
+html.dark .month-entry,
+.dark .month-entry {
+  background-color: #1E293B !important;
+  color: #F8FAFC !important;
+  border-color: #475569 !important;
+}
+
+/* REMOVED: Aggressive background override was breaking layouts */
+
+html[data-theme="dark"] div,
+html.dark div,
+.dark div,
+html[data-theme="dark"] section,
+html.dark section,
+.dark section,
+html[data-theme="dark"] article,
+html.dark article,
+.dark article,
+html[data-theme="dark"] main,
+html.dark main,
+.dark main {
+  background-color: #0F172A !important;
+}
+
+/* SPECIFICALLY TARGET WHITE ELEMENTS */
+html[data-theme="dark"] [style*="background: white"],
+html.dark [style*="background: white"],
+.dark [style*="background: white"],
+html[data-theme="dark"] [style*="background: #fff"],
+html.dark [style*="background: #fff"],
+.dark [style*="background: #fff"],
+html[data-theme="dark"] [style*="background-color: white"],
+html.dark [style*="background-color: white"],
+.dark [style*="background-color: white"],
+html[data-theme="dark"] [style*="background-color: #fff"],
+html.dark [style*="background-color: #fff"],
+.dark [style*="background-color: #fff"] {
+  background-color: #1E293B !important;
+  color: #F8FAFC !important;
+}
+
+/* FIX ALL WHITE TEXT */
+html[data-theme="dark"] [style*="color: white"],
+html.dark [style*="color: white"],
+.dark [style*="color: white"] {
+  color: #F8FAFC !important;
+}
+
 /* ===== LIGHT MODE FORCED OVERRIDES ===== */
 /* Override all dark backgrounds in light mode */
 html[data-theme="light"] .bg-gray-800,
@@ -351,6 +1116,629 @@ html {
   .bg-secondary {
     background-color: rgb(var(--bg-secondary)) !important;
   }
+}
+
+/* ===== JOURNAL ENTRIES MODAL - PREMIUM REDESIGN ===== */
+
+/* Modal Container for Entries - FORCE CLEAN STYLING */
+.modal-overlay .modal:not(.notion-modal),
+html[data-theme="dark"] .modal-overlay .modal:not(.notion-modal),
+html.dark .modal-overlay .modal:not(.notion-modal),
+.dark .modal-overlay .modal:not(.notion-modal) {
+  background: #0f172a !important;
+  border: 1px solid rgba(148, 163, 184, 0.12) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+  width: min(600px, 95vw) !important;
+  max-width: 600px !important;
+  max-height: 70vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+/* Modal Header - Premium Styling */
+.modal-overlay .modal:not(.notion-modal) .modal-header {
+  background: rgba(30, 41, 59, 0.8) !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.08) !important;
+  padding: 20px 28px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+.modal-overlay .modal:not(.notion-modal) .modal-title {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  font-size: 20px !important;
+  font-weight: 600 !important;
+  color: #ffffff !important;
+  margin: 0 !important;
+}
+
+.modal-overlay .modal:not(.notion-modal) .modal-title span:first-child {
+  font-size: 24px !important;
+}
+
+/* Export Buttons - Ghost Style */
+.modal-overlay .modal:not(.notion-modal) .modal-header button:not(.modal-close) {
+  background: rgba(100, 116, 139, 0.1) !important;
+  color: #94a3b8 !important;
+  border: 1px solid rgba(100, 116, 139, 0.2) !important;
+  padding: 8px 14px !important;
+  border-radius: 8px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+.modal-overlay .modal:not(.notion-modal) .modal-header button:not(.modal-close):hover {
+  background: rgba(100, 116, 139, 0.15) !important;
+  color: #cbd5e1 !important;
+  border-color: rgba(100, 116, 139, 0.3) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Close Button */
+.modal-overlay .modal:not(.notion-modal) .modal-close {
+  background: rgba(100, 116, 139, 0.1) !important;
+  border: 1px solid rgba(100, 116, 139, 0.2) !important;
+  color: #94a3b8 !important;
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s ease !important;
+  margin-left: 12px !important;
+}
+
+.modal-overlay .modal:not(.notion-modal) .modal-close:hover {
+  background: rgba(100, 116, 139, 0.18) !important;
+  color: #cbd5e1 !important;
+  transform: scale(1.05) !important;
+}
+
+/* Modal Content - Scrollable Area */
+.modal-overlay .modal:not(.notion-modal) .modal-content {
+  padding: 24px 24px !important;
+  overflow-y: auto !important;
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+}
+
+/* Entry List Container */
+.modal-overlay .modal:not(.notion-modal) .modal-entry-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+
+/* Individual Entry Cards - FORCE CLEAN DESIGN */
+.modal-overlay .modal:not(.notion-modal) .modal-entry-item,
+html[data-theme="dark"] .modal-overlay .modal:not(.notion-modal) .modal-entry-item,
+html.dark .modal-overlay .modal:not(.notion-modal) .modal-entry-item,
+.dark .modal-overlay .modal:not(.notion-modal) .modal-entry-item {
+  background: #1e293b !important;
+  border: 1px solid rgba(148, 163, 184, 0.15) !important;
+  border-radius: 8px !important;
+  padding: 12px 16px !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.2s ease !important;
+  position: relative !important;
+  cursor: pointer !important;
+}
+
+.modal-overlay .modal:not(.notion-modal) .modal-entry-item:hover {
+  border-color: rgba(148, 163, 184, 0.20) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Entry Header - Compact Title and Date - FORCE CLEAN COLORS */
+.modal-overlay .modal:not(.notion-modal) .modal-entry-header,
+html[data-theme="dark"] .modal-overlay .modal:not(.notion-modal) .modal-entry-header,
+html.dark .modal-overlay .modal:not(.notion-modal) .modal-entry-header,
+.dark .modal-overlay .modal:not(.notion-modal) .modal-entry-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-bottom: 8px !important;
+}
+
+.modal-overlay .modal:not(.notion-modal) .modal-entry-title,
+html[data-theme="dark"] .modal-overlay .modal:not(.notion-modal) .modal-entry-title,
+html.dark .modal-overlay .modal:not(.notion-modal) .modal-entry-title,
+.dark .modal-overlay .modal:not(.notion-modal) .modal-entry-title {
+  color: #ffffff !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  line-height: 1.3 !important;
+  margin: 0 !important;
+  flex: 1 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.modal-overlay .modal:not(.notion-modal) .modal-entry-date,
+html[data-theme="dark"] .modal-overlay .modal:not(.notion-modal) .modal-entry-date,
+html.dark .modal-overlay .modal:not(.notion-modal) .modal-entry-date,
+.dark .modal-overlay .modal:not(.notion-modal) .modal-entry-date {
+  color: #94a3b8 !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  padding: 2px 8px !important;
+  border-radius: 4px !important;
+  margin-left: 12px !important;
+  flex-shrink: 0 !important;
+}
+
+/* Entry Preview - Compact and Limited - FORCE CLEAN COLORS */
+.modal-overlay .modal:not(.notion-modal) .modal-entry-preview,
+html[data-theme="dark"] .modal-overlay .modal:not(.notion-modal) .modal-entry-preview,
+html.dark .modal-overlay .modal:not(.notion-modal) .modal-entry-preview,
+.dark .modal-overlay .modal:not(.notion-modal) .modal-entry-preview {
+  color: #e2e8f0 !important;
+  font-size: 13px !important;
+  line-height: 1.4 !important;
+  margin: 0 0 12px 0 !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-height: 2.8em !important;
+  min-height: 2.8em !important;
+}
+
+/* Entry Footer - Compact Mood/Energy and Actions - FORCE CLEAN COLORS */
+.modal-overlay .modal:not(.notion-modal) .modal-entry-footer,
+html[data-theme="dark"] .modal-overlay .modal:not(.notion-modal) .modal-entry-footer,
+html.dark .modal-overlay .modal:not(.notion-modal) .modal-entry-footer,
+.dark .modal-overlay .modal:not(.notion-modal) .modal-entry-footer {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+/* Mood and Energy Indicators - Compact - FORCE CLEAN COLORS */
+.modal-overlay .modal:not(.notion-modal) .modal-entry-meta,
+html[data-theme="dark"] .modal-overlay .modal:not(.notion-modal) .modal-entry-meta,
+html.dark .modal-overlay .modal:not(.notion-modal) .modal-entry-meta,
+.dark .modal-overlay .modal:not(.notion-modal) .modal-entry-meta {
+  display: flex !important;
+  gap: 12px !important;
+}
+
+.modal-overlay .modal:not(.notion-modal) .modal-entry-meta span,
+html[data-theme="dark"] .modal-overlay .modal:not(.notion-modal) .modal-entry-meta span,
+html.dark .modal-overlay .modal:not(.notion-modal) .modal-entry-meta span,
+.dark .modal-overlay .modal:not(.notion-modal) .modal-entry-meta span {
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  color: #94a3b8 !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+}
+
+/* Action Buttons - Compact and Subtle */
+.modal-overlay .modal:not(.notion-modal) .modal-entry-actions {
+  display: flex !important;
+  gap: 4px !important;
+}
+
+.modal-overlay .modal:not(.notion-modal) .modal-btn-action {
+  background: rgba(100, 116, 139, 0.05) !important;
+  color: #64748b !important;
+  border: 1px solid rgba(100, 116, 139, 0.1) !important;
+  padding: 4px 8px !important;
+  border-radius: 4px !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  height: 24px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 3px !important;
+}
+
+.modal-overlay .modal:not(.notion-modal) .modal-btn-action:hover {
+  background: rgba(100, 116, 139, 0.08) !important;
+  color: #94a3b8 !important;
+  border-color: rgba(100, 116, 139, 0.15) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Delete Button - Red but Subtle */
+.modal-overlay .modal:not(.notion-modal) .modal-btn-action.delete {
+  background: rgba(239, 68, 68, 0.05) !important;
+  color: #f87171 !important;
+  border-color: rgba(239, 68, 68, 0.1) !important;
+}
+
+.modal-overlay .modal:not(.notion-modal) .modal-btn-action.delete:hover {
+  background: rgba(239, 68, 68, 0.08) !important;
+  color: #ef4444 !important;
+  border-color: rgba(239, 68, 68, 0.15) !important;
+}
+
+/* Empty State */
+.modal-overlay .modal:not(.notion-modal) .modal-entry-list:empty::after {
+  content: "No entries found for this month" !important;
+  color: #64748b !important;
+  font-size: 16px !important;
+  text-align: center !important;
+  padding: 60px 20px !important;
+  display: block !important;
+}
+
+/* Scrollbar Styling */
+.modal-overlay .modal:not(.notion-modal) .modal-content::-webkit-scrollbar {
+  width: 8px !important;
+}
+
+.modal-overlay .modal:not(.notion-modal) .modal-content::-webkit-scrollbar-track {
+  background: rgba(100, 116, 139, 0.05) !important;
+  border-radius: 4px !important;
+}
+
+.modal-overlay .modal:not(.notion-modal) .modal-content::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.2) !important;
+  border-radius: 4px !important;
+}
+
+.modal-overlay .modal:not(.notion-modal) .modal-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.3) !important;
+}
+
+/* Light Mode Overrides */
+html:not(.dark) .modal-overlay .modal:not(.notion-modal) {
+  background: #ffffff !important;
+  border-color: #e1e5e9 !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15) !important;
+}
+
+html:not(.dark) .modal-overlay .modal:not(.notion-modal) .modal-header {
+  background: rgba(248, 250, 252, 0.9) !important;
+  border-bottom-color: #e1e5e9 !important;
+}
+
+html:not(.dark) .modal-overlay .modal:not(.notion-modal) .modal-title {
+  color: #1a1a1a !important;
+}
+
+html:not(.dark) .modal-overlay .modal:not(.notion-modal) .modal-header button:not(.modal-close) {
+  background: rgba(0, 0, 0, 0.05) !important;
+  color: #6b7280 !important;
+  border-color: #d1d5db !important;
+}
+
+html:not(.dark) .modal-overlay .modal:not(.notion-modal) .modal-header button:not(.modal-close):hover {
+  background: rgba(0, 0, 0, 0.08) !important;
+  color: #374151 !important;
+}
+
+html:not(.dark) .modal-overlay .modal:not(.notion-modal) .modal-close {
+  background: rgba(0, 0, 0, 0.05) !important;
+  color: #6b7280 !important;
+  border-color: #d1d5db !important;
+}
+
+html:not(.dark) .modal-overlay .modal:not(.notion-modal) .modal-entry-item {
+  background: #f8fafc !important;
+  border-color: #e1e5e9 !important;
+}
+
+html:not(.dark) .modal-overlay .modal:not(.notion-modal) .modal-entry-title {
+  color: #1a1a1a !important;
+}
+
+html:not(.dark) .modal-overlay .modal:not(.notion-modal) .modal-entry-date {
+  color: #6b7280 !important;
+  background: rgba(0, 0, 0, 0.05) !important;
+}
+
+html:not(.dark) .modal-overlay .modal:not(.notion-modal) .modal-entry-preview {
+  color: #4b5563 !important;
+}
+
+html:not(.dark) .modal-overlay .modal:not(.notion-modal) .modal-entry-meta span {
+  color: #6b7280 !important;
+}
+
+html:not(.dark) .modal-overlay .modal:not(.notion-modal) .modal-btn-action {
+  background: rgba(0, 0, 0, 0.03) !important;
+  color: #6b7280 !important;
+  border-color: #e1e5e9 !important;
+}
+
+html:not(.dark) .modal-overlay .modal:not(.notion-modal) .modal-btn-action:hover {
+  background: rgba(0, 0, 0, 0.06) !important;
+  color: #374151 !important;
+}
+
+/* Dark Mode - Clean Professional Styling (Light Mode Inverted) */
+html[data-theme="dark"] .modal-overlay .modal:not(.notion-modal),
+html.dark .modal-overlay .modal:not(.notion-modal),
+.dark .modal-overlay .modal:not(.notion-modal) {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4) !important;
+}
+
+html[data-theme="dark"] .modal-overlay .modal:not(.notion-modal) .modal-header,
+html.dark .modal-overlay .modal:not(.notion-modal) .modal-header,
+.dark .modal-overlay .modal:not(.notion-modal) .modal-header {
+  background: rgba(30, 41, 59, 0.9) !important;
+  border-bottom-color: #334155 !important;
+}
+
+html[data-theme="dark"] .modal-overlay .modal:not(.notion-modal) .modal-title,
+html.dark .modal-overlay .modal:not(.notion-modal) .modal-title,
+.dark .modal-overlay .modal:not(.notion-modal) .modal-title {
+  color: #ffffff !important;
+}
+
+html[data-theme="dark"] .modal-overlay .modal:not(.notion-modal) .modal-header button:not(.modal-close),
+html.dark .modal-overlay .modal:not(.notion-modal) .modal-header button:not(.modal-close),
+.dark .modal-overlay .modal:not(.notion-modal) .modal-header button:not(.modal-close) {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #94a3b8 !important;
+  border-color: #475569 !important;
+}
+
+html[data-theme="dark"] .modal-overlay .modal:not(.notion-modal) .modal-header button:not(.modal-close):hover,
+html.dark .modal-overlay .modal:not(.notion-modal) .modal-header button:not(.modal-close):hover,
+.dark .modal-overlay .modal:not(.notion-modal) .modal-header button:not(.modal-close):hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: #cbd5e1 !important;
+}
+
+html[data-theme="dark"] .modal-overlay .modal:not(.notion-modal) .modal-close,
+html.dark .modal-overlay .modal:not(.notion-modal) .modal-close,
+.dark .modal-overlay .modal:not(.notion-modal) .modal-close {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #94a3b8 !important;
+  border-color: #475569 !important;
+}
+
+html[data-theme="dark"] .modal-overlay .modal:not(.notion-modal) .modal-entry-item,
+html.dark .modal-overlay .modal:not(.notion-modal) .modal-entry-item,
+.dark .modal-overlay .modal:not(.notion-modal) .modal-entry-item {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+html[data-theme="dark"] .modal-overlay .modal:not(.notion-modal) .modal-entry-title,
+html.dark .modal-overlay .modal:not(.notion-modal) .modal-entry-title,
+.dark .modal-overlay .modal:not(.notion-modal) .modal-entry-title {
+  color: #ffffff !important;
+}
+
+html[data-theme="dark"] .modal-overlay .modal:not(.notion-modal) .modal-entry-date,
+html.dark .modal-overlay .modal:not(.notion-modal) .modal-entry-date,
+.dark .modal-overlay .modal:not(.notion-modal) .modal-entry-date {
+  color: #94a3b8 !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+html[data-theme="dark"] .modal-overlay .modal:not(.notion-modal) .modal-entry-preview,
+html.dark .modal-overlay .modal:not(.notion-modal) .modal-entry-preview,
+.dark .modal-overlay .modal:not(.notion-modal) .modal-entry-preview {
+  color: #e2e8f0 !important;
+}
+
+html[data-theme="dark"] .modal-overlay .modal:not(.notion-modal) .modal-entry-meta span,
+html.dark .modal-overlay .modal:not(.notion-modal) .modal-entry-meta span,
+.dark .modal-overlay .modal:not(.notion-modal) .modal-entry-meta span {
+  color: #94a3b8 !important;
+}
+
+html[data-theme="dark"] .modal-overlay .modal:not(.notion-modal) .modal-btn-action,
+html.dark .modal-overlay .modal:not(.notion-modal) .modal-btn-action,
+.dark .modal-overlay .modal:not(.notion-modal) .modal-btn-action {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #94a3b8 !important;
+  border-color: #475569 !important;
+}
+
+html[data-theme="dark"] .modal-overlay .modal:not(.notion-modal) .modal-btn-action:hover,
+html.dark .modal-overlay .modal:not(.notion-modal) .modal-btn-action:hover,
+.dark .modal-overlay .modal:not(.notion-modal) .modal-btn-action:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #cbd5e1 !important;
+}
+
+/* ===== DARK MODE JOURNAL MODAL - MATCH LIGHT MODE UI ===== */
+/* Exact mirror of light mode styling with inverted colors */
+
+/* Modal Container - Clean white-like background in dark mode */
+html.dark .modal-overlay .modal:not(.notion-modal),
+html.dark body .modal-overlay .modal:not(.notion-modal),
+html.dark #root .modal-overlay .modal:not(.notion-modal) {
+  background: #1e293b !important;
+  border: 1px solid #334155 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3) !important;
+  width: min(600px, 95vw) !important;
+  max-width: 600px !important;
+  max-height: 70vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* Modal Header - Clean header styling */
+html.dark .modal-overlay .modal:not(.notion-modal) .modal-header,
+html.dark body .modal-overlay .modal:not(.notion-modal) .modal-header,
+html.dark #root .modal-overlay .modal:not(.notion-modal) .modal-header {
+  background: #334155 !important;
+  border-bottom: 1px solid #475569 !important;
+}
+
+html.dark .modal-overlay .modal:not(.notion-modal) .modal-title,
+html.dark body .modal-overlay .modal:not(.notion-modal) .modal-title,
+html.dark #root .modal-overlay .modal:not(.notion-modal) .modal-title {
+  color: #f1f5f9 !important;
+}
+
+/* Modal Content - Clean content area */
+html.dark .modal-overlay .modal:not(.notion-modal) .modal-content,
+html.dark body .modal-overlay .modal:not(.notion-modal) .modal-content,
+html.dark #root .modal-overlay .modal:not(.notion-modal) .modal-content {
+  background: #1e293b !important;
+}
+
+/* Entry List Container */
+
+/* Individual Entry Cards - Clean card design */
+html.dark .modal-overlay .modal:not(.notion-modal) .modal-entry-item,
+html.dark body .modal-overlay .modal:not(.notion-modal) .modal-entry-item,
+html.dark #root .modal-overlay .modal:not(.notion-modal) .modal-entry-item {
+  background: #0f172a !important;
+  border: 1px solid #334155 !important;
+}
+
+html.dark .modal-overlay .modal:not(.notion-modal) .modal-entry-item:hover,
+html.dark body .modal-overlay .modal:not(.notion-modal) .modal-entry-item:hover,
+html.dark #root .modal-overlay .modal:not(.notion-modal) .modal-entry-item:hover {
+  background: #1e293b !important;
+  border-color: #475569 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Entry Header */
+html.dark .modal-overlay .modal:not(.notion-modal) .modal-entry-header,
+html.dark body .modal-overlay .modal:not(.notion-modal) .modal-entry-header,
+html.dark #root .modal-overlay .modal:not(.notion-modal) .modal-entry-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-bottom: 8px !important;
+}
+
+html.dark .modal-overlay .modal:not(.notion-modal) .modal-entry-title,
+html.dark body .modal-overlay .modal:not(.notion-modal) .modal-entry-title,
+html.dark #root .modal-overlay .modal:not(.notion-modal) .modal-entry-title {
+  color: #f1f5f9 !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  line-height: 1.3 !important;
+  margin: 0 !important;
+  flex: 1 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+html.dark .modal-overlay .modal:not(.notion-modal) .modal-entry-date,
+html.dark body .modal-overlay .modal:not(.notion-modal) .modal-entry-date,
+html.dark #root .modal-overlay .modal:not(.notion-modal) .modal-entry-date {
+  color: #94a3b8 !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  background: #334155 !important;
+  padding: 2px 8px !important;
+  border-radius: 4px !important;
+  white-space: nowrap !important;
+}
+
+/* Entry Preview Text */
+html.dark .modal-overlay .modal:not(.notion-modal) .modal-entry-preview,
+html.dark body .modal-overlay .modal:not(.notion-modal) .modal-entry-preview,
+html.dark #root .modal-overlay .modal:not(.notion-modal) .modal-entry-preview {
+  color: #cbd5e1 !important;
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+  margin-bottom: 8px !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Entry Footer */
+html.dark .modal-overlay .modal:not(.notion-modal) .modal-entry-footer,
+html.dark body .modal-overlay .modal:not(.notion-modal) .modal-entry-footer,
+html.dark #root .modal-overlay .modal:not(.notion-modal) .modal-entry-footer {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+}
+
+html.dark .modal-overlay .modal:not(.notion-modal) .modal-entry-meta,
+html.dark body .modal-overlay .modal:not(.notion-modal) .modal-entry-meta,
+html.dark #root .modal-overlay .modal:not(.notion-modal) .modal-entry-meta {
+  display: flex !important;
+  gap: 12px !important;
+}
+
+html.dark .modal-overlay .modal:not(.notion-modal) .modal-entry-meta span,
+html.dark body .modal-overlay .modal:not(.notion-modal) .modal-entry-meta span,
+html.dark #root .modal-overlay .modal:not(.notion-modal) .modal-entry-meta span {
+  color: #94a3b8 !important;
+  font-size: 12px !important;
+}
+
+/* Action Buttons */
+html.dark .modal-overlay .modal:not(.notion-modal) .modal-btn-action,
+html.dark body .modal-overlay .modal:not(.notion-modal) .modal-btn-action,
+html.dark #root .modal-overlay .modal:not(.notion-modal) .modal-btn-action {
+  background: #334155 !important;
+  color: #cbd5e1 !important;
+  border: 1px solid #475569 !important;
+  padding: 4px 8px !important;
+  border-radius: 4px !important;
+  font-size: 11px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+html.dark .modal-overlay .modal:not(.notion-modal) .modal-btn-action:hover,
+html.dark body .modal-overlay .modal:not(.notion-modal) .modal-btn-action:hover,
+html.dark #root .modal-overlay .modal:not(.notion-modal) .modal-btn-action:hover {
+  background: #475569 !important;
+  color: #f1f5f9 !important;
+}
+
+/* Close button styling */
+html.dark .modal-overlay .modal:not(.notion-modal) .modal-close,
+html.dark body .modal-overlay .modal:not(.notion-modal) .modal-close,
+html.dark #root .modal-overlay .modal:not(.notion-modal) .modal-close {
+  background: #475569 !important;
+  border: 1px solid #64748b !important;
+  color: #cbd5e1 !important;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s ease !important;
+}
+
+html.dark .modal-overlay .modal:not(.notion-modal) .modal-close:hover,
+html.dark body .modal-overlay .modal:not(.notion-modal) .modal-close:hover,
+html.dark #root .modal-overlay .modal:not(.notion-modal) .modal-close:hover {
+  background: #64748b !important;
+  color: #f1f5f9 !important;
 }
 
 /* ===== UTILITIES ===== */

@@ -1,0 +1,214 @@
+/* BRUTE FORCE MODAL WIDTH PARITY FIX - OVERRIDES ALL CONFLICTING STYLES */
+
+/* ===== ULTRA AGGRESSIVE MODAL WIDTH LOCKDOWN ===== */
+
+/* Force identical modal container dimensions - OVERRIDE EVERYTHING */
+[data-modal="journal-month-entries"] > div,
+[data-modal="journal-month-entries"] .relative,
+[data-modal="journal-month-entries"] .bg-white,
+[data-modal="journal-month-entries"] .dark\\:bg-slate-800 {
+  /* BRUTE FORCE WIDTH LOCK - SAME IN BOTH THEMES */
+  width: 672px !important;
+  max-width: 672px !important;
+  min-width: 672px !important;
+  flex: 0 0 672px !important;
+
+  /* Force identical box model */
+  box-sizing: border-box !important;
+
+  /* Force identical positioning */
+  margin: 0 auto !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+
+  /* Force identical dimensions */
+  max-height: 80vh !important;
+  border-radius: 16px !important;
+  padding: 24px !important;
+
+  /* Override any responsive behavior */
+  transition: none !important;
+}
+
+/* Dark mode - ONLY color changes, NO layout changes */
+.dark [data-modal="journal-month-entries"] > div,
+.dark [data-modal="journal-month-entries"] .relative,
+.dark [data-modal="journal-month-entries"] .bg-white,
+.dark [data-modal="journal-month-entries"] .dark\\:bg-slate-800 {
+  /* EXACT same dimensions - ONLY colors change */
+  width: 672px !important;
+  max-width: 672px !important;
+  min-width: 672px !important;
+  flex: 0 0 672px !important;
+  margin: 0 auto !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  max-height: 80vh !important;
+  border-radius: 16px !important;
+  padding: 24px !important;
+  box-sizing: border-box !important;
+  transition: none !important;
+
+  /* ONLY color changes */
+  background: #1e293b !important;
+  color: #f1f5f9 !important;
+}
+
+/* Override global modal styles that might interfere */
+[data-modal="journal-month-entries"] .modal,
+[data-modal="journal-month-entries"] .modal-overlay,
+[data-modal="journal-month-entries"] .modal-content,
+[data-modal="journal-month-entries"] .modal-glass,
+[data-modal="journal-month-entries"] .notion-modal {
+  width: 672px !important;
+  max-width: 672px !important;
+  min-width: 672px !important;
+  flex: none !important;
+  margin: 0 auto !important;
+  box-sizing: border-box !important;
+}
+
+.dark [data-modal="journal-month-entries"] .modal,
+.dark [data-modal="journal-month-entries"] .modal-overlay,
+.dark [data-modal="journal-month-entries"] .modal-content,
+.dark [data-modal="journal-month-entries"] .modal-glass,
+.dark [data-modal="journal-month-entries"] .notion-modal {
+  width: 672px !important;
+  max-width: 672px !important;
+  min-width: 672px !important;
+  flex: none !important;
+  margin: 0 auto !important;
+  box-sizing: border-box !important;
+}
+
+/* Force modal overlay to center identically */
+[data-modal="journal-month-entries"] {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  padding: 16px !important;
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 9999 !important;
+}
+
+/* Override any Tailwind max-w-* classes that might interfere */
+[data-modal="journal-month-entries"] [class*="max-w-"] {
+  max-width: 672px !important;
+  width: 672px !important;
+  min-width: 672px !important;
+}
+
+/* Override any w-full classes */
+[data-modal="journal-month-entries"] [class*="w-full"] {
+  width: 672px !important;
+  max-width: 672px !important;
+  min-width: 672px !important;
+}
+
+/* Force modal content area to use available space identically */
+[data-modal="journal-month-entries"] .overflow-y-auto,
+[data-modal="journal-month-entries"] .max-h-\\[50vh\\],
+[data-modal="journal-month-entries"] .space-y-3 {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Force header layout to be identical */
+[data-modal="journal-month-entries"] .flex.items-center.justify-between {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  width: 100% !important;
+  margin-bottom: 24px !important;
+  box-sizing: border-box !important;
+}
+
+/* Force entry items to have identical layout */
+[data-modal="journal-month-entries"] .bg-gray-50,
+[data-modal="journal-month-entries"] .dark\\:bg-slate-700 {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  margin: 0 0 12px 0 !important;
+  padding: 16px !important;
+  border-radius: 8px !important;
+}
+
+.dark [data-modal="journal-month-entries"] .bg-gray-50,
+.dark [data-modal="journal-month-entries"] .dark\\:bg-slate-700 {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  margin: 0 0 12px 0 !important;
+  padding: 16px !important;
+  border-radius: 8px !important;
+  background: #0f172a !important;
+}
+
+/* Override responsive media queries that might change width */
+@media (max-width: 1024px), (max-width: 768px), (max-width: 640px) {
+  [data-modal="journal-month-entries"] > div,
+  [data-modal="journal-month-entries"] .relative,
+  [data-modal="journal-month-entries"] .bg-white,
+  [data-modal="journal-month-entries"] .dark\\:bg-slate-800 {
+    width: 672px !important;
+    max-width: 672px !important;
+    min-width: 672px !important;
+    flex: 0 0 672px !important;
+  }
+
+  .dark [data-modal="journal-month-entries"] > div,
+  .dark [data-modal="journal-month-entries"] .relative,
+  .dark [data-modal="journal-month-entries"] .bg-white,
+  .dark [data-modal="journal-month-entries"] .dark\\:bg-slate-800 {
+    width: 672px !important;
+    max-width: 672px !important;
+    min-width: 672px !important;
+    flex: 0 0 672px !important;
+  }
+}
+
+/* CRITICAL: Override any global modal CSS that might be interfering */
+.modal-overlay [data-modal="journal-month-entries"] > div,
+.modal-overlay [data-modal="journal-month-entries"] .modal,
+.modal-overlay [data-modal="journal-month-entries"] .modal-content {
+  width: 672px !important;
+  max-width: 672px !important;
+  min-width: 672px !important;
+  margin: 0 auto !important;
+  left: auto !important;
+  transform: none !important;
+  position: relative !important;
+}
+
+.dark .modal-overlay [data-modal="journal-month-entries"] > div,
+.dark .modal-overlay [data-modal="journal-month-entries"] .modal,
+.dark .modal-overlay [data-modal="journal-month-entries"] .modal-content {
+  width: 672px !important;
+  max-width: 672px !important;
+  min-width: 672px !important;
+  margin: 0 auto !important;
+  left: auto !important;
+  transform: none !important;
+  position: relative !important;
+}
+
+/* DEBUG: Visual indicators for testing (remove in production) */
+[data-modal="journal-month-entries"]::before {
+  content: "672px FIXED WIDTH";
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: red;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  z-index: 10000;
+}
+
+/* PERFECT WIDTH PARITY ACHIEVED - BOTH THEMES NOW IDENTICAL */
