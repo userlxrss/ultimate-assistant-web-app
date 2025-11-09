@@ -334,7 +334,6 @@ const JournalSimple: React.FC = () => {
 
   const getMonthEmoji = (avgMood) => {
     const mood = parseFloat(avgMood);
-    if (mood >= 8) return '🎉';
     if (mood >= 7) return '😊';
     if (mood >= 6) return '🙂';
     if (mood >= 5) return '😐';
@@ -2542,37 +2541,7 @@ const JournalSimple: React.FC = () => {
           gap: 8px;
         }
 
-        .export-month-btn {
-          padding: 6px 8px;
-          background: transparent;
-          border: 1px solid #E5E7EB;
-          border-radius: 6px;
-          cursor: pointer;
-          transition: all 200ms ease;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: #64748B;
-        }
-
-        .export-month-btn:hover {
-          background: #3B82F6;
-          border-color: #3B82F6;
-          color: white;
-          transform: scale(1.05);
-        }
-
-        .dark .export-month-btn {
-          border-color: #334155;
-          color: #94A3B8;
-        }
-
-        .dark .export-month-btn:hover {
-          background: #3B82F6;
-          border-color: #3B82F6;
-          color: white;
-        }
-
+        
         .month-toggle {
           display: flex;
           align-items: center;
@@ -3246,7 +3215,6 @@ const JournalSimple: React.FC = () => {
                           onClick={() => handleMonthFolderClick(monthYear, monthData)}
                         >
                           <div className="month-info">
-                            <span className="month-emoji">{getMonthEmoji(monthData.avgMood)}</span>
                             <div className="month-details">
                               <div className="month-name" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 {monthYear}
@@ -3262,25 +3230,11 @@ const JournalSimple: React.FC = () => {
                                 </span>
                               </div>
                               <div className="month-stats">
-                                {monthData.totalEntries} entries • Avg mood: {monthData.avgMood}
+                                {monthData.totalEntries} entries
                               </div>
                             </div>
                           </div>
                           <div className="month-actions">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                exportMonthToMD(monthYear, monthData.entries);
-                              }}
-                              className="export-month-btn"
-                              title={`Export ${monthYear} entries as Markdown`}
-                            >
-                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                                <polyline points="7 10 12 15 17 10"/>
-                                <line x1="12" y1="15" x2="12" y2="3"/>
-                              </svg>
-                            </button>
                             <div className="month-toggle">
                               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <polyline points="6 9 12 15 18 9"></polyline>
@@ -3340,13 +3294,12 @@ const JournalSimple: React.FC = () => {
                   }
 
                   return (
-                    <button
+                    <div
                       key={day}
-                      onClick={() => handleDayClick(day)}
-                      className={`${getDayColor(day)} aspect-square border-0 rounded-md text-xs font-medium cursor-pointer transition-all duration-200 hover:scale-105 flex items-center justify-center`}
+                      className={`${getDayColor(day)} aspect-square border-0 rounded-md text-xs font-medium flex items-center justify-center`}
                     >
                       {day}
-                    </button>
+                    </div>
                   );
                 })}
               </div>
@@ -3404,7 +3357,6 @@ const JournalSimple: React.FC = () => {
             <div className="modal" onClick={(e) => e.stopPropagation()}>
               <div className="modal-header">
                 <h2 className="modal-title">
-                  <span>{getMonthEmoji(selectedMonthEntries.reduce((sum, e) => sum + (e.mood || 0), 0) / selectedMonthEntries.length)}</span>
                   {selectedMonth}
                 </h2>
                 <div className="flex items-center gap-2">
