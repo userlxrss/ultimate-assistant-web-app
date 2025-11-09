@@ -343,21 +343,23 @@ const MainApp: React.FC = () => {
     <NotificationProvider>
       {/* Apply global theme classes */}
       <div className="flex h-screen theme-bg-primary">
-        {/* Sidebar */}
-        <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} theme-bg-card theme-border-primary border-r transition-all duration-300 flex flex-col`}>
-          {/* Logo */}
-          <div className="p-4 border-b theme-border-primary">
+        {/* Premium Sidebar */}
+        <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} premium-glass border-r border-gray-200/10 dark:border-gray-700/30 transition-all duration-300 flex flex-col relative overflow-hidden`}>
+          {/* Premium Logo Section */}
+          <div className="p-4 border-b border-gray-200/10 dark:border-gray-700/30 relative">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/25">
                 <span className="text-white font-bold text-sm">P</span>
               </div>
               {sidebarOpen && (
                 <span className="font-semibold theme-text-primary">Productivity Hub</span>
               )}
             </div>
+            {/* Subtle glow effect */}
+            <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent"></div>
           </div>
 
-          {/* Navigation */}
+          {/* Premium Navigation */}
           <nav className="flex-1 p-4 space-y-2">
             {navigationItems.map((item) => {
               const Icon = item.icon;
@@ -367,24 +369,36 @@ const MainApp: React.FC = () => {
                 <button
                   key={item.id}
                   onClick={() => setActiveModule(item.id)}
-                  className={`w-full flex items-center ${sidebarOpen ? 'space-x-3' : 'justify-center'} px-3 py-3 rounded-lg transition-colors ${
+                  className={`w-full flex items-center ${sidebarOpen ? 'space-x-3' : 'justify-center'} px-3 py-3 rounded-xl transition-all duration-300 relative overflow-hidden group ${
                     isActive
-                      ? isDark ? 'bg-blue-900/50 text-blue-400' : 'bg-blue-50 text-blue-600'
-                      : isDark ? 'text-gray-400 hover:bg-gray-700 hover:text-gray-200' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                      ? 'premium-border-glow text-blue-400 dark:text-blue-300'
+                      : 'text-gray-400 hover:text-gray-200 dark:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-800/20 dark:hover:bg-gray-700/20'
                   }`}
                 >
-                  <Icon className="w-5 h-5" />
-                  {sidebarOpen && <span className="font-medium">{item.label}</span>}
+                  {/* Subtle background gradient for active state */}
+                  {isActive && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl"></div>
+                  )}
+
+                  {/* Hover glow effect */}
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-purple-500/5 rounded-xl"></div>
+                  </div>
+
+                  <Icon className="w-5 h-5 relative z-10" />
+                  {sidebarOpen && (
+                    <span className="font-medium relative z-10">{item.label}</span>
+                  )}
                 </button>
               );
             })}
           </nav>
 
-          {/* Sidebar Toggle */}
-          <div className="p-4 border-t theme-border-primary">
+          {/* Premium Sidebar Toggle */}
+          <div className="p-4 border-t border-gray-200/10 dark:border-gray-700/30">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="w-full flex items-center justify-center px-3 py-3 rounded-lg transition-colors theme-text-secondary hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-gray-200"
+              className="w-full flex items-center justify-center px-3 py-3 rounded-xl transition-all duration-300 theme-text-secondary hover:bg-gray-100 dark:hover:bg-gray-700/20 hover:scale-105 group"
             >
               <X className={`w-5 h-5 transform transition-transform ${sidebarOpen ? 'rotate-180' : ''}`} />
             </button>
@@ -393,8 +407,8 @@ const MainApp: React.FC = () => {
 
         {/* Main Content */}
         <main className="flex-1 theme-bg-primary flex flex-col">
-          {/* Header */}
-          <header className="p-6 border-b theme-border-primary theme-bg-card">
+          {/* Premium Header */}
+          <header className="p-6 border-b theme-border-primary theme-bg-card backdrop-blur-sm">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold theme-text-primary">
@@ -412,7 +426,7 @@ const MainApp: React.FC = () => {
               </div>
 
               <div className="flex items-center gap-4">
-                {/* Search */}
+                {/* Premium Search */}
                 <div className="relative">
                   <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
                   <input
@@ -420,39 +434,41 @@ const MainApp: React.FC = () => {
                     placeholder="Search..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className={`pl-10 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    className={`pl-10 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 ${
                       isDark
-                        ? 'border-gray-600 bg-gray-800 text-white placeholder-gray-500'
+                        ? 'border-gray-600/50 bg-gray-800/50 text-white placeholder-gray-500 backdrop-blur-sm focus:border-blue-400/50'
                         : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500'
                     }`}
                   />
                 </div>
 
-                {/* Notifications */}
-                <button className={`p-2 rounded-lg transition-colors ${isDark ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-400 hover:bg-gray-100'}`}>
+                {/* Premium Notifications */}
+                <button className={`p-2 rounded-lg transition-all duration-300 hover:scale-110 ${
+                  isDark ? 'text-gray-400 hover:bg-gray-700/20' : 'text-gray-400 hover:bg-gray-100'
+                }`}>
                   <Bell className="w-5 h-5" />
                 </button>
 
-                {/* Profile Button */}
+                {/* Premium Profile Button */}
                 <div className="relative">
                   <button
                     ref={profileButtonRef}
                     onClick={handleProfileClick}
-                    className={`p-2 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      isDark ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-400 hover:bg-gray-100'
+                    className={`p-2 rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 hover:scale-110 ${
+                      isDark ? 'text-gray-400 hover:bg-gray-700/20' : 'text-gray-400 hover:bg-gray-100'
                     } ${showProfileDropdown ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : ''}`}
                     aria-label="Profile menu"
                   >
                     <User className="w-5 h-5" />
                   </button>
 
-                  {/* Profile Dropdown - SIMPLIFIED */}
+                  {/* Premium Profile Dropdown */}
                   {showProfileDropdown && (
-                    <div className="absolute top-16 right-4 w-64 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg z-50">
+                    <div className="absolute top-16 right-4 w-64 rounded-xl border border-gray-200 dark:border-gray-700/50 premium-glass shadow-2xl z-50 backdrop-blur-lg">
                       {/* User Info */}
-                      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                      <div className="p-4 border-b border-gray-200/10 dark:border-gray-700/50">
                         <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center overflow-hidden">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 dark:from-purple-600 dark:to-pink-600 flex items-center justify-center overflow-hidden shadow-lg shadow-purple-500/25">
                             {avatarUrl ? (
                               <img
                                 src={avatarUrl}
@@ -464,7 +480,7 @@ const MainApp: React.FC = () => {
                                 }}
                               />
                             ) : (
-                              <span className="text-purple-600 dark:text-purple-300 font-semibold">
+                              <span className="text-white font-semibold">
                                 {userInfo?.name?.[0]?.toUpperCase() || userInfo?.email?.[0]?.toUpperCase() || 'U'}
                               </span>
                             )}
@@ -480,14 +496,14 @@ const MainApp: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Menu Items */}
+                      {/* Premium Menu Items */}
                       <div className="p-2">
                         <button
                           onClick={() => {
                             setActiveModule('settings');
                             setShowProfileDropdown(false);
                           }}
-                          className="w-full px-4 py-2 flex items-center space-x-3 text-sm transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                          className="w-full px-4 py-2 flex items-center space-x-3 text-sm transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-700/20 rounded-lg hover:translate-x-1"
                         >
                           <Settings className="w-4 h-4" />
                           <span>Settings</span>
@@ -497,13 +513,13 @@ const MainApp: React.FC = () => {
                             toggleTheme();
                             setShowProfileDropdown(false);
                           }}
-                          className="w-full px-4 py-2 flex items-center space-x-3 text-sm transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                          className="w-full px-4 py-2 flex items-center space-x-3 text-sm transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-700/20 rounded-lg hover:translate-x-1"
                         >
                           <Moon className="w-4 h-4" />
                           <span>Dark Mode</span>
                         </button>
 
-                        {/* SIGN OUT BUTTON - SIMPLIFIED */}
+                        {/* Premium Sign Out Button */}
                         <button
                           onMouseDown={async (e) => {
                             e.preventDefault();
@@ -522,7 +538,7 @@ const MainApp: React.FC = () => {
                             // Force redirect to premium React login page
                             window.location.href = "/";
                           }}
-                          className="w-full px-4 py-2 flex items-center space-x-3 text-sm transition-colors text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 rounded"
+                          className="w-full px-4 py-2 flex items-center space-x-3 text-sm transition-all duration-200 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 rounded-lg hover:translate-x-1"
                         >
                           <LogOut className="w-4 h-4" />
                           <span>Sign Out</span>

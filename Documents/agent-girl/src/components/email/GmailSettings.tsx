@@ -109,7 +109,7 @@ export const GmailSettings: React.FC = React.memo(() => {
       {showInstructions && (
         <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
           <div className="flex items-start gap-3">
-            <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+            <Calendar className="w-5 h-5 text-emerald-600 dark:text-emerald-400 mt-0.5" />
             <div>
               <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
                 📧 Gmail iCal Setup Instructions
@@ -119,7 +119,7 @@ export const GmailSettings: React.FC = React.memo(() => {
                   <li key={index}>{instruction}</li>
                 ))}
               </ol>
-              <p className="text-xs mt-3 text-blue-600 dark:text-blue-400">
+              <p className="text-xs mt-3 text-emerald-600 dark:text-emerald-400">
                 💡 This uses Gmail's Atom feed - no API keys required, just like your calendar integration!
               </p>
             </div>

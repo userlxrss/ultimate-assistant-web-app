@@ -101,7 +101,7 @@ Your API key will start with "mot_" followed by random characters.`;
     <div className="glass-card">
       <div className="flex items-center gap-3 mb-4">
         <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
-          <RefreshCw className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+          <RefreshCw className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
         </div>
         <div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -145,7 +145,7 @@ Your API key will start with "mot_" followed by random characters.`;
           <button
             onClick={handleConnect}
             disabled={isConnecting || !apiKey.trim()}
-            className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2"
+            className="w-full py-3 bg-gradient-to-r from-emerald-500/80 to-teal-600/80 hover:from-emerald-500 hover:to-teal-600 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2"
           >
             {isConnecting ? (
               <>

@@ -1238,7 +1238,7 @@ const CleanSettingsPage: React.FC = () => {
                     </div>
                     <span className={`toggle-label text-sm font-semibold ${
                       compactMode
-                        ? 'text-blue-600 dark:text-blue-400'
+                        ? 'text-emerald-600 dark:text-emerald-400'
                         : 'text-gray-600 dark:text-gray-400'
                     } transition-colors duration-200`}>
                       {compactMode ? 'On' : 'Off'}

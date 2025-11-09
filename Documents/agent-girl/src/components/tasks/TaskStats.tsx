@@ -43,7 +43,7 @@ const TaskStatsComponent: React.FC<TaskStatsProps> = ({ stats }) => {
           <h3 className="text-sm font-medium text-gray-600 dark:text-gray-300">Due Today</h3>
           <Calendar className="w-5 h-5 text-blue-500" />
         </div>
-        <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.dueToday}</div>
+        <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{stats.dueToday}</div>
         <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
           Today's tasks
         </div>

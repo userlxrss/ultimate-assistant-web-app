@@ -159,7 +159,7 @@ export const GmailIntegration: React.FC<GmailIntegrationProps> = ({ onConnected 
           <button
             onClick={handleTestConnection}
             disabled={isConnecting}
-            className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2"
+            className="flex-1 py-2 bg-gradient-to-r from-emerald-500/80 to-teal-600/80 hover:from-emerald-500 hover:to-teal-600 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2"
           >
             {isConnecting ? (
               <>
@@ -205,7 +205,7 @@ export const GmailIntegration: React.FC<GmailIntegrationProps> = ({ onConnected 
 
         <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
           <div className="flex items-start gap-3">
-            <ExternalLink className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+            <ExternalLink className="w-5 h-5 text-emerald-600 dark:text-emerald-400 mt-0.5" />
             <div>
               <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-1">Next Steps</h4>
               <p className="text-sm text-blue-700 dark:text-blue-300">
@@ -222,7 +222,7 @@ export const GmailIntegration: React.FC<GmailIntegrationProps> = ({ onConnected 
     <div className="space-y-6">
       <div className="text-center">
         <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full mb-4">
-          <Mail className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+          <Mail className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
         </div>
         <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
           Connect Your Gmail Account
@@ -311,7 +311,7 @@ export const GmailIntegration: React.FC<GmailIntegrationProps> = ({ onConnected 
         <button
           onClick={handleSaveCredentials}
           disabled={isConnecting || !apiKey.trim() || !clientId.trim()}
-          className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2"
+          className="w-full py-3 bg-gradient-to-r from-emerald-500/80 to-teal-600/80 hover:from-emerald-500 hover:to-teal-600 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2"
         >
           {isConnecting ? (
             <>

@@ -25,9 +25,9 @@ export const TaskCompletionCard: React.FC = () => {
   }, []);
 
   const getTrendColor = (trend: number) => {
-    if (trend > 0) return 'text-success';
-    if (trend < 0) return 'text-error';
-    return 'text-secondary';
+    if (trend > 0) return 'text-green-400';
+    if (trend < 0) return 'text-red-400';
+    return 'text-gray-400';
   };
 
   const getTrendIcon = (trend: number) => {
@@ -37,59 +37,61 @@ export const TaskCompletionCard: React.FC = () => {
   };
 
   return (
-    <div className="glass glass-blur-16 glass-shadow-lg rounded-xl p-6 hover:shadow-xl transition-all duration-300 group cursor-pointer">
-      <div className="flex items-start justify-between mb-4">
+    <div className="premium-glass-card premium-padding-lg premium-hover-lift premium-animate-in premium-glow-blue h-full">
+      <div className="flex items-start justify-between mb-6">
         <div>
-          <h3 className="font-semibold text-lg">Task Completion</h3>
-          <p className="text-sm opacity-70">Today's progress</p>
+          <h3 className="premium-text-primary premium-heading-3">Task Completion</h3>
+          <p className="premium-text-muted text-sm">Today's progress</p>
         </div>
-        <div className="glass glass-blur-8 rounded-lg p-2 group-hover:scale-110 transition-transform">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="premium-icon-bg-green p-3 rounded-xl premium-hover-lift">
+          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
           </svg>
         </div>
       </div>
 
       {/* Main Stats */}
-      <div className="mb-4">
+      <div className="mb-6">
         <div className="flex items-baseline">
-          <span className="text-3xl font-bold mr-2">{taskStats.completed}</span>
-          <span className="text-lg opacity-70">/ {taskStats.total}</span>
+          <span className="text-4xl font-bold premium-text-primary mr-2">{taskStats.completed}</span>
+          <span className="text-xl premium-text-muted">/ {taskStats.total}</span>
         </div>
-        <div className="text-sm opacity-70 mt-1">
+        <div className="premium-text-tiny mt-2">
           {taskStats.todayCompleted} completed today
         </div>
       </div>
 
-      {/* Progress Bar */}
-      <div className="mb-4">
-        <div className="w-full bg-secondary/20 rounded-full h-2 overflow-hidden">
+      {/* Premium Progress Bar */}
+      <div className="mb-6">
+        <div className="w-full bg-gray-700/50 rounded-full h-3 overflow-hidden backdrop-blur-sm">
           <div
-            className="h-full bg-gradient-to-r from-primary to-secondary rounded-full transition-all duration-500 ease-out"
+            className="h-full bg-gradient-to-r from-green-500 via-emerald-500 to-green-600 rounded-full transition-all duration-700 ease-out relative overflow-hidden"
             style={{ width: `${taskStats.percentage}%` }}
-          />
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
+          </div>
         </div>
-        <div className="flex justify-between text-xs opacity-70 mt-1">
+        <div className="flex justify-between premium-text-tiny mt-2">
           <span>{taskStats.percentage}% complete</span>
           <span>{taskStats.total - taskStats.completed} remaining</span>
         </div>
       </div>
 
       {/* Weekly Trend */}
-      <div className="flex items-center justify-between pt-4 border-t border-light/50">
-        <span className="text-sm opacity-70">Weekly trend</span>
+      <div className="flex items-center justify-between pt-4 border-t premium-border-subtle">
+        <span className="premium-text-muted text-sm">Weekly trend</span>
         <div className={`flex items-center ${getTrendColor(taskStats.weeklyTrend)}`}>
-          <span className="mr-1">{getTrendIcon(taskStats.weeklyTrend)}</span>
-          <span className="font-semibold">{Math.abs(taskStats.weeklyTrend)}%</span>
+          <span className="mr-2 text-lg">{getTrendIcon(taskStats.weeklyTrend)}</span>
+          <span className="font-bold premium-text-primary">{Math.abs(taskStats.weeklyTrend)}%</span>
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="mt-4 flex gap-2">
-        <button className="glass-button glass-button-primary flex-1 text-sm">
+      {/* Premium Quick Actions */}
+      <div className="mt-6 flex gap-3">
+        <button className="premium-button flex-1 text-sm premium-hover-glow">
           View Tasks
         </button>
-        <button className="glass-button glass-button-secondary text-sm px-3">
+        <button className="premium-button-secondary text-sm premium-padding-md premium-rounded-xl premium-hover-lift">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>

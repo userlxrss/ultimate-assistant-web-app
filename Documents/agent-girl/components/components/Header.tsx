@@ -122,117 +122,121 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, isMobile }) => {
   };
 
   return (
-    <header className="glass glass-blur-16 glass-shadow-lg border-bottom border-light sticky top-0 z-40">
-      <div className="header-content">
-        {/* Left side - Menu button and Logo */}
-        <div className="header-left">
-          {isMobile && (
-            <button
-              onClick={onMenuClick}
-              className="glass-button glass-button-secondary p-2 mr-3"
-              aria-label="Toggle menu"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-          )}
-
-          <div className="logo">
-            <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Dashboard
-            </h1>
-          </div>
-        </div>
-
-        {/* Center - Search Bar */}
-        <div className="header-center">
-          <form onSubmit={handleSearch} className="search-container">
-            <div className="glass-input-group">
-              <div className="glass-input-icon">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+    <header className="premium-glass-card sticky top-0 z-40 border-b premium-border-medium premium-shadow-lg">
+      <div className="premium-padding-lg">
+        <div className="flex items-center justify-between">
+          {/* Left side - Menu button and Logo */}
+          <div className="flex items-center">
+            {isMobile && (
+              <button
+                onClick={onMenuClick}
+                className="premium-button-secondary premium-hover-lift p-3 mr-4 premium-rounded-xl"
+                aria-label="Toggle menu"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
-              </div>
-              <input
-                type="text"
-                placeholder="Search dashboard..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="glass-input"
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  className="glass-input-clear"
-                >
+              </button>
+            )}
+
+            <div className="logo">
+              <h1 className="premium-text-primary premium-heading-2 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+                Dashboard
+              </h1>
+            </div>
+          </div>
+
+          {/* Center - Search Bar */}
+          <div className="flex-1 max-w-2xl mx-8">
+            <form onSubmit={handleSearch}>
+              <div className="premium-glass-card premium-padding-sm premium-rounded-xl flex items-center">
+                <div className="premium-icon-bg-blue p-2 mr-3 rounded-lg">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
-                </button>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search dashboard..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="premium-text-primary bg-transparent border-none outline-none flex-1 placeholder:text-gray-500"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="premium-icon-bg-purple p-1 rounded-lg ml-2 premium-hover-lift"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            </form>
+          </div>
+
+          {/* Right side - Theme Toggle and User Profile */}
+          <div className="flex items-center">
+            {/* Theme Toggle */}
+            <div className="mr-4">
+              <ThemeToggle />
+            </div>
+
+            {/* Notifications */}
+            <button className="premium-button-secondary premium-hover-lift p-3 mr-4 relative premium-rounded-xl">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-red-500 to-pink-600 text-white text-xs rounded-full flex items-center justify-center premium-glow-purple">
+                3
+              </span>
+            </button>
+
+            {/* User Profile */}
+            <div className="relative">
+              <button
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                className="premium-hover-lift"
+              >
+                <div className="w-10 h-10 premium-rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center text-white font-bold shadow-lg premium-glow-blue">
+                  {currentUser?.name?.charAt(0)?.toUpperCase() || 'U'}
+                </div>
+              </button>
+
+              {isProfileOpen && (
+                <div
+                  className="premium-glass-insights absolute right-0 mt-2 w-56 overflow-hidden"
+                  data-profile-dropdown="true"
+                >
+                  <div className="premium-padding-md border-b premium-border-medium">
+                    <p className="premium-text-primary font-semibold">{currentUser?.name || 'User'}</p>
+                    <p className="premium-text-tiny">{currentUser?.email || 'user@example.com'}</p>
+                  </div>
+                  <div className="py-2">
+                    <button className="premium-glass-card premium-padding-sm premium-hover-lift premium-text-secondary w-full text-left mb-2">
+                      Profile Settings
+                    </button>
+                    <button className="premium-glass-card premium-padding-sm premium-hover-lift premium-text-secondary w-full text-left mb-2">
+                      Preferences
+                    </button>
+                    <button
+                      data-sign-out-button="true"
+                      onClick={handleSignOutClick}
+                      onKeyDown={handleSignOutKeyDown}
+                      className="premium-glass-card premium-padding-sm premium-hover-lift text-red-400 w-full text-left"
+                      style={{ cursor: 'pointer' }}
+                      type="button"
+                      role="button"
+                      tabIndex={0}
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
-          </form>
-        </div>
-
-        {/* Right side - Theme Toggle and User Profile */}
-        <div className="header-right">
-          {/* Theme Toggle */}
-          <div className="mr-3">
-            <ThemeToggle />
-          </div>
-
-          {/* Notifications */}
-          <button className="glass-button glass-button-secondary p-2 mr-3 relative">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-            </svg>
-            <span className="notification-badge">3</span>
-          </button>
-
-          {/* User Profile */}
-          <div className="relative">
-            <button
-              onClick={() => setIsProfileOpen(!isProfileOpen)}
-              className="glass-profile-button"
-            >
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-semibold">
-                {currentUser?.name?.charAt(0)?.toUpperCase() || 'U'}
-              </div>
-            </button>
-
-            {isProfileOpen && (
-              <div
-                className="glass glass-blur-16 glass-shadow-lg absolute right-0 mt-2 w-48 rounded-lg border border-light overflow-hidden"
-                data-profile-dropdown="true"
-              >
-                <div className="p-3 border-b border-light">
-                  <p className="font-semibold">{currentUser?.name || 'User'}</p>
-                  <p className="text-sm opacity-70">{currentUser?.email || 'user@example.com'}</p>
-                </div>
-                <div className="py-1">
-                  <button className="glass-dropdown-item w-full text-left px-3 py-2 hover:bg-hover-bg">
-                    Profile Settings
-                  </button>
-                  <button className="glass-dropdown-item w-full text-left px-3 py-2 hover:bg-hover-bg">
-                    Preferences
-                  </button>
-                  <button
-                    data-sign-out-button="true"
-                    onClick={handleSignOutClick}
-                    onKeyDown={handleSignOutKeyDown}
-                    className="glass-dropdown-item w-full text-left px-3 py-2 hover:bg-hover-bg text-error"
-                    style={{ cursor: 'pointer' }}
-                    type="button"
-                    role="button"
-                    tabIndex={0}
-                  >
-                    Sign Out
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>

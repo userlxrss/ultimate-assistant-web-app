@@ -53,9 +53,9 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
           border: 'border-blue-200/50 dark:border-blue-800/30',
           bg: 'bg-blue-50/95 dark:bg-blue-900/20',
           text: 'text-blue-800 dark:text-blue-200',
-          icon: 'text-blue-500 dark:text-blue-400',
+          icon: 'text-emerald-500 dark:text-emerald-400',
           button: {
-            confirm: 'bg-blue-500 hover:bg-blue-600 text-white',
+            confirm: 'bg-gradient-to-r from-emerald-500/80 to-teal-600/80 hover:from-emerald-500 hover:to-teal-600 text-white',
             cancel: 'bg-gray-200 hover:bg-gray-300 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-300'
           }
         };

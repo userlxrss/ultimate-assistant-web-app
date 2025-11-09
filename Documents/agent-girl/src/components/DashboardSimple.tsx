@@ -4,6 +4,7 @@ import { useTimer } from '../contexts/TimerContext';
 import { formatMinutesDisplay, calculateDailyFocusTime, formatTimerDisplay } from '../utils/timerUtils';
 import { Timer, Plus, Play, Pause, RotateCcw } from 'lucide-react';
 import TimeUpNotification from './tasks/TimeUpNotification';
+import PremiumProductivityCoach from './PremiumProductivityCoach';
 import {
   DashboardStats,
   Task,
@@ -625,236 +626,6 @@ const setCachedArticles = (articles: ProductivityArticle[]): void => {
   }
 };
 
-// Productivity Coach Component
-const ProductivityCoachComponent: React.FC<{
-  articles: ProductivityArticle[];
-  userProfile: UserProfile;
-  onRefresh?: () => void;
-  onArticleClick?: (article: ProductivityArticle) => void;
-}> = ({ articles, userProfile, onRefresh, onArticleClick }) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [showAllArticles, setShowAllArticles] = useState(false);
-
-  const handleRefresh = async () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      onRefresh?.();
-      setIsLoading(false);
-    }, 1500); // Simulate web fetch time
-  };
-
-  const visibleArticles = showAllArticles
-    ? articles
-    : articles.slice(0, 4);
-
-  const handleReadArticle = (article: ProductivityArticle) => {
-    if (onArticleClick) {
-      onArticleClick(article);
-    } else if (article.sourceUrl && article.sourceUrl !== '#') {
-      // Fallback: Open external URL for articles without full content
-      window.open(article.sourceUrl, '_blank', 'noopener,noreferrer');
-    }
-  };
-
-  if (articles.length === 0 && !isLoading) {
-    return (
-      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-8 text-center">
-        <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
-          <span className="text-3xl">🧠</span>
-        </div>
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Your Personal Productivity Coach</h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-          Generating personalized insights based on your data...
-        </p>
-        <div className="flex justify-center">
-          <div className="animate-spin rounded-full h-6 w-6 border-2 border-gray-300 border-t-gray-600"></div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-      {/* Premium Header - NO GRADIENT */}
-      <div className="px-8 py-6 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between">
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-1">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                🧠 AI Insights
-              </h3>
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                Updated today
-              </span>
-            </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Your personalized productivity coach
-            </p>
-          </div>
-          <button
-            onClick={handleRefresh}
-            className="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:hover:bg-transparent"
-            title="Refresh articles"
-            disabled={isLoading}
-          >
-            <svg className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      {/* Premium Content */}
-      <div className="px-8 py-6 space-y-5">
-        {isLoading ? (
-          // Premium loading skeleton cards
-          <div className="space-y-5">
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} className="animate-pulse">
-                <div className="bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl p-6">
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 bg-gray-200 dark:bg-gray-600 rounded-xl flex-shrink-0"></div>
-                    <div className="flex-1 space-y-3">
-                      <div className="h-5 bg-gray-200 dark:bg-gray-600 rounded w-3/4"></div>
-                      <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-full"></div>
-                      <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-5/6"></div>
-                      <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-2/3"></div>
-                      <div className="flex items-center justify-between pt-3">
-                        <div className="flex items-center gap-4">
-                          <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-20"></div>
-                          <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-16"></div>
-                        </div>
-                        <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-16"></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <>
-            {visibleArticles.map((article, index) => (
-              <div
-                key={article.id}
-                className="group bg-white dark:bg-gray-750 border border-gray-200 dark:border-gray-600 rounded-xl p-6 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
-                style={{
-                  animation: `fadeInUp 0.6s ease ${index * 0.08}s both`
-                }}
-                onClick={() => handleReadArticle(article)}
-              >
-                {/* Premium Article Header */}
-                <div className="flex items-start gap-5">
-                  <div className="w-10 h-10 bg-gray-50 dark:bg-gray-700 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <span className="text-xl">{article.icon}</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 leading-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                      {article.title}
-                    </h4>
-
-                    {/* Article Summary */}
-                    <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-4 line-clamp-3">
-                      {article.summary}
-                    </p>
-
-                    {/* Premium Personalization Box */}
-                    {article.personalizations.length > 0 && (
-                      <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg p-4 mb-4">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white mb-2 flex items-center gap-2">
-                          <span className="text-base">💡</span>
-                          Why this matters for you:
-                        </p>
-                        <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-1">
-                          {article.personalizations.slice(0, 2).map((personalization, idx) => (
-                            <li key={idx} className="flex items-start gap-2">
-                              <span className="text-gray-400 mt-1.5 text-xs">•</span>
-                              <span>{personalization}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    {/* Premium Footer */}
-                    <div className="flex items-center justify-between pt-2">
-                      <div className="flex items-center gap-5 text-xs text-gray-500 dark:text-gray-400">
-                        <span className="flex items-center gap-1.5">
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                          </svg>
-                          {article.source}
-                        </span>
-                        <span className="flex items-center gap-1.5">
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          {article.readTime}
-                        </span>
-                      </div>
-                      <button className="flex items-center gap-1 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-all duration-150 hover:translate-x-0.5">
-                        Read more
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-
-            {/* Premium Load More Button */}
-            {articles.length > 4 && !showAllArticles && (
-              <button
-                onClick={() => setShowAllArticles(true)}
-                className="w-full py-3 text-center text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-all duration-200 border border-gray-200 dark:border-gray-600"
-              >
-                Load {articles.length - 4} more articles
-                <svg className="w-4 h-4 inline-block ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-            )}
-
-            {showAllArticles && (
-              <button
-                onClick={() => setShowAllArticles(false)}
-                className="w-full py-3 text-center text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-all duration-200 border border-gray-200 dark:border-gray-600"
-              >
-                Show fewer articles
-                <svg className="w-4 h-4 inline-block ml-2 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-            )}
-          </>
-        )}
-      </div>
-
-      <style>{`
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .line-clamp-3 {
-          display: -webkit-box;
-          -webkit-line-clamp: 3;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-        }
-      `}</style>
-    </div>
-  );
-};
-
 // Compact, Sophisticated Dashboard Timer Component
 const DashboardTimer: React.FC = () => {
   const { timerState, pauseTimer, resumeTimer, stopTimer, addTimeToTimer, markTaskComplete, resetTimeUpNotification } = useTimer();
@@ -927,8 +698,8 @@ const DashboardTimer: React.FC = () => {
         text: 'Start a task timer',
         displayTime: '--:--',
         color: 'text-gray-600',
-        bgColor: 'bg-white',
-        borderColor: 'border-gray-200',
+        bgColor: 'premium-glass-bg',
+        borderColor: 'border-gray-200/10',
         iconBg: 'bg-gray-50',
         iconColor: 'text-gray-400',
         status: 'READY',
@@ -942,8 +713,8 @@ const DashboardTimer: React.FC = () => {
         text: 'Timer Paused',
         displayTime: formatTimerDisplay(remainingTime),
         color: 'text-amber-600',
-        bgColor: 'bg-white',
-        borderColor: 'border-amber-200',
+        bgColor: 'premium-glass-bg',
+        borderColor: 'border-amber-200/30',
         iconBg: 'bg-amber-50',
         iconColor: 'text-amber-500',
         status: 'PAUSED',
@@ -959,8 +730,8 @@ const DashboardTimer: React.FC = () => {
         text: 'Overtime',
         displayTime: `+${formatTimerDisplay(timerState.overtimeTime, true)}`,
         color: 'text-red-600',
-        bgColor: 'bg-white',
-        borderColor: 'border-red-200',
+        bgColor: 'premium-glass-bg',
+        borderColor: 'border-red-200/30',
         iconBg: 'bg-red-50',
         iconColor: 'text-red-500',
         status: 'OVERTIME',
@@ -972,8 +743,8 @@ const DashboardTimer: React.FC = () => {
       text: 'Timer Running',
       displayTime: formatTimerDisplay(remainingTime),
       color: 'text-emerald-600',
-      bgColor: 'bg-white',
-      borderColor: 'border-emerald-200',
+      bgColor: 'premium-glass-bg',
+      borderColor: 'border-emerald-200/30',
       iconBg: 'bg-emerald-50',
       iconColor: 'text-emerald-500',
       status: 'ACTIVE',
@@ -1009,7 +780,7 @@ const DashboardTimer: React.FC = () => {
               <>
                 <button
                   onClick={() => addTimeToTimer(15)}
-                  className="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors duration-150"
+                  className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700/20 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-150 hover:scale-110"
                   title="Add 15 minutes"
                 >
                   <Plus className="w-4 h-4" />
@@ -1017,7 +788,7 @@ const DashboardTimer: React.FC = () => {
 
                 <button
                   onClick={stopTimer}
-                  className="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors duration-150"
+                  className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700/20 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-150 hover:scale-110"
                   title="Stop timer"
                 >
                   <RotateCcw className="w-4 h-4" />
@@ -1029,7 +800,7 @@ const DashboardTimer: React.FC = () => {
             <button
               onClick={timerState.isRunning ? (timerState.isPaused ? resumeTimer : pauseTimer) : undefined}
               disabled={!timerState.isRunning}
-              className={`p-2.5 rounded-lg transition-colors duration-150 ${
+              className={`p-2.5 rounded-lg transition-colors duration-150 hover:scale-110 ${
                 !timerState.isRunning
                   ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                   : timerState.isPaused
@@ -1075,7 +846,7 @@ const DashboardTimer: React.FC = () => {
               <button
                 key={task.id}
                 onClick={() => {/* Handle task start */}}
-                className="px-3 py-1.5 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-700 hover:text-gray-900 transition-colors duration-150 border border-gray-200"
+                className="px-3 py-1.5 rounded-lg premium-glass-bg hover:premium-glass-hover text-gray-700 dark:text-gray-300 transition-colors duration-150 border border-gray-200/10 dark:border-gray-700/30 hover:scale-105"
               >
                 {task.title}
               </button>
@@ -1304,7 +1075,7 @@ const DashboardSimple: React.FC = () => {
     <div className="space-y-6 p-6 theme-bg-primary">
       {/* Timer moved to Tasks tab only - removed from Dashboard */}
 
-      {/* Stats Cards */}
+      {/* Premium Stats Cards */}
       <DashboardStatsComponent
         stats={dashboardStats}
         previousStats={previousStats}
@@ -1312,8 +1083,8 @@ const DashboardSimple: React.FC = () => {
         dateRange={dateRange}
       />
 
-      {/* Productivity Coach */}
-      <ProductivityCoachComponent
+      {/* Premium Productivity Coach */}
+      <PremiumProductivityCoach
         articles={productivityArticles}
         userProfile={userProfile}
         onRefresh={handleRefreshArticles}
@@ -1339,10 +1110,10 @@ const ArticleModal: React.FC<{
   if (!article) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-4xl max-h-[90vh] w-full overflow-hidden shadow-2xl border border-gray-200 dark:border-gray-700">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="premium-glass-bg rounded-2xl max-w-4xl max-h-[90vh] w-full overflow-hidden shadow-2xl border border-gray-200/10 dark:border-gray-700/30">
         {/* Modal Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200/10 dark:border-gray-700/30">
           <div className="flex items-center gap-4">
             <div className="text-4xl">{article.icon}</div>
             <div>
@@ -1356,7 +1127,7 @@ const ArticleModal: React.FC<{
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+            className="p-2 premium-glass-bg rounded-full transition-all duration-200 hover:scale-110 border border-gray-200/10 dark:border-gray-700/30"
           >
             <svg className="w-6 h-6 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1401,7 +1172,7 @@ const ArticleModal: React.FC<{
                 href={article.sourceUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500/80 to-purple-600/80 hover:from-blue-500 hover:to-purple-600 text-white rounded-xl transition-all duration-200 hover:scale-105 shadow-lg"
                 onClick={onClose}
               >
                 Read Full Article

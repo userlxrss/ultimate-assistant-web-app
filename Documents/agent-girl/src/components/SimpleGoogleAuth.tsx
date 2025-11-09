@@ -411,7 +411,7 @@ const SimpleGoogleAuth: React.FC = () => {
             <button
               onClick={initiateGoogleAuth}
               disabled={isLoading}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
+              className="w-full bg-gradient-to-r from-emerald-500/80 to-teal-600/80 hover:from-emerald-500 hover:to-teal-600 disabled:bg-gray-400 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
             >
               {isLoading ? (
                 <>

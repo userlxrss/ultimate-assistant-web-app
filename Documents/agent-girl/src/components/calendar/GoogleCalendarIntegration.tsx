@@ -197,7 +197,7 @@ export const GoogleCalendarIntegration: React.FC<GoogleCalendarIntegrationProps>
   return (
     <div className="glass-card">
       <div className="flex items-center gap-2 mb-4">
-        <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+        <Calendar className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Google Calendar Integration</h3>
       </div>
 
@@ -205,13 +205,13 @@ export const GoogleCalendarIntegration: React.FC<GoogleCalendarIntegrationProps>
         <div className="space-y-4">
           <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
             <div className="flex items-start gap-3">
-              <ExternalLink className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+              <ExternalLink className="w-5 h-5 text-emerald-600 dark:text-emerald-400 mt-0.5" />
               <div>
                 <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-1">Connect Your Google Calendar</h4>
                 <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
                   Sync your Google Calendar events to keep everything in one place.
                 </p>
-                <ol className="text-xs text-blue-600 dark:text-blue-400 space-y-1 list-decimal list-inside mb-3">
+                <ol className="text-xs text-emerald-600 dark:text-emerald-400 space-y-1 list-decimal list-inside mb-3">
                   <li>Go to <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer" className="underline font-medium">Google Cloud Console</a></li>
                   <li>Enable the Google Calendar API</li>
                   <li>Create OAuth 2.0 credentials (Client ID)</li>
@@ -225,7 +225,7 @@ export const GoogleCalendarIntegration: React.FC<GoogleCalendarIntegrationProps>
           {!showApiKeySettings ? (
             <button
               onClick={() => setShowApiKeySettings(true)}
-              className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2"
+              className="w-full py-3 bg-gradient-to-r from-emerald-500/80 to-teal-600/80 hover:from-emerald-500 hover:to-teal-600 text-white rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2"
             >
               <Settings className="w-4 h-4" />
               Configure Google Calendar
@@ -262,7 +262,7 @@ export const GoogleCalendarIntegration: React.FC<GoogleCalendarIntegrationProps>
                 <button
                   onClick={handleConnect}
                   disabled={isConnecting || !apiKey.trim() || !clientId.trim()}
-                  className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2"
+                  className="flex-1 py-2 bg-gradient-to-r from-emerald-500/80 to-teal-600/80 hover:from-emerald-500 hover:to-teal-600 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2"
                 >
                   {isConnecting ? (
                     <>
@@ -312,7 +312,7 @@ export const GoogleCalendarIntegration: React.FC<GoogleCalendarIntegrationProps>
             <button
               onClick={handleSync}
               disabled={isSyncing}
-              className="py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2"
+              className="py-2 bg-gradient-to-r from-emerald-500/80 to-teal-600/80 hover:from-emerald-500 hover:to-teal-600 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2"
             >
               {isSyncing ? (
                 <>

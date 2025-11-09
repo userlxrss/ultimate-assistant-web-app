@@ -113,7 +113,7 @@ const RealGoogleContactsComponent: React.FC = () => {
         <div className="max-w-md mx-auto">
           <div className="text-center mb-8">
             <div className="w-20 h-20 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Users className="w-10 h-10 text-blue-600 dark:text-blue-400" />
+              <Users className="w-10 h-10 text-emerald-600 dark:text-emerald-400" />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
               Connect Google Contacts
@@ -141,7 +141,7 @@ const RealGoogleContactsComponent: React.FC = () => {
           <button
             onClick={handleConnectGoogle}
             disabled={loading}
-            className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2"
+            className="w-full py-3 bg-gradient-to-r from-emerald-500/80 to-teal-600/80 hover:from-emerald-500 hover:to-teal-600 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2"
           >
             {loading ? (
               <>
@@ -239,7 +239,7 @@ const RealGoogleContactsComponent: React.FC = () => {
             <div className="text-sm text-gray-600 dark:text-gray-400">Total Contacts</div>
           </div>
           <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+            <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
               {stats.withEmail}
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">With Email</div>
@@ -292,7 +292,7 @@ const RealGoogleContactsComponent: React.FC = () => {
       {/* Loading */}
       {loading && (
         <div className="flex items-center justify-center py-12">
-          <RefreshCw className="w-8 h-8 animate-spin text-blue-600 dark:text-blue-400" />
+          <RefreshCw className="w-8 h-8 animate-spin text-emerald-600 dark:text-emerald-400" />
           <span className="ml-3 text-gray-600 dark:text-gray-400">
             Loading your Google Contacts...
           </span>
@@ -391,7 +391,7 @@ const RealGoogleContactsComponent: React.FC = () => {
                  (contact.organizations && contact.organizations.length > 1) ? (
                   <div className="flex-shrink-0">
                     <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
-                      <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                      <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
                         +{[
                           ...(contact.emails || []),
                           ...(contact.phoneNumbers || []),

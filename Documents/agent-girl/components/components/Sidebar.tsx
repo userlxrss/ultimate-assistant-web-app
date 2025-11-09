@@ -101,9 +101,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, isMobile }) 
       <div key={item.id}>
         <button
           className={`
-            glass-nav-item
-            ${item.active ? 'glass-nav-item-active' : ''}
-            ${level > 0 ? 'pl-12' : ''}
+            premium-glass-card w-full mb-2 premium-hover-lift premium-padding-sm
+            ${item.active ? 'premium-glow-blue' : ''}
+            ${level > 0 ? 'ml-6' : ''}
           `}
           onClick={() => {
             if (hasChildren) {
@@ -113,16 +113,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, isMobile }) 
         >
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center">
-              {item.icon && <span className="mr-3">{item.icon}</span>}
-              <span className="font-medium">{item.label}</span>
+              {item.icon && <span className="mr-3 premium-icon-bg-blue p-2 rounded-lg">{item.icon}</span>}
+              <span className="premium-text-secondary font-medium">{item.label}</span>
             </div>
             <div className="flex items-center">
               {item.badge && (
-                <span className="glass-badge mr-2">{item.badge}</span>
+                <span className="premium-glass-card premium-padding-sm premium-text-primary premium-glow-blue mr-2 premium-rounded-lg">
+                  {item.badge}
+                </span>
               )}
               {hasChildren && (
                 <svg
-                  className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                  className={`w-4 h-4 premium-text-muted transition-transform ${isExpanded ? 'rotate-90' : ''}`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -135,7 +137,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, isMobile }) 
         </button>
 
         {hasChildren && isExpanded && (
-          <div className="glass-nav-children">
+          <div className="premium-gap-sm mt-2">
             {item.children!.map(child => renderNavItem(child, level + 1))}
           </div>
         )}
@@ -148,30 +150,30 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, isMobile }) 
       {/* Mobile overlay */}
       {isMobile && isOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
           onClick={onToggle}
         />
       )}
 
-      {/* Sidebar */}
+      {/* Premium Sidebar */}
       <aside className={`
-        glass glass-blur-16 glass-shadow-xl border-r border-light
+        premium-glass-sidebar
         fixed lg:relative h-screen z-50
         transition-all duration-300 ease-in-out
-        ${isOpen ? 'w-64' : 'w-0 lg:w-16'}
+        ${isOpen ? 'w-72' : 'w-0 lg:w-20'}
         ${isMobile ? (isOpen ? 'translate-x-0' : '-translate-x-full') : ''}
         overflow-hidden
       `}>
-        <div className="h-full flex flex-col">
+        <div className="h-full flex flex-col premium-gap-lg">
           {/* Sidebar Header */}
-          <div className="p-4 border-b border-light">
+          <div className="premium-padding-lg border-b premium-border-medium">
             <div className="flex items-center justify-between">
-              <h2 className={`font-bold text-lg transition-opacity ${isOpen ? 'opacity-100' : 'opacity-0 lg:hidden'}`}>
+              <h2 className={`premium-text-primary premium-heading-3 transition-opacity ${isOpen ? 'opacity-100' : 'opacity-0 lg:hidden'}`}>
                 Navigation
               </h2>
               <button
                 onClick={onToggle}
-                className="glass-button glass-button-secondary p-2"
+                className="premium-button-secondary premium-hover-lift p-3 premium-rounded-xl"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -181,22 +183,22 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, isMobile }) 
           </div>
 
           {/* Navigation Items */}
-          <nav className="flex-1 p-4 overflow-y-auto">
-            <div className="space-y-1">
+          <nav className="flex-1 premium-padding-lg overflow-y-auto">
+            <div className="premium-gap-md">
               {navigationItems.map(item => renderNavItem(item))}
             </div>
           </nav>
 
           {/* Sidebar Footer */}
-          <div className="p-4 border-t border-light">
-            <div className={`glass-card glass-card-sm ${isOpen ? 'opacity-100' : 'opacity-0 lg:hidden'}`}>
+          <div className="premium-padding-lg border-t premium-border-medium">
+            <div className={`premium-glass-card premium-padding-lg premium-hover-lift ${isOpen ? 'opacity-100' : 'opacity-0 lg:hidden'}`}>
               <div className="flex items-center">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-success to-primary flex items-center justify-center text-white text-sm font-bold">
+                <div className="w-10 h-10 premium-rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-bold shadow-lg">
                   P
                 </div>
-                <div className="ml-3">
-                  <p className="font-semibold text-sm">Premium Plan</p>
-                  <p className="text-xs opacity-70">Member since 2024</p>
+                <div className="ml-4">
+                  <p className="premium-text-primary font-semibold">Premium Plan</p>
+                  <p className="premium-text-tiny">Member since 2024</p>
                 </div>
               </div>
             </div>

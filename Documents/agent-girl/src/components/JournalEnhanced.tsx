@@ -819,7 +819,7 @@ const JournalEnhanced: React.FC = () => {
                       ...prev,
                       tags: prev.tags.filter((_, i) => i !== index)
                     }))}
-                    className="ml-1 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200"
+                    className="ml-1 text-emerald-600 dark:text-emerald-400 hover:text-blue-800 dark:hover:text-blue-200"
                   >
                     ×
                   </button>

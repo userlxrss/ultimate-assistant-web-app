@@ -166,7 +166,7 @@ export const SimpleEmailClient: React.FC<SimpleEmailClientProps> = ({ onBack }) 
       <div className="p-6">
         <div className="max-w-md mx-auto">
           <div className="flex items-center justify-center w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full mx-auto mb-4">
-            <Mail className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+            <Mail className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
           </div>
 
           <h2 className="text-2xl font-bold text-center mb-2 text-gray-900 dark:text-white">
@@ -224,7 +224,7 @@ export const SimpleEmailClient: React.FC<SimpleEmailClientProps> = ({ onBack }) 
             <button
               onClick={handleConnect}
               disabled={isLoading || !emailConfig.email || !emailConfig.password}
-              className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+              className="w-full py-3 bg-gradient-to-r from-emerald-500/80 to-teal-600/80 hover:from-emerald-500 hover:to-teal-600 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
             >
               {isLoading ? (
                 <>
@@ -293,7 +293,7 @@ export const SimpleEmailClient: React.FC<SimpleEmailClientProps> = ({ onBack }) 
             <div className="flex gap-3">
               <button
                 onClick={handleSendEmail}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                className="px-4 py-2 bg-gradient-to-r from-emerald-500/80 to-teal-600/80 hover:from-emerald-500 hover:to-teal-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
               >
                 <Send className="w-4 h-4" />
                 Send Email
@@ -325,7 +325,7 @@ export const SimpleEmailClient: React.FC<SimpleEmailClientProps> = ({ onBack }) 
         <div className="flex items-center gap-3">
           <button
             onClick={() => setIsComposing(true)}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+            className="px-4 py-2 bg-gradient-to-r from-emerald-500/80 to-teal-600/80 hover:from-emerald-500 hover:to-teal-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
           >
             <Mail className="w-4 h-4" />
             Compose

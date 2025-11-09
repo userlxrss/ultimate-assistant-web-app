@@ -66,7 +66,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
         return {
           bgLight: 'bg-blue-50 dark:bg-blue-950/30',
           bgDark: 'bg-blue-500',
-          text: 'text-blue-600 dark:text-blue-400',
+          text: 'text-emerald-600 dark:text-emerald-400',
           border: 'border-blue-200 dark:border-blue-900/50',
           icon: <Target className="w-4 h-4" />,
           label: 'Medium'
@@ -105,7 +105,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
       case 'in-progress':
         return {
           bgLight: 'bg-blue-50 dark:bg-blue-950/30',
-          text: 'text-blue-600 dark:text-blue-400',
+          text: 'text-emerald-600 dark:text-emerald-400',
           border: 'border-blue-200 dark:border-blue-900/50',
           icon: <Timer className="w-4 h-4" />,
           label: 'In Progress'
@@ -294,7 +294,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                     statusMessage.includes('Error')
                       ? 'bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400'
                       : statusMessage.includes('Syncing') || statusMessage.includes('Updating')
-                      ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400'
+                      ? 'bg-blue-100 dark:bg-blue-900/50 text-emerald-600 dark:text-emerald-400'
                       : 'bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400'
                   }`}>
                     {statusMessage}

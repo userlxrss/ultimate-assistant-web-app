@@ -324,7 +324,7 @@ export const EnhancedOAuthIntegration: React.FC<EnhancedOAuthIntegrationProps> =
             {/* Service Header */}
             <div className="flex items-center gap-3 mb-4">
               <div className={`w-10 h-10 bg-${service.color}-100 dark:bg-${service.color}-900 rounded-lg flex items-center justify-center ${
-                service.color === 'blue' ? 'text-blue-600 dark:text-blue-400' :
+                service.color === 'blue' ? 'text-emerald-600 dark:text-emerald-400' :
                 service.color === 'purple' ? 'text-purple-600 dark:text-purple-400' :
                 'text-gray-600 dark:text-gray-400'
               }`}>
@@ -381,7 +381,7 @@ export const EnhancedOAuthIntegration: React.FC<EnhancedOAuthIntegrationProps> =
                   onClick={() => service.id === 'google' ? connectGoogle() : connectMotion()}
                   disabled={isConnecting[service.id]}
                   className={`w-full py-2 bg-${service.color}-600 hover:bg-${service.color}-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2 ${
-                    service.color === 'blue' ? 'bg-blue-600 hover:bg-blue-700' :
+                    service.color === 'blue' ? 'bg-gradient-to-r from-emerald-500/80 to-teal-600/80 hover:from-emerald-500 hover:to-teal-600' :
                     service.color === 'purple' ? 'bg-purple-600 hover:bg-purple-700' :
                     'bg-gray-600 hover:bg-gray-700'
                   }`}
@@ -439,7 +439,7 @@ export const EnhancedOAuthIntegration: React.FC<EnhancedOAuthIntegrationProps> =
       {!compact && (
         <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
           <div className="flex items-start gap-3">
-            <Shield className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+            <Shield className="w-5 h-5 text-emerald-600 dark:text-emerald-400 mt-0.5" />
             <div>
               <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-1">
                 Secure & Private

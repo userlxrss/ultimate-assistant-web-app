@@ -11,6 +11,8 @@ export const JournalEntriesCard: React.FC = () => {
     lastEntry: null as Date | null,
   });
 
+  const isDark = theme === 'dark' || document.documentElement.classList.contains('dark');
+
   useEffect(() => {
     // Load real journal data from localStorage
     const loadJournalStats = () => {
@@ -188,65 +190,71 @@ export const JournalEntriesCard: React.FC = () => {
   };
 
   const getStreakColor = (streak: number) => {
-    if (streak >= 30) return 'text-primary';
-    if (streak >= 14) return 'text-success';
-    if (streak >= 7) return 'text-warning';
-    return 'text-secondary';
+    if (streak >= 30) return 'text-purple-400';
+    if (streak >= 14) return 'text-green-400';
+    if (streak >= 7) return 'text-amber-400';
+    return 'text-gray-400';
   };
 
   return (
-    <div className="glass glass-blur-16 glass-shadow-lg rounded-xl p-6 hover:shadow-xl transition-all duration-300 group cursor-pointer">
-      <div className="flex items-start justify-between mb-4">
+    <div className="premium-glass-card premium-padding-lg premium-hover-lift premium-animate-in premium-glow-purple h-full">
+      <div className="flex items-start justify-between mb-6">
         <div>
-          <h3 className="font-semibold text-lg">Journal Entries</h3>
-          <p className="text-sm opacity-70">Track your thoughts</p>
+          <h3 className="premium-text-primary premium-heading-3">Journal Entries</h3>
+          <p className="premium-text-muted text-sm">Track your thoughts</p>
         </div>
-        <div className="glass glass-blur-8 rounded-lg p-2 group-hover:scale-110 transition-transform">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="premium-icon-bg-purple p-3 rounded-xl premium-hover-lift">
+          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
           </svg>
         </div>
       </div>
 
       {/* Main Stats */}
-      <div className="mb-4">
+      <div className="mb-6">
         <div className="flex items-baseline">
-          <span className="text-3xl font-bold mr-2">{journalStats.totalEntries}</span>
-          <span className="text-lg opacity-70">entries</span>
+          <span className="text-4xl font-bold premium-text-primary mr-2">{journalStats.totalEntries}</span>
+          <span className="text-xl premium-text-muted">entries</span>
         </div>
-        <div className="text-sm opacity-70 mt-1">
+        <div className="premium-text-tiny mt-2">
           {journalStats.thisWeek} this week
         </div>
       </div>
 
       {/* Streak Information */}
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <div className="glass glass-blur-8 rounded-lg p-3 text-center">
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="premium-glass-card premium-padding-md text-center">
           <div className={`text-2xl font-bold ${getStreakColor(journalStats.currentStreak)}`}>
             {journalStats.currentStreak}
           </div>
-          <div className="text-xs opacity-70">Current streak</div>
+          <div className="premium-text-tiny">
+            Current streak
+          </div>
         </div>
-        <div className="glass glass-blur-8 rounded-lg p-3 text-center">
-          <div className="text-2xl font-bold text-secondary">
+        <div className="premium-glass-card premium-padding-md text-center">
+          <div className="text-2xl font-bold premium-text-secondary">
             {journalStats.longestStreak}
           </div>
-          <div className="text-xs opacity-70">Longest streak</div>
+          <div className="premium-text-tiny">
+            Longest streak
+          </div>
         </div>
       </div>
 
       {/* Last Entry */}
-      <div className="flex items-center justify-between pt-4 border-t border-light/50 mb-4">
-        <span className="text-sm opacity-70">Last entry</span>
-        <span className="text-sm font-medium">{formatDate(journalStats.lastEntry)}</span>
+      <div className="flex items-center justify-between pt-4 border-t premium-border-subtle mb-6">
+        <span className="premium-text-muted text-sm">Last entry</span>
+        <span className="premium-text-secondary font-medium">
+          {formatDate(journalStats.lastEntry)}
+        </span>
       </div>
 
-      {/* Quick Actions */}
-      <div className="flex gap-2">
-        <button className="glass-button glass-button-primary flex-1 text-sm">
+      {/* Premium Quick Actions */}
+      <div className="flex gap-3">
+        <button className="premium-button flex-1 text-sm premium-hover-glow">
           Write Entry
         </button>
-        <button className="glass-button glass-button-secondary text-sm px-3">
+        <button className="premium-button-secondary text-sm premium-padding-md premium-rounded-xl premium-hover-lift">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
@@ -255,8 +263,8 @@ export const JournalEntriesCard: React.FC = () => {
 
       {/* Streak Celebration Animation */}
       {journalStats.currentStreak >= 7 && (
-        <div className="absolute top-2 right-2">
-          <span className="text-2xl animate-bounce">🔥</span>
+        <div className="absolute top-4 right-4">
+          <span className="text-3xl animate-bounce">🔥</span>
         </div>
       )}
     </div>

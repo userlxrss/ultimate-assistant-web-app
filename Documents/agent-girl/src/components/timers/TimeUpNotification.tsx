@@ -64,7 +64,7 @@ export const TimeUpNotification: React.FC<TimeUpNotificationProps> = ({
 
           <button
             onClick={onAddTime}
-            className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors shadow-lg hover:shadow-xl transform hover:scale-105 duration-200"
+            className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500/80 to-teal-600/80 hover:from-emerald-500 hover:to-teal-600 text-white rounded-lg font-medium transition-colors shadow-lg hover:shadow-xl transform hover:scale-105 duration-200"
           >
             <Plus className="w-5 h-5" />
             ⏱️ Add 15 mins

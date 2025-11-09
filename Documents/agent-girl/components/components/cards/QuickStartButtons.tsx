@@ -23,7 +23,7 @@ export const QuickStartButtons: React.FC = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
         </svg>
       ),
-      color: 'from-primary to-blue-600',
+      color: 'from-blue-500 to-indigo-600',
       action: () => console.log('Opening journal...'),
     },
     {
@@ -35,7 +35,7 @@ export const QuickStartButtons: React.FC = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
         </svg>
       ),
-      color: 'from-success to-emerald-600',
+      color: 'from-green-500 to-emerald-600',
       action: () => console.log('Adding new task...'),
     },
     {
@@ -59,7 +59,7 @@ export const QuickStartButtons: React.FC = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       ),
-      color: 'from-warning to-amber-600',
+      color: 'from-amber-500 to-orange-600',
       action: () => console.log('Tracking goal...'),
     },
     {
@@ -71,7 +71,7 @@ export const QuickStartButtons: React.FC = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
         </svg>
       ),
-      color: 'from-info to-cyan-600',
+      color: 'from-cyan-500 to-blue-600',
       action: () => console.log('Logging habit...'),
     },
     {
@@ -83,80 +83,77 @@ export const QuickStartButtons: React.FC = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
         </svg>
       ),
-      color: 'from-secondary to-gray-600',
+      color: 'from-pink-500 to-rose-600',
       action: () => console.log('Opening analytics...'),
     },
   ];
 
   return (
-    <div className="glass glass-blur-16 glass-shadow-lg rounded-xl p-6">
-      <h3 className="text-lg font-semibold mb-4">Quick Start</h3>
+    <div className="premium-glass-card premium-padding-lg premium-animate-in premium-glow-blue">
+      <h3 className="premium-text-primary premium-heading-3 mb-6">Quick Start Actions</h3>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {quickActions.map((action) => (
           <button
             key={action.id}
             onClick={action.action}
             className={`
-              group relative overflow-hidden
-              glass glass-blur-8 rounded-lg p-4
-              text-left transition-all duration-300
-              hover:glass-blur-16 hover:scale-105 hover:shadow-lg
-              border border-light/50 hover:border-accent-primary/50
-              active:scale-95
+              premium-glass-card premium-padding-lg premium-hover-lift
+              text-left transition-all duration-300 group
+              relative overflow-hidden
             `}
           >
             {/* Gradient Background Overlay */}
             <div className={`
               absolute inset-0 bg-gradient-to-br ${action.color} opacity-0
-              group-hover:opacity-10 transition-opacity duration-300
+              group-hover:opacity-10 transition-opacity duration-500
             `} />
 
             {/* Content */}
             <div className="relative z-10">
               <div className={`
-                w-12 h-12 rounded-lg glass glass-blur-16
-                flex items-center justify-center mb-3
+                w-14 h-14 premium-rounded-xl
+                flex items-center justify-center mb-4
                 group-hover:scale-110 transition-transform duration-300
-                bg-gradient-to-br ${action.color} text-white
+                bg-gradient-to-br ${action.color} text-white shadow-lg
               `}>
                 {action.icon}
               </div>
 
-              <h4 className="font-semibold text-text-primary mb-1 group-hover:text-accent-primary transition-colors">
+              <h4 className="premium-text-primary font-semibold mb-2 group-hover:text-blue-300 transition-colors">
                 {action.title}
               </h4>
 
-              <p className="text-sm text-text-secondary opacity-80">
+              <p className="premium-text-tiny">
                 {action.description}
               </p>
 
               {/* Hover Arrow */}
               <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <svg className="w-5 h-5 text-accent-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </div>
             </div>
 
-            {/* Ripple Effect */}
+            {/* Shimmer Effect */}
             <div className="absolute inset-0 -z-10">
-              <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-700 group-hover:translate-x-full"></div>
             </div>
           </button>
         ))}
       </div>
 
-      {/* Bottom Action */}
-      <div className="mt-6 pt-6 border-t border-light/50">
+      {/* Premium Bottom Action */}
+      <div className="premium-padding-lg border-t premium-border-medium">
         <div className="flex items-center justify-between">
           <div>
-            <h4 className="font-medium text-text-primary">Need help getting started?</h4>
-            <p className="text-sm text-text-secondary opacity-70">
-              Take a guided tour of all features
+            <h4 className="premium-text-primary font-semibold mb-2">Need help getting started?</h4>
+            <p className="premium-text-tiny">
+              Take a guided tour of all premium features
             </p>
           </div>
-          <button className="glass-button glass-button-primary">
+          <button className="premium-button premium-hover-glow px-8">
             Start Tour
           </button>
         </div>

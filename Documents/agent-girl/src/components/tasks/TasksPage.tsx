@@ -1176,9 +1176,9 @@ const [hasShownTimeUpNotification, setHasShownTimeUpNotification] = useState(fal
               <div className="flex items-center justify-between">
                 {/* Status Badge with Animation */}
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <div className="px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 rounded-full border border-blue-200/50 dark:border-blue-700/50">
-                    <span className="text-[10px] font-semibold text-blue-700 dark:text-blue-300 uppercase">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <div className="px-2 py-0.5 bg-green-500/20 dark:bg-green-500/10 rounded-full border border-green-500/30 dark:border-green-500/20">
+                    <span className="text-[10px] font-semibold text-green-700 dark:text-green-300 uppercase">
                       Working
                     </span>
                   </div>
@@ -1192,9 +1192,9 @@ const [hasShownTimeUpNotification, setHasShownTimeUpNotification] = useState(fal
                     title={isTimerRunning ? "Pause" : "Start"}
                   >
                     {isTimerRunning ? (
-                      <Pause className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                      <Pause className="w-4 h-4 text-gray-700 dark:text-gray-300" />
                     ) : (
-                      <Play className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                      <Play className="w-4 h-4 text-gray-700 dark:text-gray-300" />
                     )}
                   </button>
                   <button
@@ -1353,7 +1353,7 @@ const [hasShownTimeUpNotification, setHasShownTimeUpNotification] = useState(fal
               onClick={() => setViewMode('list')}
               className={`p-1.5 rounded transition-colors ${
                 viewMode === 'list'
-                  ? 'bg-gray-100 dark:bg-gray-700 text-blue-600 dark:text-blue-400'
+                  ? 'bg-white/10 dark:bg-white/10 text-white border border-white/20'
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
               }`}
               title="List view"
@@ -1364,7 +1364,7 @@ const [hasShownTimeUpNotification, setHasShownTimeUpNotification] = useState(fal
               onClick={() => setViewMode('grid')}
               className={`p-1.5 rounded transition-colors ${
                 viewMode === 'grid'
-                  ? 'bg-gray-100 dark:bg-gray-700 text-blue-600 dark:text-blue-400'
+                  ? 'bg-white/10 dark:bg-white/10 text-white border border-white/20'
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
               }`}
               title="Grid view"
@@ -1388,7 +1388,7 @@ const [hasShownTimeUpNotification, setHasShownTimeUpNotification] = useState(fal
           {/* Add Task Button */}
           <button
             onClick={() => setIsFormOpen(true)}
-            className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-all shadow-sm hover:shadow-md flex items-center gap-2"
+            className="px-6 py-3 rounded-xl bg-slate-700/50 hover:bg-slate-700/70 text-white font-medium transition-all border border-slate-600/50 flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
             Add Task

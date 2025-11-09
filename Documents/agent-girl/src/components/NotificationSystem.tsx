@@ -194,7 +194,7 @@ const NotificationItem: React.FC<{
           border: 'border-blue-200/50 dark:border-blue-800/30',
           bg: 'bg-blue-50/90 dark:bg-blue-900/20',
           text: 'text-blue-800 dark:text-blue-200',
-          icon: 'text-blue-500 dark:text-blue-400',
+          icon: 'text-emerald-500 dark:text-emerald-400',
           button: 'hover:bg-blue-100/80 dark:hover:bg-blue-800/30'
         };
       default:

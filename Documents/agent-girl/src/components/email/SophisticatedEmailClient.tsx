@@ -540,7 +540,7 @@ const SophisticatedEmailClient: React.FC = () => {
 
             <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 p-4 rounded-xl mb-6 border border-blue-200 dark:border-blue-800">
               <div className="flex items-start gap-3">
-                <Zap className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                <Zap className="w-5 h-5 text-emerald-600 dark:text-emerald-400 mt-0.5 flex-shrink-0" />
                 <div className="text-sm">
                   <p className="font-semibold text-blue-900 dark:text-blue-100 mb-1">Lightning Fast Setup</p>
                   <ol className="text-blue-700 dark:text-blue-300 space-y-1">

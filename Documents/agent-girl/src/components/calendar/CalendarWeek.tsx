@@ -230,7 +230,7 @@ export const CalendarWeek: React.FC<CalendarWeekProps> = ({
               }`}>
                 <div className="text-xs text-gray-500 dark:text-gray-400">{DAYS[day.getDay()]}</div>
                 <div className={`text-sm font-medium ${
-                  isCurrentDay ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'
+                  isCurrentDay ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-900 dark:text-white'
                 }`}>
                   {format(day, 'd')}
                 </div>

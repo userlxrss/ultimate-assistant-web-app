@@ -55,13 +55,14 @@ const CalendarView: React.FC<CalendarViewProps> = ({ entries, onEditEntry, onDel
 
     // Empty cells for days before month starts
     for (let i = 0; i < firstDay; i++) {
-      days.push(<div key={`empty-${i}`} className="p-2"></div>);
+      days.push(<div key={`empty-${i}`} className="aspect-square"></div>);
     }
 
     // Days of the month
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
       const dayEntries = getEntriesForDate(date);
+      const hasEntries = dayEntries.length > 0;
       const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString();
       const isToday = date.toDateString() === new Date().toDateString();
 
@@ -69,29 +70,23 @@ const CalendarView: React.FC<CalendarViewProps> = ({ entries, onEditEntry, onDel
         <div
           key={day}
           onClick={() => setSelectedDate(date)}
-          className={`p-2 border border-white/10 rounded-lg cursor-pointer transition-all duration-200 min-h-[60px] ${
+          className={`aspect-square flex items-center justify-center rounded-lg cursor-pointer transition-all duration-200 p-3 w-10 h-10 ${
             isSelected
-              ? 'bg-sage-500/20 border-sage-500/50'
-              : isToday
-              ? 'bg-white/10 border-white/20'
-              : 'hover:bg-white/5'
+              ? 'bg-slate-600/70 border-2 border-purple-500/50 scale-105 ring-2 ring-purple-500/30'
+              : hasEntries
+              ? 'bg-slate-700/50 text-white hover:bg-slate-700/70 scale-105'
+              : 'bg-slate-700/50 text-gray-300 hover:bg-slate-700/70'
           }`}
         >
-          <div className={`text-sm font-medium ${isToday ? 'text-sage-600 dark:text-sage-400' : 'text-gray-700 dark:text-gray-300'}`}>
+          <div className={`text-sm font-medium ${
+            isToday && !hasEntries
+              ? 'text-purple-400 font-bold'
+              : hasEntries
+              ? 'text-white'
+              : 'text-gray-300'
+          }`}>
             {day}
           </div>
-          {dayEntries.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-1">
-              {dayEntries.slice(0, 3).map((entry, index) => (
-                <span key={index} className="text-xs">
-                  {getMoodEmoji(entry.mood)}
-                </span>
-              ))}
-              {dayEntries.length > 3 && (
-                <span className="text-xs text-gray-500 dark:text-gray-400">+{dayEntries.length - 3}</span>
-              )}
-            </div>
-          )}
         </div>
       );
     }
@@ -102,13 +97,13 @@ const CalendarView: React.FC<CalendarViewProps> = ({ entries, onEditEntry, onDel
   const selectedDateEntries = selectedDate ? getEntriesForDate(selectedDate) : [];
 
   return (
-    <div className="glass-card">
+    <div className="bg-white dark:bg-slate-800/40 dark:backdrop-blur-xl dark:border dark:border-white/10 rounded-2xl shadow-xl p-6 overflow-hidden max-w-md">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Calendar View</h2>
         <div className="flex items-center gap-2">
           <button
             onClick={() => navigateMonth(-1)}
-            className="p-2 rounded-lg hover:bg-white/10 transition-colors duration-200"
+            className="p-2 rounded-lg dark:bg-slate-700/40 dark:hover:bg-white/10 transition-all duration-200"
           >
             <ChevronLeft className="w-4 h-4 text-gray-600 dark:text-gray-400" />
           </button>
@@ -117,7 +112,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ entries, onEditEntry, onDel
           </span>
           <button
             onClick={() => navigateMonth(1)}
-            className="p-2 rounded-lg hover:bg-white/10 transition-colors duration-200"
+            className="p-2 rounded-lg dark:bg-slate-700/40 dark:hover:bg-white/10 transition-all duration-200"
           >
             <ChevronRight className="w-4 h-4 text-gray-600 dark:text-gray-400" />
           </button>
@@ -128,13 +123,25 @@ const CalendarView: React.FC<CalendarViewProps> = ({ entries, onEditEntry, onDel
       <div className="mb-6">
         <div className="grid grid-cols-7 gap-2 mb-2">
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-            <div key={day} className="text-center text-sm font-medium text-gray-600 dark:text-gray-300">
+            <div key={day} className="text-center text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
               {day}
             </div>
           ))}
         </div>
-        <div className="grid grid-cols-7 gap-2">
+        <div className="grid grid-cols-7 gap-2 w-full">
           {renderCalendarDays()}
+        </div>
+      </div>
+
+      {/* Simplified Legend */}
+      <div className="flex items-center gap-4 text-sm mt-4">
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded bg-slate-700/50"></div>
+          <span className="text-gray-600 dark:text-gray-400">No entry</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded bg-green-600"></div>
+          <span className="text-gray-600 dark:text-gray-400">Has entry</span>
         </div>
       </div>
 

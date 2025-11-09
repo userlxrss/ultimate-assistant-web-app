@@ -283,7 +283,7 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
           <button
             onClick={handleSend}
             disabled={isSending || !to.trim() || !subject.trim() || !body.trim()}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
+            className="px-4 py-2 bg-gradient-to-r from-emerald-500/80 to-teal-600/80 hover:from-emerald-500 hover:to-teal-600 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
           >
             {isSending ? (
               <>

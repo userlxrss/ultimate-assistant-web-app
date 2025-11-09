@@ -235,8 +235,8 @@ const StableMotionIntegration: React.FC = React.memo(() => {
           <div className="text-xs text-gray-600 dark:text-gray-400">Pending</div>
         </div>
         <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-          <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{syncStatus.completed || 0}</div>
-          <div className="text-xs text-blue-600 dark:text-blue-400">Completed</div>
+          <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{syncStatus.completed || 0}</div>
+          <div className="text-xs text-emerald-600 dark:text-emerald-400">Completed</div>
         </div>
         <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
           <div className="text-2xl font-bold text-green-600 dark:text-green-400">{syncStatus.syncing || 0}</div>
@@ -253,7 +253,7 @@ const StableMotionIntegration: React.FC = React.memo(() => {
   return (
     <div className="glass-card">
       <div className="flex items-center gap-2 mb-4">
-        <RefreshCw className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+        <RefreshCw className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Motion Integration</h3>
       </div>
 
@@ -261,13 +261,13 @@ const StableMotionIntegration: React.FC = React.memo(() => {
         <div className="space-y-4">
           <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
             <div className="flex items-start gap-3">
-              <ExternalLink className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+              <ExternalLink className="w-5 h-5 text-emerald-600 dark:text-emerald-400 mt-0.5" />
               <div>
                 <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-1">Connect Your Motion Account</h4>
                 <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
                   Sync your tasks with Motion for AI-powered scheduling and time blocking.
                 </p>
-                <ol className="text-xs text-blue-600 dark:text-blue-400 space-y-1 list-decimal list-inside mb-3">
+                <ol className="text-xs text-emerald-600 dark:text-emerald-400 space-y-1 list-decimal list-inside mb-3">
                   <li>Go to <a href="https://app.usemotion.com/settings/api" target="_blank" rel="noopener noreferrer" className="underline font-medium">Motion Settings → API</a></li>
                   <li>Generate a new API key</li>
                   <li>Copy and paste your API key below</li>
@@ -279,7 +279,7 @@ const StableMotionIntegration: React.FC = React.memo(() => {
           {!showApiKeyInput ? (
             <button
               onClick={() => setShowApiKeyInput(true)}
-              className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2"
+              className="w-full py-3 bg-gradient-to-r from-emerald-500/80 to-teal-600/80 hover:from-emerald-500 hover:to-teal-600 text-white rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2"
               type="button"
             >
               <Link className="w-4 h-4" />
@@ -303,7 +303,7 @@ const StableMotionIntegration: React.FC = React.memo(() => {
                 <button
                   onClick={handleConnectMotion}
                   disabled={isConnecting || !apiKey.trim()}
-                  className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2"
+                  className="flex-1 py-2 bg-gradient-to-r from-emerald-500/80 to-teal-600/80 hover:from-emerald-500 hover:to-teal-600 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2"
                   type="button"
                 >
                   {isConnecting ? (
@@ -357,7 +357,7 @@ const StableMotionIntegration: React.FC = React.memo(() => {
             <button
               onClick={handleSyncNow}
               disabled={isConnecting}
-              className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2"
+              className="flex-1 py-2 bg-gradient-to-r from-emerald-500/80 to-teal-600/80 hover:from-emerald-500 hover:to-teal-600 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2"
               type="button"
             >
               {isConnecting ? (

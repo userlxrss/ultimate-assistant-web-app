@@ -654,7 +654,7 @@ export const SupabaseAuth: React.FC<SupabaseAuthProps> = ({
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-gradient-to-r from-emerald-500/80 to-teal-600/80 hover:from-emerald-500 hover:to-teal-600 text-white font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <>
@@ -706,7 +706,7 @@ export const SupabaseAuth: React.FC<SupabaseAuthProps> = ({
           <button
             type="submit"
             disabled={isSendingReset}
-            className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-gradient-to-r from-emerald-500/80 to-teal-600/80 hover:from-emerald-500 hover:to-teal-600 text-white font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSendingReset ? (
               <>
@@ -782,7 +782,7 @@ export const SupabaseAuth: React.FC<SupabaseAuthProps> = ({
 
       <button
         onClick={() => window.location.reload()}
-        className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-200"
+        className="w-full py-2 bg-gradient-to-r from-emerald-500/80 to-teal-600/80 hover:from-emerald-500 hover:to-teal-600 text-white rounded-lg font-medium transition-colors duration-200"
       >
         Continue to Dashboard
       </button>

@@ -435,7 +435,7 @@ const CalendarApp: React.FC = () => {
                 disabled={isSyncing}
                 className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
                   isGoogleConnected
-                    ? 'bg-blue-500 hover:bg-blue-600 text-white'
+                    ? 'bg-gradient-to-r from-emerald-500/80 to-teal-600/80 hover:from-emerald-500 hover:to-teal-600 text-white'
                     : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
                 } ${isSyncing ? 'opacity-75 cursor-wait' : ''}`}
                 title={isGoogleConnected ? 'Sync with Google Calendar' : 'Connect Google Calendar in Settings'}

@@ -182,7 +182,7 @@ export const EmailViewer: React.FC<EmailViewerProps> = ({
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded flex items-center justify-center">
-                      <Paperclip className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                      <Paperclip className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                     </div>
                     <div>
                       <div className="text-sm font-medium text-gray-900 dark:text-white">
@@ -222,7 +222,7 @@ export const EmailViewer: React.FC<EmailViewerProps> = ({
           <div className="flex gap-2">
             <button
               onClick={onReply}
-              className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2"
+              className="flex-1 py-2 bg-gradient-to-r from-emerald-500/80 to-teal-600/80 hover:from-emerald-500 hover:to-teal-600 text-white rounded-lg font-medium transition-colors duration-200 flex items-center justify-center gap-2"
             >
               <Reply className="w-4 h-4" />
               Reply

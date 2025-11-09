@@ -38,7 +38,7 @@ function GoogleOAuthIntegration({
       icon: <Calendar className="w-5 h-5" />,
       name: 'Calendar',
       description: 'Access and manage your calendar events',
-      color: 'text-blue-600 dark:text-blue-400'
+      color: 'text-emerald-600 dark:text-emerald-400'
     },
     {
       icon: <Users className="w-5 h-5" />,

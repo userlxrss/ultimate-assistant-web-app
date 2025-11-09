@@ -33,7 +33,7 @@ const TaskFilters: React.FC<TaskFiltersProps> = ({ filter, onFilterChange, tasks
 
   const statusOptions = [
     { value: 'pending', label: 'Pending', color: 'text-gray-600 dark:text-gray-400' },
-    { value: 'in-progress', label: 'In Progress', color: 'text-blue-600 dark:text-blue-400' },
+    { value: 'in-progress', label: 'In Progress', color: 'text-emerald-600 dark:text-emerald-400' },
     { value: 'completed', label: 'Completed', color: 'text-green-600 dark:text-green-400' },
     { value: 'cancelled', label: 'Cancelled', color: 'text-red-600 dark:text-red-400' }
   ];

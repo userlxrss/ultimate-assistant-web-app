@@ -474,10 +474,11 @@ const JournalSimple: React.FC = () => {
     const dateStr = `${calendarMonth.getFullYear()}-${String(calendarMonth.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     const dayEntries = entries.filter(entry => entry.date === dateStr);
 
-    if (dayEntries.length === 0) return 'bg-gray-100 dark:bg-gray-700';
-    if (dayEntries.length === 1) return 'bg-green-200 dark:bg-green-800';
-    if (dayEntries.length === 2) return 'bg-green-400 dark:bg-green-600';
-    return 'bg-green-600 dark:bg-green-500';
+    const hasEntries = dayEntries.length > 0;
+
+    return hasEntries
+      ? 'bg-green-600 text-white hover:bg-green-700'
+      : 'bg-slate-200 dark:bg-slate-700/50 text-gray-700 dark:text-gray-300 hover:bg-slate-300 dark:hover:bg-slate-600/50';
   };
 
   const handleDayClick = async (day: number) => {
@@ -3079,54 +3080,27 @@ const JournalSimple: React.FC = () => {
             </div>
 
             {/* NEW FEATURE: Calendar Heat Map */}
-            <div className="calendar-heatmap-card" style={{
-              background: 'white',
-              border: '1px solid #E5E7EB',
-              borderRadius: '12px',
-              padding: '16px',
-              marginTop: '16px'
-            }}>
+            <div className="calendar-heatmap-card bg-white dark:bg-slate-800/40 dark:backdrop-blur-xl dark:border dark:border-white/10 rounded-xl shadow-xl p-4 mt-4 overflow-hidden max-w-sm">
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: '600', color: '#1F2937', margin: 0 }}>
+                <h3 className="text-base font-semibold text-gray-900 dark:text-white m-0">
                   📅 {calendarMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                 </h3>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div className="flex items-center gap-2">
                   <button
                     onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1))}
-                    style={{
-                      padding: '4px 8px',
-                      border: '1px solid #E5E7EB',
-                      borderRadius: '6px',
-                      background: 'white',
-                      cursor: 'pointer',
-                      fontSize: '12px'
-                    }}
+                    className="px-2 py-1 border border-gray-200 dark:border-white/20 rounded-md bg-white dark:bg-slate-700/40 hover:bg-gray-50 dark:hover:bg-white/10 cursor-pointer text-xs transition-colors"
                   >
                     ←
                   </button>
                   <button
                     onClick={() => setSelectedMonth(new Date())}
-                    style={{
-                      padding: '4px 8px',
-                      border: '1px solid #E5E7EB',
-                      borderRadius: '6px',
-                      background: '#F3F4F6',
-                      cursor: 'pointer',
-                      fontSize: '12px'
-                    }}
+                    className="px-2 py-1 border border-gray-200 dark:border-white/20 rounded-md bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 cursor-pointer text-xs transition-colors"
                   >
                     Today
                   </button>
                   <button
                     onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1))}
-                    style={{
-                      padding: '4px 8px',
-                      border: '1px solid #E5E7EB',
-                      borderRadius: '6px',
-                      background: 'white',
-                      cursor: 'pointer',
-                      fontSize: '12px'
-                    }}
+                    className="px-2 py-1 border border-gray-200 dark:border-white/20 rounded-md bg-white dark:bg-slate-700/40 hover:bg-gray-50 dark:hover:bg-white/10 cursor-pointer text-xs transition-colors"
                   >
                     →
                   </button>
@@ -3134,50 +3108,26 @@ const JournalSimple: React.FC = () => {
               </div>
 
               {/* Week days */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px', marginBottom: '4px' }}>
+              <div className="grid grid-cols-7 gap-px mb-1">
                 {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                  <div key={day} style={{
-                    textAlign: 'center',
-                    fontSize: '11px',
-                    fontWeight: '500',
-                    color: '#6B7280',
-                    padding: '4px'
-                  }}>
+                  <div key={day} className="text-center text-xs font-medium text-gray-600 dark:text-gray-400 py-1">
                     {day}
                   </div>
                 ))}
               </div>
 
               {/* Calendar days */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px' }}>
+              <div className="grid grid-cols-7 gap-px">
                 {getCalendarDays().map((day, index) => {
                   if (day === null) {
-                    return <div key={`empty-${index}`} style={{ aspectRatio: '1' }} />;
+                    return <div key={`empty-${index}`} className="aspect-square" />;
                   }
 
                   return (
                     <button
                       key={day}
                       onClick={() => handleDayClick(day)}
-                      className={`${getDayColor(day)}`}
-                      style={{
-                        aspectRatio: '1',
-                        border: 'none',
-                        borderRadius: '4px',
-                        fontSize: '12px',
-                        fontWeight: '500',
-                        cursor: 'pointer',
-                        transition: 'transform 0.2s',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.target.style.transform = 'scale(1.1)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.target.style.transform = 'scale(1)';
-                      }}
+                      className={`${getDayColor(day)} aspect-square border-0 rounded-md text-xs font-medium cursor-pointer transition-all duration-200 hover:scale-105 flex items-center justify-center`}
                     >
                       {day}
                     </button>
@@ -3185,31 +3135,15 @@ const JournalSimple: React.FC = () => {
                 })}
               </div>
 
-              {/* Legend */}
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '16px',
-                marginTop: '12px',
-                fontSize: '11px',
-                color: '#6B7280'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <div style={{ width: '12px', height: '12px', background: '#F3F4F6', borderRadius: '2px', border: '1px solid #E5E7EB' }}></div>
+              {/* Simplified Legend */}
+              <div className="flex items-center justify-center gap-4 text-xs mt-3 text-gray-600 dark:text-gray-400">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded bg-slate-200 dark:bg-slate-700/50 border border-gray-300 dark:border-white/20"></div>
                   <span>No entry</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <div style={{ width: '12px', height: '12px', background: '#FEF3C7', borderRadius: '2px' }}></div>
-                  <span>1 entry</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <div style={{ width: '12px', height: '12px', background: '#BBF7D0', borderRadius: '2px' }}></div>
-                  <span>2 entries</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <div style={{ width: '12px', height: '12px', background: '#10B981', borderRadius: '2px' }}></div>
-                  <span>3+ entries</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded bg-green-600"></div>
+                  <span>Has entry</span>
                 </div>
               </div>
             </div>
@@ -3260,7 +3194,7 @@ const JournalSimple: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => exportMonthToMD(selectedMonth, selectedMonthEntries)}
-                    className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 flex items-center gap-2"
+                    className="px-3 py-2 bg-gradient-to-r from-emerald-500/80 to-teal-600/80 hover:from-emerald-500 hover:to-teal-600 text-white text-sm font-medium rounded-xl transition-all duration-200 flex items-center gap-2"
                     title={`Export ${selectedMonth} entries as Markdown`}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

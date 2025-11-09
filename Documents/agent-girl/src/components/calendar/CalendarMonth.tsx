@@ -86,7 +86,7 @@ export const CalendarMonth: React.FC<CalendarMonthProps> = ({
                 {/* Day number */}
                 <div className={`text-xs font-medium mb-1 ${
                   isCurrentDay
-                    ? 'text-blue-600 dark:text-blue-400'
+                    ? 'text-emerald-600 dark:text-emerald-400'
                     : 'text-gray-700 dark:text-gray-300'
                 }`}>
                   {format(day, 'd')}

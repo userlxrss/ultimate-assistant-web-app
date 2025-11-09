@@ -4,6 +4,7 @@ import { authManager } from './utils/authManager';
 import { userAuthManager } from './utils/userAuth';
 import { userDataStorage } from './utils/userDataStorage';
 import { getCurrentUser, onAuthStateChange, signOut } from './supabase';
+import { useGlassNoir } from './hooks/useGlassNoir';
 import DashboardSimple from './components/DashboardSimple';
 import JournalApp from './JournalApp';
 import TasksApp from './TasksApp';
@@ -86,6 +87,9 @@ const MainApp: React.FC = () => {
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const profileButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Apply Glass Noir dark mode styling
+  useGlassNoir();
 
   // DISABLED: Emergency fixes that break React events
   useEffect(() => {
@@ -341,23 +345,23 @@ const MainApp: React.FC = () => {
 
   return (
     <NotificationProvider>
-      {/* Apply global theme classes */}
-      <div className="flex h-screen theme-bg-primary">
-        {/* Sidebar */}
-        <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} theme-bg-card theme-border-primary border-r transition-all duration-300 flex flex-col`}>
+      {/* Apply Glass Noir theme classes */}
+      <div className={`flex h-screen ${isDark ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900' : 'theme-bg-primary'}`}>
+        {/* Glass Noir Sidebar */}
+        <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} ${isDark ? 'bg-slate-900/40 backdrop-blur-xl border-r border-white/5' : 'theme-bg-card theme-border-primary border-r'} transition-all duration-300 flex flex-col`}>
           {/* Logo */}
-          <div className="p-4 border-b theme-border-primary">
+          <div className={`p-4 ${isDark ? 'border-b border-glass-noir-border' : 'border-b theme-border-primary'}`}>
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isDark ? 'bg-gradient-to-br from-glass-noir-accent to-blue-600' : 'bg-gradient-to-br from-blue-500 to-purple-600'}`}>
                 <span className="text-white font-bold text-sm">P</span>
               </div>
               {sidebarOpen && (
-                <span className="font-semibold theme-text-primary">Productivity Hub</span>
+                <span className={`font-semibold ${isDark ? 'glass-noir-text-primary' : 'theme-text-primary'}`}>Productivity Hub</span>
               )}
             </div>
           </div>
 
-          {/* Navigation */}
+          {/* Glass Noir Navigation */}
           <nav className="flex-1 p-4 space-y-2">
             {navigationItems.map((item) => {
               const Icon = item.icon;
@@ -367,24 +371,26 @@ const MainApp: React.FC = () => {
                 <button
                   key={item.id}
                   onClick={() => setActiveModule(item.id)}
-                  className={`w-full flex items-center ${sidebarOpen ? 'space-x-3' : 'justify-center'} px-3 py-3 rounded-lg transition-colors ${
+                  className={`w-full text-left px-4 py-3 rounded-xl transition-all duration-200 ${
                     isActive
-                      ? isDark ? 'bg-blue-900/50 text-blue-400' : 'bg-blue-50 text-blue-600'
-                      : isDark ? 'text-gray-400 hover:bg-gray-700 hover:text-gray-200' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                      ? 'bg-slate-700/50 text-white border-l-4 border-purple-500'
+                      : 'text-gray-400 hover:bg-slate-700/30 hover:text-gray-300'
                   }`}
                 >
-                  <Icon className="w-5 h-5" />
-                  {sidebarOpen && <span className="font-medium">{item.label}</span>}
+                  <div className={`flex items-center ${sidebarOpen ? 'space-x-3' : 'justify-center'}`}>
+                    <Icon className="w-5 h-5" />
+                    {sidebarOpen && <span className="font-medium">{item.label}</span>}
+                  </div>
                 </button>
               );
             })}
           </nav>
 
           {/* Sidebar Toggle */}
-          <div className="p-4 border-t theme-border-primary">
+          <div className={`p-4 ${isDark ? 'border-t border-glass-noir-border' : 'border-t theme-border-primary'}`}>
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="w-full flex items-center justify-center px-3 py-3 rounded-lg transition-colors theme-text-secondary hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-gray-200"
+              className={`w-full p-3 rounded-xl bg-slate-700/50 hover:bg-slate-700/70 text-gray-300 border border-slate-600/50 transition-all duration-300`}
             >
               <X className={`w-5 h-5 transform transition-transform ${sidebarOpen ? 'rotate-180' : ''}`} />
             </button>
@@ -392,15 +398,15 @@ const MainApp: React.FC = () => {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 theme-bg-primary flex flex-col">
-          {/* Header */}
-          <header className="p-6 border-b theme-border-primary theme-bg-card">
+        <main className={`flex-1 ${isDark ? 'glass-noir-bg-primary' : 'theme-bg-primary'} flex flex-col`}>
+          {/* Glass Noir Header */}
+          <header className={`p-6 ${isDark ? 'bg-slate-800/40 backdrop-blur-xl border-b border-white/5' : 'theme-bg-card border-b theme-border-primary'} relative z-50`}>
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold theme-text-primary">
+                <h2 className={`text-2xl font-bold ${isDark ? 'glass-noir-text-primary' : 'theme-text-primary'}`}>
                   {isAuthenticated ? `Welcome back, ${userInfo?.name || 'User'}! 👋` : 'Welcome! 👋'}
                 </h2>
-                <p className="theme-text-secondary">
+                <p className={isDark ? 'glass-noir-text-secondary' : 'theme-text-secondary'}>
                   {activeModule === 'dashboard' && 'Here\'s your productivity overview'}
                   {activeModule === 'journal' && 'Track your thoughts and emotions'}
                   {activeModule === 'tasks' && 'Manage your tasks and projects'}
@@ -412,47 +418,47 @@ const MainApp: React.FC = () => {
               </div>
 
               <div className="flex items-center gap-4">
-                {/* Search */}
+                {/* Glass Noir Search */}
                 <div className="relative">
-                  <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                  <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 ${isDark ? 'text-glass-noir-text-muted' : 'text-gray-400'}`} />
                   <input
                     type="text"
                     placeholder="Search..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className={`pl-10 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    className={`search-input pl-10 pr-4 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-glass-noir-accent transition-all duration-300 ${
                       isDark
-                        ? 'border-gray-600 bg-gray-800 text-white placeholder-gray-500'
+                        ? 'bg-glass-noir-glass-light border border-glass-noir-border text-glass-noir-text-primary placeholder-glass-noir-text-muted'
                         : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500'
                     }`}
                   />
                 </div>
 
                 {/* Notifications */}
-                <button className={`p-2 rounded-lg transition-colors ${isDark ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-400 hover:bg-gray-100'}`}>
+                <button className={`p-3 rounded-xl bg-slate-700/50 hover:bg-slate-700/70 text-gray-300 border border-slate-600/50 transition-all duration-300`}>
                   <Bell className="w-5 h-5" />
                 </button>
 
                 {/* Profile Button */}
-                <div className="relative">
+                <div className="relative z-[9999]">
                   <button
                     ref={profileButtonRef}
                     onClick={handleProfileClick}
-                    className={`p-2 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      isDark ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-400 hover:bg-gray-100'
-                    } ${showProfileDropdown ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : ''}`}
+                    className={`p-3 rounded-xl bg-slate-700/50 hover:bg-slate-700/70 text-gray-300 border border-slate-600/50 transition-all duration-300 focus:outline-none relative z-[9999] ${
+                      showProfileDropdown ? 'bg-slate-600/70 text-white' : ''
+                    }`}
                     aria-label="Profile menu"
                   >
                     <User className="w-5 h-5" />
                   </button>
 
-                  {/* Profile Dropdown - SIMPLIFIED */}
+                  {/* Glass Noir Profile Dropdown */}
                   {showProfileDropdown && (
-                    <div className="absolute top-16 right-4 w-64 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg z-50">
+                    <div className="absolute right-0 top-full mt-3 w-64 rounded-xl bg-slate-800 backdrop-blur-sm border border-slate-600 shadow-2xl overflow-hidden z-[9999]">
                       {/* User Info */}
-                      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                      <div className="px-4 py-3 border-b border-slate-700">
                         <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center overflow-hidden">
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden bg-slate-700/50">
                             {avatarUrl ? (
                               <img
                                 src={avatarUrl}
@@ -464,16 +470,16 @@ const MainApp: React.FC = () => {
                                 }}
                               />
                             ) : (
-                              <span className="text-purple-600 dark:text-purple-300 font-semibold">
+                              <span className="text-purple-400 font-semibold">
                                 {userInfo?.name?.[0]?.toUpperCase() || userInfo?.email?.[0]?.toUpperCase() || 'U'}
                               </span>
                             )}
                           </div>
                           <div>
-                            <p className="font-medium text-gray-900 dark:text-white">
+                            <p className="font-medium text-white">
                               {userInfo?.name || 'Guest User'}
                             </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                            <p className="text-xs text-gray-400">
                               {userInfo?.username ? `@${userInfo?.username}` : userInfo?.email || 'Not signed in'}
                             </p>
                           </div>
@@ -487,7 +493,7 @@ const MainApp: React.FC = () => {
                             setActiveModule('settings');
                             setShowProfileDropdown(false);
                           }}
-                          className="w-full px-4 py-2 flex items-center space-x-3 text-sm transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                          className="w-full flex items-center gap-3 px-4 py-3 text-left text-gray-200 hover:bg-slate-700 transition-colors"
                         >
                           <Settings className="w-4 h-4" />
                           <span>Settings</span>
@@ -497,13 +503,13 @@ const MainApp: React.FC = () => {
                             toggleTheme();
                             setShowProfileDropdown(false);
                           }}
-                          className="w-full px-4 py-2 flex items-center space-x-3 text-sm transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                          className="w-full flex items-center gap-3 px-4 py-3 text-left text-gray-200 hover:bg-slate-700 transition-colors"
                         >
                           <Moon className="w-4 h-4" />
                           <span>Dark Mode</span>
                         </button>
 
-                        {/* SIGN OUT BUTTON - SIMPLIFIED */}
+                        {/* SIGN OUT BUTTON */}
                         <button
                           onMouseDown={async (e) => {
                             e.preventDefault();
@@ -522,7 +528,7 @@ const MainApp: React.FC = () => {
                             // Force redirect to premium React login page
                             window.location.href = "/";
                           }}
-                          className="w-full px-4 py-2 flex items-center space-x-3 text-sm transition-colors text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 rounded"
+                          className="w-full flex items-center gap-3 px-4 py-3 text-left text-red-400 hover:bg-red-500/20 transition-colors border-t border-slate-700"
                         >
                           <LogOut className="w-4 h-4" />
                           <span>Sign Out</span>

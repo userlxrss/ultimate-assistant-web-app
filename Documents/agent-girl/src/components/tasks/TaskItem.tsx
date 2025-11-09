@@ -72,7 +72,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
         return {
           bgLight: 'bg-blue-50 dark:bg-blue-950/30',
           border: 'border-blue-200 dark:border-blue-900/50',
-          text: 'text-blue-600 dark:text-blue-400',
+          text: 'text-emerald-600 dark:text-emerald-400',
           icon: <Target className="w-3 h-3" />,
           label: 'Medium'
         };
@@ -127,7 +127,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
       case 'in-progress':
         return {
           bgLight: 'bg-blue-50 dark:bg-blue-950/30',
-          text: 'text-blue-600 dark:text-blue-400',
+          text: 'text-emerald-600 dark:text-emerald-400',
           icon: <Clock className="w-3 h-3" />,
           label: 'In Progress'
         };
@@ -498,7 +498,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
           syncStatus.includes('Error')
             ? 'bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400'
             : syncStatus.includes('Syncing')
-            ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400'
+            ? 'bg-blue-100 dark:bg-blue-900/50 text-emerald-600 dark:text-emerald-400'
             : 'bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400'
         }`}>
           <span className="text-xs">{syncStatus}</span>
