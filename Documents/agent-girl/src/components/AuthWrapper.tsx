@@ -1,14 +1,15 @@
 import React, { Suspense, lazy, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { User, LogOut, Settings, Shield } from 'lucide-react';
 import AuthPage from '../pages/AuthPage';
 import { getCurrentUser, onAuthStateChange } from '../supabase';
 
 // Lazy load the main app
-const MainApp = lazy(() => import('../MainApp'));
+const MainAppRouter = lazy(() => import('../MainAppRouter'));
 
 const AuthWrapper: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [userInfo, setUserInfo] = useState<any>(null);
@@ -99,7 +100,7 @@ const AuthWrapper: React.FC = () => {
     return <AuthPage onAuthSuccess={handleAuthSuccess} />;
   }
 
-  console.log('🔥 AuthWrapper: Rendering MainApp - user authenticated');
+  console.log('🔥 AuthWrapper: Rendering MainAppRouter - user authenticated');
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Suspense fallback={
@@ -107,7 +108,7 @@ const AuthWrapper: React.FC = () => {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
         </div>
       }>
-        <MainApp />
+        <MainAppRouter />
       </Suspense>
     </div>
   );

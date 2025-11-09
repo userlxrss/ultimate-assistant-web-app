@@ -182,6 +182,8 @@ function App() {
               <Route path="/verify" element={<EmailVerification />} />
               <Route path="/login" element={<AuthWrapper />} />
               <Route path="/" element={<Navigate to="/login" replace />} />
+
+              {/* All other routes go through AuthWrapper which contains the MainAppRouter */}
               <Route path="/*" element={<AuthWrapper />} />
             </Routes>
           </Suspense>
