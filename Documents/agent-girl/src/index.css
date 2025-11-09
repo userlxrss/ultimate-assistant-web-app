@@ -7,6 +7,10 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Responsive Design System */
+@import './styles/responsive-design-system.css';
+@import './styles/mobile-components.css';
+
 /* ==========================================================================
    PERFECT DARK MODE VARIABLES - FROM PORT 3002
    ========================================================================== */

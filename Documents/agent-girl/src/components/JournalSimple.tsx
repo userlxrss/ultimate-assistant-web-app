@@ -1744,9 +1744,16 @@ const JournalSimple: React.FC = () => {
         /* ===== COMPACT SLIDERS ===== */
         .sliders-row {
           display: grid;
-          grid-template-columns: 1fr 1fr;
+          grid-template-columns: 1fr;
           gap: 12px;
           margin-bottom: 14px;
+        }
+
+        /* Desktop: Two column sliders */
+        @media (min-width: 768px) {
+          .sliders-row {
+            grid-template-columns: 1fr 1fr;
+          }
         }
 
         .slider-field {
@@ -3448,7 +3455,7 @@ const JournalSimple: React.FC = () => {
                   </svg>
                   Reflections
                 </label>
-                <div style={{ position: 'relative', display: 'flex', alignItems: 'flex-end' }}>
+                <div className="mobile-textarea-wrapper">
                   <textarea
                     ref={(el) => {
                       if (el) {
@@ -3456,7 +3463,7 @@ const JournalSimple: React.FC = () => {
                         el.style.height = el.scrollHeight + 'px';
                       }
                     }}
-                    className="auto-expand-textarea"
+                    className="auto-expand-textarea mobile-textarea"
                     rows="1"
                     placeholder="How was your day? What's on your mind?"
                     value={journalEntry.reflections}
@@ -3465,50 +3472,21 @@ const JournalSimple: React.FC = () => {
                       handleTextareaAutoExpand(e);
                     }}
                     onInput={handleTextareaAutoExpand}
-                    style={{
-                      paddingRight: '48px',
-                      minHeight: '40px',
-                      resize: 'none'
-                    }}
                   />
                   <button
                     type="button"
                     onClick={() => openVoiceModal('reflections')}
-                    style={{
-                      position: 'absolute',
-                      right: '12px',
-                      bottom: '12px',
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '50%',
-                      background: '#f3f4f6',
-                      border: 'none',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      transition: 'all 0.2s ease',
-                      boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = '#e5e7eb';
-                      e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = '#f3f4f6';
-                      e.currentTarget.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.05)';
-                    }}
+                    className={`mobile-voice-button ${activeField === 'reflections' && isListening ? 'recording' : ''}`}
                   >
                     <svg
-                      width="16"
-                      height="16"
+                      width="20"
+                      height="20"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      style={{ color: activeField === 'reflections' && isListening ? '#ef4444' : '#6b7280' }}
                     >
                       <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
                       <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
@@ -3527,7 +3505,7 @@ const JournalSimple: React.FC = () => {
                   </svg>
                   Gratitude
                 </label>
-                <div style={{ position: 'relative', display: 'flex', alignItems: 'flex-end' }}>
+                <div className="mobile-textarea-wrapper">
                   <textarea
                     ref={(el) => {
                       if (el) {
@@ -3535,7 +3513,7 @@ const JournalSimple: React.FC = () => {
                         el.style.height = el.scrollHeight + 'px';
                       }
                     }}
-                    className="auto-expand-textarea"
+                    className="auto-expand-textarea mobile-textarea"
                     rows="1"
                     placeholder="What are you grateful for today?"
                     value={journalEntry.gratitude}
@@ -3544,50 +3522,21 @@ const JournalSimple: React.FC = () => {
                       handleTextareaAutoExpand(e);
                     }}
                     onInput={handleTextareaAutoExpand}
-                    style={{
-                      paddingRight: '48px',
-                      minHeight: '40px',
-                      resize: 'none'
-                    }}
                   />
                   <button
                     type="button"
                     onClick={() => openVoiceModal('gratitude')}
-                    style={{
-                      position: 'absolute',
-                      right: '12px',
-                      bottom: '12px',
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '50%',
-                      background: '#f3f4f6',
-                      border: 'none',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      transition: 'all 0.2s ease',
-                      boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = '#e5e7eb';
-                      e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = '#f3f4f6';
-                      e.currentTarget.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.05)';
-                    }}
+                    className={`mobile-voice-button ${activeField === 'gratitude' && isListening ? 'recording' : ''}`}
                   >
                     <svg
-                      width="16"
-                      height="16"
+                      width="20"
+                      height="20"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      style={{ color: activeField === 'gratitude' && isListening ? '#ef4444' : '#6b7280' }}
                     >
                       <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
                       <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
@@ -4292,34 +4241,22 @@ const JournalSimple: React.FC = () => {
           </div>
         )}
 
-        {/* Voice Recording Modal with Template Preview */}
+        {/* Voice Recording Modal with Template Preview - Mobile Responsive */}
         {showVoiceModal && (
-          <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0, 0, 0, 0.6)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 10000,
-            fontFamily: 'system-ui, -apple-system, sans-serif',
-            animation: 'fadeIn 0.3s ease-out'
-          }}>
-            <div style={{
-              background: 'white',
-              borderRadius: '16px',
-              maxWidth: '600px',
-              width: '90%',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-              maxHeight: '85vh',
-              overflow: 'hidden',
-              display: 'flex',
-              flexDirection: 'column',
-              animation: 'slideUp 0.3s ease-out'
-            }}>
+          <div className="mobile-modal-overlay">
+            <div className="mobile-voice-modal">
+              {/* Mobile Handle */}
+              <div className="mobile-modal-handle" />
+
+              {/* Modal Header */}
+              <div className="mobile-modal-header">
+                <h2 className="mobile-modal-title">
+                  🎙️ Voice Journal – {activeField === 'reflections' ? 'Reflections' : 'Gratitude'}
+                </h2>
+                <p className="mobile-modal-subtitle">
+                  {isListening ? 'Speak clearly. Your words will appear below.' : 'Click "Start Recording" to begin.'}
+                </p>
+              </div>
               {/* Template Preview Section */}
               {currentTemplate && currentTemplate !== 'no-template' && (
                 <div style={{

@@ -1,0 +1,296 @@
+/* ==========================================================================
+   RESPONSIVE DESIGN SYSTEM - MOBILE-FIRST PRODUCTIVITY HUB
+   ========================================================================== */
+
+/* ==========================================================================
+   CSS CUSTOM PROPERTIES - DESIGN TOKENS
+   ========================================================================== */
+
+:root {
+  /* Breakpoint Variables */
+  --breakpoint-mobile: 320px;
+  --breakpoint-mobile-large: 480px;
+  --breakpoint-tablet: 768px;
+  --breakpoint-desktop: 1024px;
+  --breakpoint-desktop-large: 1280px;
+
+  /* Fluid Typography - Mobile First */
+  --text-fluid-xs: clamp(0.75rem, 2vw, 0.875rem);
+  --text-fluid-sm: clamp(0.875rem, 2.5vw, 1rem);
+  --text-fluid-base: clamp(1rem, 3vw, 1.125rem);
+  --text-fluid-lg: clamp(1.125rem, 3.5vw, 1.25rem);
+  --text-fluid-xl: clamp(1.25rem, 4vw, 1.5rem);
+  --text-fluid-2xl: clamp(1.5rem, 5vw, 2rem);
+  --text-fluid-3xl: clamp(1.875rem, 6vw, 2.5rem);
+
+  /* Fluid Spacing */
+  --spacing-fluid-xs: clamp(0.25rem, 0.75vw, 0.5rem);
+  --spacing-fluid-sm: clamp(0.5rem, 1vw, 0.75rem);
+  --spacing-fluid-md: clamp(0.75rem, 1.5vw, 1.5rem);
+  --spacing-fluid-lg: clamp(1rem, 2vw, 2rem);
+  --spacing-fluid-xl: clamp(1.5rem, 3vw, 3rem);
+  --spacing-fluid-2xl: clamp(2rem, 4vw, 4rem);
+
+  /* Touch Targets - Mobile Optimized */
+  --touch-target-min: 44px;    /* WCAG minimum */
+  --touch-target-comfortable: 48px;
+  --touch-target-large: 56px;
+  --touch-target-spacing: 8px;
+
+  /* Mobile Container */
+  --container-mobile: 100%;
+  --container-tablet: 100%;
+  --container-desktop: 1200px;
+
+  /* Safe Area for Notched Devices */
+  --safe-area-top: env(safe-area-inset-top);
+  --safe-area-right: env(safe-area-inset-right);
+  --safe-area-bottom: env(safe-area-inset-bottom);
+  --safe-area-left: env(safe-area-inset-left);
+
+  /* Mobile Shadows */
+  --shadow-mobile-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-mobile: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-mobile-lg: 0 4px 16px rgba(0, 0, 0, 0.12);
+
+  /* Glass Morphism - Mobile Optimized */
+  --glass-mobile-bg: rgba(255, 255, 255, 0.8);
+  --glass-mobile-border: rgba(255, 255, 255, 0.2);
+  --glass-mobile-blur: 10px;
+}
+
+/* Dark Mode Mobile Variables */
+.dark {
+  --glass-mobile-bg: rgba(15, 23, 42, 0.8);
+  --glass-mobile-border: rgba(255, 255, 255, 0.1);
+  --shadow-mobile: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-mobile-lg: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* ==========================================================================
+   MOBILE-FIRST RESPONSIVE UTILITIES
+   ========================================================================== */
+
+/* Mobile Base (320px+) */
+.responsive-container {
+  width: 100%;
+  max-width: var(--container-mobile);
+  margin: 0 auto;
+  padding: 0 var(--spacing-fluid-md);
+}
+
+/* Responsive Grid System */
+.responsive-grid {
+  display: grid;
+  gap: var(--spacing-fluid-md);
+  grid-template-columns: 1fr;
+}
+
+.responsive-grid-cols-2 {
+  grid-template-columns: repeat(1, 1fr);
+}
+
+.responsive-grid-cols-3 {
+  grid-template-columns: repeat(1, 1fr);
+}
+
+.responsive-grid-cols-4 {
+  grid-template-columns: repeat(1, 1fr);
+}
+
+/* Mobile Typography */
+.responsive-text-xs { font-size: var(--text-fluid-xs); }
+.responsive-text-sm { font-size: var(--text-fluid-sm); }
+.responsive-text-base { font-size: var(--text-fluid-base); }
+.responsive-text-lg { font-size: var(--text-fluid-lg); }
+.responsive-text-xl { font-size: var(--text-fluid-xl); }
+.responsive-text-2xl { font-size: var(--text-fluid-2xl); }
+.responsive-text-3xl { font-size: var(--text-fluid-3xl); }
+
+/* Touch-Friendly Buttons */
+.responsive-button {
+  min-height: var(--touch-target-min);
+  min-width: var(--touch-target-min);
+  padding: var(--spacing-fluid-sm) var(--spacing-fluid-md);
+  font-size: var(--text-fluid-base);
+  border-radius: calc(var(--touch-target-min) / 4);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.responsive-button-large {
+  min-height: var(--touch-target-comfortable);
+  padding: var(--spacing-fluid-md) var(--spacing-fluid-lg);
+  font-size: var(--text-fluid-lg);
+}
+
+/* ==========================================================================
+   TABLET BREAKPOINT (768px+)
+   ========================================================================== */
+@media (min-width: 768px) {
+  :root {
+    --container-mobile: var(--container-tablet);
+  }
+
+  .responsive-container {
+    padding: 0 var(--spacing-fluid-lg);
+  }
+
+  .responsive-grid-cols-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .responsive-grid-cols-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .responsive-grid-cols-4 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ==========================================================================
+   DESKTOP BREAKPOINT (1024px+) - PRESERVE EXISTING LAYOUT
+   ========================================================================== */
+@media (min-width: 1024px) {
+  :root {
+    --container-mobile: var(--container-desktop);
+    --glass-mobile-blur: 20px; /* Restore desktop blur */
+  }
+
+  .responsive-container {
+    padding: 0 var(--spacing-fluid-xl);
+  }
+
+  .responsive-grid-cols-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .responsive-grid-cols-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .responsive-grid-cols-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  /* Desktop can use smaller touch targets */
+  .responsive-button {
+    min-height: auto;
+    min-width: auto;
+    padding: 0.75rem 1.5rem;
+  }
+}
+
+/* ==========================================================================
+   SAFE AREA SUPPORT FOR NOTCHED DEVICES
+   ========================================================================== */
+.safe-area-padding {
+  padding-top: var(--safe-area-top);
+  padding-right: var(--safe-area-right);
+  padding-bottom: var(--safe-area-bottom);
+  padding-left: var(--safe-area-left);
+}
+
+.safe-area-margin-top {
+  margin-top: var(--safe-area-top);
+}
+
+.safe-area-margin-bottom {
+  margin-bottom: var(--safe-area-bottom);
+}
+
+/* ==========================================================================
+   MOBILE GESTURES AND INTERACTIONS
+   ========================================================================== */
+
+/* Touch Feedback */
+.touch-feedback {
+  position: relative;
+  overflow: hidden;
+}
+
+.touch-feedback::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.3s, height 0.3s;
+}
+
+.touch-feedback:active::after {
+  width: 200px;
+  height: 200px;
+}
+
+/* ==========================================================================
+   PERFORMANCE OPTIMIZATIONS FOR MOBILE
+   ========================================================================== */
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Mobile Performance */
+@media (max-width: 767px) {
+  /* Reduce backdrop blur on mobile for performance */
+  .glass-mobile {
+    backdrop-filter: blur(var(--glass-mobile-blur));
+    -webkit-backdrop-filter: blur(var(--glass-mobile-blur));
+  }
+
+  /* Optimize animations */
+  .responsive-button {
+    transition: transform 0.1s ease;
+  }
+
+  .responsive-button:hover {
+    transform: translateY(-1px);
+  }
+}
+
+/* ==========================================================================
+   UTILITY CLASSES FOR QUICK IMPLEMENTATION
+   ========================================================================== */
+
+.mobile-only { display: block; }
+.tablet-only { display: none; }
+.desktop-only { display: none; }
+
+@media (min-width: 768px) {
+  .mobile-only { display: none; }
+  .tablet-only { display: block; }
+}
+
+@media (min-width: 1024px) {
+  .tablet-only { display: none; }
+  .desktop-only { display: block; }
+}
+
+/* Mobile Text Alignment */
+.mobile-text-center { text-align: center; }
+.mobile-text-left { text-align: left; }
+.mobile-text-right { text-align: right; }
+
+@media (min-width: 768px) {
+  .mobile-text-center { text-align: inherit; }
+  .mobile-text-left { text-align: inherit; }
+  .mobile-text-right { text-align: inherit; }
+}
+
+/* Mobile Visibility */
+.mobile-hidden { display: none; }
+
+@media (min-width: 768px) {
+  .mobile-hidden { display: block; }
+}
