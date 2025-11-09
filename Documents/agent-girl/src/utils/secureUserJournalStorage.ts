@@ -142,7 +142,7 @@ export const SecureUserJournalStorage = {
       const entriesKey = generateUserKey('journal_entries', user.email);
       
       // Validate entry structure
-      if (!entry.id || !entry.title) {
+      if (!entry.id) {
         return { success: false, error: 'Invalid journal entry structure' };
       }
 
