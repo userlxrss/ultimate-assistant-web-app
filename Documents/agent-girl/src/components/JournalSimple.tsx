@@ -77,6 +77,85 @@ const JournalSimple: React.FC = () => {
   const [tempPassword, setTempPassword] = useState('');
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
+  // Voice recording state
+  const [showVoiceModal, setShowVoiceModal] = useState(false);
+  const [activeField, setActiveField] = useState<'reflections' | 'gratitude' | null>(null);
+  const [isListening, setIsListening] = useState(false);
+  const [transcript, setTranscript] = useState('');
+  const [interimTranscript, setInterimTranscript] = useState('');
+  const [voiceError, setVoiceError] = useState('');
+  const [recognitionRef, setRecognitionRef] = useState<any>(null);
+  const [currentTemplate, setCurrentTemplate] = useState<string>('');
+
+  // Enhanced voice recognition state
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [recordingStatus, setRecordingStatus] = useState<'idle' | 'listening' | 'processing' | 'reviewing'>('idle');
+  const [lastSpokenTime, setLastSpokenTime] = useState<number>(Date.now());
+  const [silenceTimeout, setSilenceTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [transcriptBuffer, setTranscriptBuffer] = useState<string[]>([]);
+  const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null);
+  const [showSilencePrompt, setShowSilencePrompt] = useState(false);
+  const [isReviewMode, setIsReviewMode] = useState(false);
+  const [editedTranscript, setEditedTranscript] = useState('');
+  const [showTranscript, setShowTranscript] = useState(false);
+
+  // Utility functions for intelligent transcript processing
+  const capitalizeFirstLetter = (text: string): string => {
+    if (!text) return text;
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  };
+
+  const addIntelligentPunctuation = (text: string): string => {
+    if (!text) return text;
+
+    // Capitalize first letter of sentences
+    let processed = text.replace(/(^\s*[a-z])|(\.\s+[a-z])|(\?\s+[a-z])|(!\s+[a-z])/g, (match) => {
+      return match.toUpperCase();
+    });
+
+    // Add periods at the end if missing and text looks like a complete sentence
+    if (processed.length > 10 && !processed.match(/[.!?]$/)) {
+      processed += '.';
+    }
+
+    // Clean up extra spaces
+    processed = processed.replace(/\s+/g, ' ').trim();
+
+    return processed;
+  };
+
+  const processTranscriptSegment = (segment: string, isFinal: boolean): string => {
+    if (!segment.trim()) return '';
+
+    let processed = segment.trim();
+
+    if (isFinal) {
+      // Apply intelligent processing to final results
+      processed = addIntelligentPunctuation(processed);
+    }
+
+    return processed;
+  };
+
+  const resetSilenceTimer = () => {
+    // Temporarily disabled silence detection to prevent glitching
+    // User can manually stop recording when ready
+    if (silenceTimeout) {
+      clearTimeout(silenceTimeout);
+      setSilenceTimeout(null);
+    }
+    setShowSilencePrompt(false);
+    setLastSpokenTime(Date.now());
+  };
+
+  const clearSilenceTimer = () => {
+    if (silenceTimeout) {
+      clearTimeout(silenceTimeout);
+      setSilenceTimeout(null);
+    }
+    setShowSilencePrompt(false);
+  };
+
   // Month folders functions
   const toggleMonth = (monthYear) => {
     setExpandedMonths(prev =>
@@ -677,6 +756,11 @@ const JournalSimple: React.FC = () => {
   // Handle quick prompts with auto-expand
   const handleQuickPrompt = (type) => {
     const prompts = {
+      'no-template': {
+        reflections: "",
+        gratitude: "",
+        isBlank: true
+      },
       gratitude: {
         reflections: "Today I'm grateful for...\n\nThree things that made me smile:\n1. \n2. \n3. \n\nWhat brought me joy:",
         gratitude: "I appreciate...\n\nI'm thankful for...\n\nWhat made today special:"
@@ -693,32 +777,359 @@ const JournalSimple: React.FC = () => {
 
     const prompt = prompts[type];
     if (prompt) {
+      setCurrentTemplate(type); // Track which template is active
       setJournalEntry(prev => ({
         ...prev,
-        reflections: prompt.reflections,
-        gratitude: prompt.gratitude
+        reflections: prompt.reflections || "",
+        gratitude: prompt.gratitude || ""
       }));
 
-      // Auto-expand and scroll to reflection field
-      setTimeout(() => {
-        const textareas = document.querySelectorAll('.journal-form-card textarea');
-        textareas.forEach((textarea, index) => {
-          textarea.style.height = 'auto';
-          textarea.style.height = textarea.scrollHeight + 'px';
-          textarea.classList.add('template-loaded');
+      // Auto-expand and scroll to reflection field (but skip for blank template)
+      if (!prompt.isBlank) {
+        setTimeout(() => {
+          const textareas = document.querySelectorAll('.journal-form-card textarea');
+          textareas.forEach((textarea, index) => {
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
+            textarea.classList.add('template-loaded');
 
-          // Focus first textarea and scroll into view smoothly
-          if (index === 0) {
-            textarea.focus();
-            textarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Focus first textarea and scroll into view smoothly
+            if (index === 0) {
+              textarea.focus();
+              textarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+
+            // Remove animation class after animation completes
+            setTimeout(() => {
+              textarea.classList.remove('template-loaded');
+            }, 400);
+          });
+        }, 10);
+      } else {
+        // For blank template, just focus on the first textarea
+        setTimeout(() => {
+          const textareas = document.querySelectorAll('.journal-form-card textarea');
+          if (textareas.length > 0) {
+            textareas[0].focus();
+            textareas[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
           }
+        }, 10);
+      }
+    }
+  };
 
-          // Remove animation class after animation completes
+  // Enhanced voice recording functions
+  const openVoiceModal = (field: 'reflections' | 'gratitude') => {
+    // Reset all states but don't start recording
+    setActiveField(field);
+    setTranscript('');
+    setInterimTranscript('');
+    setVoiceError('');
+    setIsListening(false);
+    setIsProcessing(false);
+    setRecordingStatus('idle');
+    setShowVoiceModal(true);
+    setTranscriptBuffer([]);
+    setIsReviewMode(false);
+    setEditedTranscript('');
+
+    // Clear any existing timers
+    if (debounceTimer) clearTimeout(debounceTimer);
+    clearSilenceTimer();
+  };
+
+  const startVoiceRecordingInModal = () => {
+    // Initialize enhanced speech recognition
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+      const recognition = new SpeechRecognition();
+
+      // Configure for professional-grade reliability
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+      recognition.maxAlternatives = 1;
+
+      let lastFinalIndex = 0;
+      let accumulatedText = '';
+
+      recognition.onresult = (event: any) => {
+        let finalText = '';
+        let interimText = '';
+
+        // Process all results from last index to current
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const result = event.results[i];
+          const transcript = result[0].transcript;
+
+          if (result.isFinal) {
+            // Process and accumulate final results
+            const processedText = processTranscriptSegment(transcript, true);
+            finalText += processedText + ' ';
+            accumulatedText += processedText + ' ';
+            lastFinalIndex = i;
+          } else {
+            // Handle interim results with debouncing
+            interimText += transcript;
+          }
+        }
+
+        // Update final transcript
+        if (finalText) {
+          setTranscript(accumulatedText.trim());
+
+          // Add to buffer for redundancy
+          setTranscriptBuffer(prev => [...prev, finalText.trim()]);
+        }
+
+        // Debounce interim updates to prevent UI flicker
+        if (interimText && debounceTimer) {
+          clearTimeout(debounceTimer);
+        }
+
+        const newDebounceTimer = setTimeout(() => {
+          if (interimText) {
+            setInterimTranscript(interimText.trim());
+          }
+        }, 150); // 150ms debounce for smooth updates
+
+        setDebounceTimer(newDebounceTimer);
+      };
+
+      recognition.onerror = (event: any) => {
+        console.error('Enhanced speech recognition error:', event.error);
+        clearSilenceTimer();
+
+        let errorMessage = 'Voice recognition encountered an issue';
+        let shouldRetry = false;
+
+        switch (event.error) {
+          case 'not-allowed':
+            errorMessage = '🎤 Microphone access denied. Please allow microphone access in your browser settings and try again.';
+            break;
+          case 'network':
+            errorMessage = '🌐 Network connection issue. Please check your internet connection and try again.';
+            shouldRetry = true;
+            break;
+          case 'no-speech':
+            errorMessage = '🔇 No speech detected. Please speak clearly and try again.';
+            shouldRetry = true;
+            break;
+          case 'audio-capture':
+            errorMessage = '🎧 Microphone not found. Please check your audio devices and try again.';
+            break;
+          case 'aborted':
+            errorMessage = '⏹️ Recording was stopped unexpectedly.';
+            shouldRetry = true;
+            break;
+          case 'service-not-allowed':
+            errorMessage = '🚫 Voice recognition service is not available. Please try refreshing the page.';
+            break;
+          default:
+            errorMessage = `❌ Voice recognition error: ${event.error}`;
+            shouldRetry = true;
+        }
+
+        setVoiceError(errorMessage);
+        setIsListening(false);
+        setRecordingStatus('idle');
+        recognition.stop();
+
+        // Auto-retry for recoverable errors
+        if (shouldRetry && !voiceError) {
           setTimeout(() => {
-            textarea.classList.remove('template-loaded');
-          }, 400);
-        });
-      }, 10);
+            setVoiceError('');
+            startVoiceRecordingInModal();
+          }, 2000);
+        }
+      };
+
+      recognition.onend = () => {
+        clearSilenceTimer();
+        setIsListening(false);
+
+        // Auto-restart if it ended unexpectedly (and user didn't manually stop)
+        if (recordingStatus === 'listening' && !voiceError) {
+          console.log('Speech recognition ended unexpectedly, restarting...');
+          setTimeout(() => {
+            if (recordingStatus === 'listening') {
+              recognition.start();
+            }
+          }, 100);
+        } else {
+          setRecordingStatus('idle');
+        }
+      };
+
+      recognition.onstart = () => {
+        console.log('Speech recognition started');
+        resetSilenceTimer();
+        setRecordingStatus('listening');
+      };
+
+      recognition.onspeechstart = () => {
+        console.log('Speech detected - user is speaking');
+      };
+
+      recognition.onspeechend = () => {
+        console.log('Speech paused - user may continue speaking');
+      };
+
+      setRecognitionRef(recognition);
+
+      // Start recognition with error handling
+      try {
+        recognition.start();
+        setIsListening(true);
+        setRecordingStatus('listening');
+      } catch (error) {
+        console.error('Failed to start speech recognition:', error);
+        setVoiceError('Failed to start voice recognition. Please refresh the page and try again.');
+        setIsListening(false);
+        setRecordingStatus('idle');
+      }
+    } else {
+      setVoiceError('🚫 Voice recognition is not supported in your browser. Please use Chrome, Edge, or Safari for the best experience.');
+      setIsListening(false);
+      setRecordingStatus('idle');
+    }
+  };
+
+  const stopVoiceRecording = () => {
+    clearSilenceTimer();
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+
+    if (recognitionRef) {
+      recognitionRef.stop();
+    }
+
+    setIsListening(false);
+    setIsProcessing(true);
+    setRecordingStatus('processing');
+    setInterimTranscript('');
+    setShowSilencePrompt(false);
+
+    // Simulate processing delay for UX polish
+    setTimeout(() => {
+      setIsProcessing(false);
+      setRecordingStatus('reviewing');
+      setIsReviewMode(true);
+      setEditedTranscript(transcript);
+    }, 800);
+  };
+
+  
+  const retryRecording = () => {
+    setVoiceError('');
+    if (activeField) {
+      openVoiceModal(activeField);
+    }
+  };
+
+  const approveTranscript = () => {
+    const finalTranscript = isReviewMode ? editedTranscript : transcript;
+
+    if (activeField && finalTranscript.trim()) {
+      setJournalEntry(prev => {
+        const currentContent = prev[activeField] || '';
+        let newContent = currentContent;
+
+        // Define template patterns to replace
+        const templatePatterns = {
+          reflections: [
+            "Today I'm grateful for...",
+            "Three things that made me smile:",
+            "1. ",
+            "2. ",
+            "3. ",
+            "What brought me joy:",
+            "Today was... (describe your day)",
+            "What went well:",
+            "What I learned:",
+            "What challenged me:",
+            "Tomorrow I will:",
+            "My goals for today:",
+            "Progress on long-term goals:",
+            "Obstacles I faced:",
+            "How I overcame them:",
+            "Next steps:"
+          ],
+          gratitude: [
+            "I appreciate...",
+            "I'm thankful for...",
+            "What made today special:",
+            "I'm proud of myself for...",
+            "Achievements today:",
+            "Moments of gratitude today:"
+          ]
+        };
+
+        // Get the relevant patterns for the active field
+        const patterns = templatePatterns[activeField] || [];
+
+        // Split content into lines and replace template lines
+        const lines = currentContent.split('\n');
+        const newLines = [];
+        let transcriptInserted = false;
+
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+          const isTemplateLine = patterns.some(pattern => line.includes(pattern)) ||
+                                 (activeField === 'reflections' && line.match(/^\d+\.\s*$/)) ||
+                                 (activeField === 'reflections' && line.match(/^Today was|^What went|^What I learned|^What challenged|^Tomorrow I will|^My goals|^Progress|^Obstacles|^How I|^Next steps/)) ||
+                                 (activeField === 'gratitude' && line.match(/^I appreciate|^I'm thankful|^What made|^I'm proud|^Achievements|^Moments/));
+
+          if (isTemplateLine && !transcriptInserted) {
+            // Replace this template line with the transcript
+            newLines.push(finalTranscript.trim());
+            transcriptInserted = true;
+          } else if (!isTemplateLine) {
+            // Keep non-template lines as they are
+            newLines.push(line);
+          }
+        }
+
+        // If no template was found (user already replaced it), append the transcript
+        if (!transcriptInserted) {
+          newLines.push(finalTranscript.trim());
+        }
+
+        // Join the lines back together
+        const finalContent = newLines.join('\n').replace(/\n{3,}/g, '\n\n');
+
+        return {
+          ...prev,
+          [activeField]: finalContent
+        };
+      });
+    }
+    cancelVoiceRecording();
+  };
+
+  const cancelVoiceRecording = () => {
+    clearSilenceTimer();
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+
+    setShowVoiceModal(false);
+    setActiveField(null);
+    setTranscript('');
+    setInterimTranscript('');
+    setVoiceError('');
+    setIsListening(false);
+    setIsProcessing(false);
+    setRecordingStatus('idle');
+    setTranscriptBuffer([]);
+    setShowSilencePrompt(false);
+    setIsReviewMode(false);
+    setEditedTranscript('');
+
+    if (recognitionRef) {
+      recognitionRef.stop();
+      setRecognitionRef(null);
     }
   };
 
@@ -2874,6 +3285,9 @@ const JournalSimple: React.FC = () => {
               {/* FEATURE 5: Quick Prompts */}
               <div className="quick-prompts">
                 <span className="prompts-label">Quick start:</span>
+                <button className="prompt-btn" onClick={() => handleQuickPrompt('no-template')}>
+                  📓 No Template
+                </button>
                 <button className="prompt-btn" onClick={() => handleQuickPrompt('gratitude')}>
                   🙏 Gratitude
                 </button>
@@ -3034,23 +3448,75 @@ const JournalSimple: React.FC = () => {
                   </svg>
                   Reflections
                 </label>
-                <textarea
-                  ref={(el) => {
-                    if (el) {
-                      el.style.height = 'auto';
-                      el.style.height = el.scrollHeight + 'px';
-                    }
-                  }}
-                  className="auto-expand-textarea"
-                  rows="1"
-                  placeholder="How was your day? What's on your mind?"
-                  value={journalEntry.reflections}
-                  onChange={(e) => {
-                    handleInputChange('reflections', e.target.value);
-                    handleTextareaAutoExpand(e);
-                  }}
-                  onInput={handleTextareaAutoExpand}
-                />
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'flex-end' }}>
+                  <textarea
+                    ref={(el) => {
+                      if (el) {
+                        el.style.height = 'auto';
+                        el.style.height = el.scrollHeight + 'px';
+                      }
+                    }}
+                    className="auto-expand-textarea"
+                    rows="1"
+                    placeholder="How was your day? What's on your mind?"
+                    value={journalEntry.reflections}
+                    onChange={(e) => {
+                      handleInputChange('reflections', e.target.value);
+                      handleTextareaAutoExpand(e);
+                    }}
+                    onInput={handleTextareaAutoExpand}
+                    style={{
+                      paddingRight: '48px',
+                      minHeight: '40px',
+                      resize: 'none'
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => openVoiceModal('reflections')}
+                    style={{
+                      position: 'absolute',
+                      right: '12px',
+                      bottom: '12px',
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '50%',
+                      background: '#f3f4f6',
+                      border: 'none',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'all 0.2s ease',
+                      boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = '#e5e7eb';
+                      e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = '#f3f4f6';
+                      e.currentTarget.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.05)';
+                    }}
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      style={{ color: activeField === 'reflections' && isListening ? '#ef4444' : '#6b7280' }}
+                    >
+                      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                      <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                      <line x1="12" y1="19" x2="12" y2="23"></line>
+                      <line x1="8" y1="23" x2="16" y2="23"></line>
+                    </svg>
+                  </button>
+                </div>
               </div>
 
               {/* Gratitude */}
@@ -3061,23 +3527,75 @@ const JournalSimple: React.FC = () => {
                   </svg>
                   Gratitude
                 </label>
-                <textarea
-                  ref={(el) => {
-                    if (el) {
-                      el.style.height = 'auto';
-                      el.style.height = el.scrollHeight + 'px';
-                    }
-                  }}
-                  className="auto-expand-textarea"
-                  rows="1"
-                  placeholder="What are you grateful for today?"
-                  value={journalEntry.gratitude}
-                  onChange={(e) => {
-                    handleInputChange('gratitude', e.target.value);
-                    handleTextareaAutoExpand(e);
-                  }}
-                  onInput={handleTextareaAutoExpand}
-                />
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'flex-end' }}>
+                  <textarea
+                    ref={(el) => {
+                      if (el) {
+                        el.style.height = 'auto';
+                        el.style.height = el.scrollHeight + 'px';
+                      }
+                    }}
+                    className="auto-expand-textarea"
+                    rows="1"
+                    placeholder="What are you grateful for today?"
+                    value={journalEntry.gratitude}
+                    onChange={(e) => {
+                      handleInputChange('gratitude', e.target.value);
+                      handleTextareaAutoExpand(e);
+                    }}
+                    onInput={handleTextareaAutoExpand}
+                    style={{
+                      paddingRight: '48px',
+                      minHeight: '40px',
+                      resize: 'none'
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => openVoiceModal('gratitude')}
+                    style={{
+                      position: 'absolute',
+                      right: '12px',
+                      bottom: '12px',
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '50%',
+                      background: '#f3f4f6',
+                      border: 'none',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'all 0.2s ease',
+                      boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = '#e5e7eb';
+                      e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = '#f3f4f6';
+                      e.currentTarget.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.05)';
+                    }}
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      style={{ color: activeField === 'gratitude' && isListening ? '#ef4444' : '#6b7280' }}
+                    >
+                      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                      <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                      <line x1="12" y1="19" x2="12" y2="23"></line>
+                      <line x1="8" y1="23" x2="16" y2="23"></line>
+                    </svg>
+                  </button>
+                </div>
               </div>
 
               {/* FEATURE 3: Tags */}
@@ -3770,6 +4288,535 @@ const JournalSimple: React.FC = () => {
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Voice Recording Modal with Template Preview */}
+        {showVoiceModal && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10000,
+            fontFamily: 'system-ui, -apple-system, sans-serif',
+            animation: 'fadeIn 0.3s ease-out'
+          }}>
+            <div style={{
+              background: 'white',
+              borderRadius: '16px',
+              maxWidth: '600px',
+              width: '90%',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              maxHeight: '85vh',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              animation: 'slideUp 0.3s ease-out'
+            }}>
+              {/* Template Preview Section */}
+              {currentTemplate && currentTemplate !== 'no-template' && (
+                <div style={{
+                  background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+                  borderBottom: '1px solid #e2e8f0',
+                  padding: '1.5rem',
+                  animation: 'fadeIn 0.5s ease-out'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    marginBottom: '1rem'
+                  }}>
+                    <span style={{
+                      fontSize: '1.5rem',
+                      filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))'
+                    }}>
+                      {currentTemplate === 'gratitude' ? '🙏' :
+                       currentTemplate === 'reflection' ? '💭' :
+                       currentTemplate === 'goals' ? '🎯' : '📝'}
+                    </span>
+                    <div>
+                      <h3 style={{
+                        margin: 0,
+                        fontSize: '1.1rem',
+                        fontWeight: '700',
+                        color: '#1e293b'
+                      }}>
+                        {currentTemplate === 'gratitude' ? 'Gratitude Journal' :
+                         currentTemplate === 'reflection' ? 'Daily Reflection' :
+                         currentTemplate === 'goals' ? 'Goals & Progress' : 'Journal Entry'}
+                      </h3>
+                      <p style={{
+                        margin: '0.25rem 0 0 0',
+                        fontSize: '0.85rem',
+                        color: '#64748b'
+                      }}>
+                        Recording for: {activeField === 'reflections' ? 'Reflections' : 'Gratitude'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Template Fields Preview */}
+                  <div style={{
+                    background: 'white',
+                    borderRadius: '8px',
+                    padding: '1rem',
+                    border: '1px solid #e2e8f0'
+                  }}>
+                    <div style={{
+                      fontSize: '0.75rem',
+                      fontWeight: '600',
+                      color: '#475569',
+                      marginBottom: '0.75rem',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em'
+                    }}>
+                      Template Guide:
+                    </div>
+                    <div style={{
+                      display: 'grid',
+                      gap: '0.4rem',
+                      fontSize: '0.75rem',
+                      color: '#64748b',
+                      lineHeight: '1.3'
+                    }}>
+                      {currentTemplate === 'gratitude' && (
+                        <>
+                          <div style={{ fontSize: '0.7rem' }}>• Today I'm grateful for...</div>
+                          <div style={{ fontSize: '0.7rem' }}>• Three things that made me smile</div>
+                          <div style={{ fontSize: '0.7rem' }}>• What brought me joy</div>
+                          <div style={{ fontSize: '0.7rem' }}>• What I'm thankful for</div>
+                        </>
+                      )}
+                      {currentTemplate === 'reflection' && (
+                        <>
+                          <div style={{ fontSize: '0.7rem' }}>• Today was... (describe your day)</div>
+                          <div style={{ fontSize: '0.7rem' }}>• What went well</div>
+                          <div style={{ fontSize: '0.7rem' }}>• What I learned</div>
+                          <div style={{ fontSize: '0.7rem' }}>• What challenged me</div>
+                          <div style={{ fontSize: '0.7rem' }}>• Tomorrow I will...</div>
+                        </>
+                      )}
+                      {currentTemplate === 'goals' && (
+                        <>
+                          <div style={{ fontSize: '0.7rem' }}>• My goals for today</div>
+                          <div style={{ fontSize: '0.7rem' }}>• Progress on long-term goals</div>
+                          <div style={{ fontSize: '0.7rem' }}>• Obstacles I faced</div>
+                          <div style={{ fontSize: '0.7rem' }}>• How I overcame them</div>
+                          <div style={{ fontSize: '0.7rem' }}>• Next steps</div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Divider line */}
+              {currentTemplate && currentTemplate !== 'no-template' && (
+                <div style={{
+                  height: '1px',
+                  background: 'linear-gradient(to right, transparent, #e5e7eb, transparent)',
+                  margin: '0 1.5rem'
+                }} />
+              )}
+
+              {/* Main Content Area */}
+              <div style={{ padding: currentTemplate && currentTemplate !== 'no-template' ? '1.5rem 1.5rem 1rem 1.5rem' : '1.5rem', flex: 1, overflow: 'auto' }}>
+                <h2 style={{
+                  margin: currentTemplate && currentTemplate !== 'no-template' ? '0 0 1rem 0' : '0 0 1.5rem 0',
+                  color: '#1f2937',
+                  fontSize: '1.5rem',
+                  fontWeight: '700',
+                  textAlign: 'center'
+                }}>
+                  🎙️ Voice Journal – {activeField === 'reflections' ? 'Reflections' : 'Gratitude'}
+                </h2>
+
+                {voiceError && (
+                  <div style={{
+                    background: '#fef2f2',
+                    color: '#dc2626',
+                    padding: '0.75rem',
+                    borderRadius: '8px',
+                    marginBottom: '1rem',
+                    fontSize: '0.9rem',
+                    border: '1px solid #fecaca'
+                  }}>
+                    {voiceError}
+                  </div>
+                )}
+
+                {/* Recording Status */}
+                <div style={{
+                  background: isListening ? '#fee2e2' : '#f9fafb',
+                  borderRadius: '12px',
+                  padding: '1rem',
+                  marginBottom: '1rem',
+                  textAlign: 'center',
+                  border: isListening ? '2px solid #ef4444' : '2px solid #e5e7eb',
+                  transition: 'all 0.3s ease'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.75rem',
+                    marginBottom: '0.75rem'
+                  }}>
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      style={{
+                        color: isListening ? '#ef4444' : '#6b7280',
+                        animation: isListening ? 'pulse 1.5s infinite' : 'none'
+                      }}
+                    >
+                      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                      <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                      <line x1="12" y1="19" x2="12" y2="23"></line>
+                      <line x1="8" y1="23" x2="16" y2="23"></line>
+                    </svg>
+                    <div style={{
+                      fontSize: '1rem',
+                      fontWeight: '600',
+                      color: isListening ? '#dc2626' : '#374151'
+                    }}>
+                      {isListening ? 'Listening...' : 'Ready to Record'}
+                    </div>
+                  </div>
+                  <div style={{
+                    fontSize: '0.875rem',
+                    color: isListening ? '#ef4444' : '#6b7280',
+                    lineHeight: '1.4'
+                  }}>
+                    {isListening
+                      ? 'Speak clearly. Your words will appear below.'
+                      : 'Click "Start Recording" to begin.'}
+                  </div>
+                </div>
+
+                {/* Enhanced Transcript Area */}
+                <div style={{ marginBottom: '1rem' }}>
+                  <div style={{
+                    fontSize: '0.9rem',
+                    fontWeight: '600',
+                    color: '#374151',
+                    marginBottom: '0.5rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem'
+                  }}>
+                    {isProcessing ? (
+                      <>
+                        <span style={{
+                          display: 'inline-block',
+                          animation: 'pulse 1.5s infinite'
+                        }}>✨</span>
+                        Processing transcript...
+                      </>
+                    ) : isReviewMode ? (
+                      <>
+                        <span>✅</span>
+                        Review & Edit Transcript
+                      </>
+                    ) : isListening ? (
+                      <>
+                        <span style={{
+                          display: 'inline-block',
+                          animation: 'pulse 1.5s infinite',
+                          color: '#ef4444'
+                        }}>●</span>
+                        Live Recording
+                      </>
+                    ) : (
+                      <>
+                        <span>📝</span>
+                        Transcript
+                      </>
+                    )}
+                  </div>
+
+                  {!isReviewMode ? (
+                    <div style={{
+                      width: '100%',
+                      minHeight: '120px',
+                      padding: '1rem',
+                      border: isListening ? '2px solid #ef4444' : '2px solid #e5e7eb',
+                      borderRadius: '8px',
+                      fontSize: '1rem',
+                      fontFamily: 'inherit',
+                      background: isListening ? '#fef2f2' : 'white',
+                      transition: 'all 0.3s ease',
+                      lineHeight: '1.6',
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-word'
+                    }}>
+                      {/* Final transcript */}
+                      <div style={{
+                        color: '#1f2937',
+                        animation: transcript ? 'fadeIn 0.3s ease-out' : 'none'
+                      }}>
+                        {transcript || (
+                          <span style={{ color: '#9ca3af' }}>
+                            {isListening ? 'Listening... Speak clearly and naturally.' : 'Click "Start Recording" to begin speaking...'}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Interim transcript with different styling */}
+                      {interimTranscript && (
+                        <div style={{
+                          color: '#6b7280',
+                          fontStyle: 'italic',
+                          marginTop: '0.25rem',
+                          opacity: 0.8,
+                          animation: 'fadeIn 0.2s ease-out'
+                        }}>
+                          {interimTranscript}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <textarea
+                      style={{
+                        width: '100%',
+                        height: '150px',
+                        padding: '1rem',
+                        border: '2px solid #10b981',
+                        borderRadius: '8px',
+                        fontSize: '1rem',
+                        fontFamily: 'inherit',
+                        resize: 'vertical',
+                        background: '#f0fdf4',
+                        transition: 'all 0.3s ease',
+                        lineHeight: '1.6'
+                      }}
+                      placeholder="Review and edit your transcript before saving..."
+                      value={editedTranscript}
+                      onChange={(e) => setEditedTranscript(e.target.value)}
+                    />
+                  )}
+                </div>
+
+                
+                {/* Enhanced Action Buttons */}
+                <div style={{
+                  display: 'flex',
+                  gap: '0.75rem',
+                  flexWrap: 'wrap',
+                  position: 'relative'
+                }}>
+                  {!voiceError ? (
+                    <>
+                      {!isReviewMode ? (
+                        <>
+                          <button
+                            onClick={
+                              isListening
+                                ? stopVoiceRecording
+                                : startVoiceRecordingInModal
+                            }
+                            disabled={isProcessing}
+                            style={{
+                              flex: isListening ? 2 : 1,
+                              padding: '1rem',
+                              background: isProcessing
+                                ? 'linear-gradient(135deg, #9ca3af 0%, #6b7280 100%)'
+                                : isListening
+                                ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'
+                                : 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '12px',
+                              fontSize: '1rem',
+                              fontWeight: '700',
+                              cursor: isProcessing ? 'not-allowed' : 'pointer',
+                              transition: 'all 0.3s ease',
+                              boxShadow: isListening
+                                ? '0 4px 12px rgba(239, 68, 68, 0.4)'
+                                : '0 4px 12px rgba(59, 130, 246, 0.3)',
+                              opacity: isProcessing ? 0.7 : 1
+                            }}
+                          >
+                            {isProcessing ? (
+                              <>
+                                <span style={{
+                                  display: 'inline-block',
+                                  animation: 'pulse 1.5s infinite',
+                                  marginRight: '0.5rem'
+                                }}>⚡</span>
+                                Processing...
+                              </>
+                            ) : isListening ? (
+                              <>
+                                <span style={{
+                                  display: 'inline-block',
+                                  animation: 'pulse 1.5s infinite',
+                                  marginRight: '0.5rem'
+                                }}>●</span>
+                                Stop Recording
+                              </>
+                            ) : (
+                              <>
+                                🎤 Start Recording
+                              </>
+                            )}
+                          </button>
+
+                          {transcript.trim() && (
+                            <button
+                              onClick={() => {
+                                setIsReviewMode(true);
+                                setEditedTranscript(transcript);
+                              }}
+                              style={{
+                                flex: 1,
+                                padding: '1rem',
+                                background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '12px',
+                                fontSize: '1rem',
+                                fontWeight: '700',
+                                cursor: 'pointer',
+                                transition: 'all 0.3s ease',
+                                boxShadow: '0 4px 12px rgba(139, 92, 246, 0.3)'
+                              }}
+                            >
+                              ✏️ Review & Approve
+                            </button>
+                          )}
+                        </>
+                      ) : (
+                        <button
+                          onClick={approveTranscript}
+                          style={{
+                            flex: 2,
+                            padding: '1rem',
+                            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '12px',
+                            fontSize: '1rem',
+                            fontWeight: '700',
+                            cursor: 'pointer',
+                            transition: 'all 0.3s ease',
+                            boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
+                          }}
+                        >
+                          ✅ Save Transcript
+                        </button>
+                      )}
+
+                      {isReviewMode && (
+                        <button
+                          onClick={() => setIsReviewMode(false)}
+                          style={{
+                            flex: 1,
+                            padding: '1rem',
+                            background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '12px',
+                            fontSize: '1rem',
+                            fontWeight: '700',
+                            cursor: 'pointer',
+                            transition: 'all 0.3s ease',
+                            boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)'
+                          }}
+                        >
+                          ↩️ Back
+                        </button>
+                      )}
+                    </>
+                  ) : (
+                    <button
+                      onClick={retryRecording}
+                      style={{
+                        flex: 1,
+                        padding: '1rem',
+                        background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '12px',
+                        fontSize: '1rem',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
+                      }}
+                    >
+                      🔄 Try Again
+                    </button>
+                  )}
+
+                  <button
+                    onClick={cancelVoiceRecording}
+                    style={{
+                      padding: '1rem',
+                      background: 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '12px',
+                      fontSize: '1rem',
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                      boxShadow: '0 4px 12px rgba(107, 114, 128, 0.3)',
+                      transition: 'all 0.3s ease'
+                    }}
+                  >
+                    {isReviewMode ? '❌ Cancel' : '❌ Close'}
+                  </button>
+                </div>
+              </div>
+
+              {/* CSS Animations */}
+              <style>{`
+                @keyframes pulse {
+                  0%, 100% {
+                    transform: scale(1);
+                    opacity: 1;
+                  }
+                  50% {
+                    transform: scale(1.1);
+                    opacity: 0.8;
+                  }
+                }
+
+                @keyframes fadeIn {
+                  from {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                  }
+                  to {
+                    opacity: 1;
+                    transform: translateY(0);
+                  }
+                }
+
+                @keyframes slideUp {
+                  from {
+                    opacity: 0;
+                    transform: translateY(20px) scale(0.95);
+                  }
+                  to {
+                    opacity: 1;
+                    transform: translateY(0) scale(1);
+                  }
+                }
+              `}</style>
             </div>
           </div>
         )}
