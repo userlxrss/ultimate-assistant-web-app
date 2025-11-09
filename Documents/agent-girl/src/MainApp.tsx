@@ -9,7 +9,7 @@ import DashboardSimple from './components/DashboardSimple';
 import JournalApp from './JournalApp';
 import TasksApp from './TasksApp';
 import CalendarApp from './components/calendar/CalendarApp';
-import EmailApp from './EmailApp';
+import EmailApp from './components/email/EmailApp';
 import ContactsApp from './components/contacts/ContactsApp';
 import CleanSettingsPage from './components/CleanSettingsPage';
 import { NotificationProvider } from './components/NotificationSystem';

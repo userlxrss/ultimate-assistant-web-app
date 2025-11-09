@@ -76,7 +76,7 @@ const toggleTheme = () => {
   }
 };
 
-const MainApp: React.FC = () => {
+const MainAppUpdated: React.FC = () => {
   const [activeModule, setActiveModule] = useState<ActiveModule>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -124,7 +124,7 @@ const MainApp: React.FC = () => {
           // Set avatar URL from user metadata if available
           if (user.user_metadata?.avatar_url) {
             setAvatarUrl(user.user_metadata.avatar_url);
-            console.log('🖼️ MainApp loaded avatar from metadata:', user.user_metadata.avatar_url);
+            console.log('🖼️ MainAppUpdated loaded avatar from metadata:', user.user_metadata.avatar_url);
           }
 
           userDataStorage.setData('currentUser', user);
@@ -157,7 +157,7 @@ const MainApp: React.FC = () => {
 
     // Listen for global theme changes from Settings page
     const handleGlobalThemeChange = (e: CustomEvent) => {
-      console.log('🌙 MainApp received global theme change:', e.detail);
+      console.log('🌙 MainAppUpdated received global theme change:', e.detail);
       // Force re-render to update UI elements that depend on theme
       setUserInfo(prev => prev ? {...prev} : null);
     };
@@ -166,7 +166,7 @@ const MainApp: React.FC = () => {
 
     // Normal cleanup without breaking React events
     return () => {
-      console.log('🧹 Normal MainApp component cleanup');
+      console.log('🧹 Normal MainAppUpdated component cleanup');
       window.removeEventListener('global-theme-changed', handleGlobalThemeChange as EventListener);
     };
   }, []);
@@ -203,7 +203,7 @@ const MainApp: React.FC = () => {
   // Listen for profile updates from Settings page
   useEffect(() => {
     const handleProfileUpdate = (event: CustomEvent) => {
-      console.log('🔄 MainApp received profile update:', event.detail);
+      console.log('🔄 MainAppUpdated received profile update:', event.detail);
 
       // Update userInfo with new profile data
       setUserInfo(prev => ({
@@ -220,7 +220,7 @@ const MainApp: React.FC = () => {
       // Update avatar URL if provided
       if (event.detail.avatar_url) {
         setAvatarUrl(event.detail.avatar_url);
-        console.log('🖼️ MainApp received new avatar:', event.detail.avatar_url);
+        console.log('🖼️ MainAppUpdated received new avatar:', event.detail.avatar_url);
       }
 
       // Update userDataStorage
@@ -371,7 +371,11 @@ const MainApp: React.FC = () => {
                 <button
                   key={item.id}
                   onClick={() => setActiveModule(item.id)}
-                  className={`w-full text-left px-4 py-3 rounded-xl transition-all duration-200 ${activeModule === item.id ? (isDark ? 'bg-white/10 text-white border border-white/10' : 'bg-white/10 text-white border border-white/10') : (isDark ? 'text-gray-400 hover:bg-white/5' : 'text-gray-600 hover:bg-gray-100')}`}
+                  className={`w-full text-left px-4 py-3 rounded-xl transition-all duration-200 ${
+                    isActive
+                      ? 'bg-slate-700/50 text-white border-l-4 border-purple-500'
+                      : 'text-gray-400 hover:bg-slate-700/30 hover:text-gray-300'
+                  }`}
                 >
                   <div className={`flex items-center ${sidebarOpen ? 'space-x-3' : 'justify-center'}`}>
                     <Icon className="w-5 h-5" />
@@ -386,7 +390,7 @@ const MainApp: React.FC = () => {
           <div className={`p-4 ${isDark ? 'border-t border-glass-noir-border' : 'border-t theme-border-primary'}`}>
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className={`w-full flex items-center justify-center px-3 py-3 rounded-xl transition-all duration-300 ${isDark ? 'text-glass-noir-text-secondary hover:bg-glass-noir-glass-medium' : 'theme-text-secondary hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-gray-200'}`}
+              className={`w-full p-3 rounded-xl bg-slate-700/50 hover:bg-slate-700/70 text-gray-300 border border-slate-600/50 transition-all duration-300`}
             >
               <X className={`w-5 h-5 transform transition-transform ${sidebarOpen ? 'rotate-180' : ''}`} />
             </button>
@@ -396,7 +400,7 @@ const MainApp: React.FC = () => {
         {/* Main Content */}
         <main className={`flex-1 ${isDark ? 'glass-noir-bg-primary' : 'theme-bg-primary'} flex flex-col`}>
           {/* Glass Noir Header */}
-          <header className={`p-6 ${isDark ? 'bg-slate-800/40 backdrop-blur-xl border-b border-white/5' : 'theme-bg-card border-b theme-border-primary'}`}>
+          <header className={`p-6 ${isDark ? 'bg-slate-800/40 backdrop-blur-xl border-b border-white/5' : 'theme-bg-card border-b theme-border-primary'} relative z-50`}>
             <div className="flex items-center justify-between">
               <div>
                 <h2 className={`text-2xl font-bold ${isDark ? 'glass-noir-text-primary' : 'theme-text-primary'}`}>
@@ -431,20 +435,18 @@ const MainApp: React.FC = () => {
                 </div>
 
                 {/* Notifications */}
-                <button className={`p-2 rounded-xl transition-all duration-300 ${isDark ? 'text-glass-noir-text-secondary hover:bg-glass-noir-glass-medium' : 'text-gray-400 hover:bg-gray-100'}`}>
+                <button className={`p-3 rounded-xl bg-slate-700/50 hover:bg-slate-700/70 text-gray-300 border border-slate-600/50 transition-all duration-300`}>
                   <Bell className="w-5 h-5" />
                 </button>
 
                 {/* Profile Button */}
-                <div className="relative">
+                <div className="relative z-[9999]">
                   <button
                     ref={profileButtonRef}
                     onClick={handleProfileClick}
-                    className={`p-2 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-glass-noir-accent ${
-                      isDark
-                        ? 'text-glass-noir-text-secondary hover:bg-glass-noir-glass-medium'
-                        : 'text-gray-400 hover:bg-gray-100'
-                    } ${showProfileDropdown ? 'bg-blue-50 text-blue-600 dark:bg-glass-noir-accent/20 dark:text-glass-noir-accent' : ''}`}
+                    className={`p-3 rounded-xl bg-slate-700/50 hover:bg-slate-700/70 text-gray-300 border border-slate-600/50 transition-all duration-300 focus:outline-none relative z-[9999] ${
+                      showProfileDropdown ? 'bg-slate-600/70 text-white' : ''
+                    }`}
                     aria-label="Profile menu"
                   >
                     <User className="w-5 h-5" />
@@ -452,11 +454,11 @@ const MainApp: React.FC = () => {
 
                   {/* Glass Noir Profile Dropdown */}
                   {showProfileDropdown && (
-                    <div className={`absolute top-16 right-4 w-64 rounded-xl border ${isDark ? 'glass-noir-card border-glass-noir-border-strong' : 'border-gray-200 bg-white'} shadow-glass-noir-floating z-50`}>
+                    <div className="absolute right-0 top-full mt-3 w-64 rounded-xl bg-slate-800 backdrop-blur-sm border border-slate-600 shadow-2xl overflow-hidden z-[9999]">
                       {/* User Info */}
-                      <div className={`p-4 ${isDark ? 'border-b border-glass-noir-border' : 'border-b border-gray-200'}`}>
+                      <div className="px-4 py-3 border-b border-slate-700">
                         <div className="flex items-center space-x-3">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center overflow-hidden ${isDark ? 'bg-glass-noir-accent/20' : 'bg-purple-100 dark:bg-purple-900'}`}>
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden bg-slate-700/50">
                             {avatarUrl ? (
                               <img
                                 src={avatarUrl}
@@ -468,16 +470,16 @@ const MainApp: React.FC = () => {
                                 }}
                               />
                             ) : (
-                              <span className={isDark ? 'text-glass-noir-accent font-semibold' : 'text-purple-600 dark:text-purple-300 font-semibold'}>
+                              <span className="text-purple-400 font-semibold">
                                 {userInfo?.name?.[0]?.toUpperCase() || userInfo?.email?.[0]?.toUpperCase() || 'U'}
                               </span>
                             )}
                           </div>
                           <div>
-                            <p className={`font-medium ${isDark ? 'text-glass-noir-text-primary' : 'text-gray-900 dark:text-white'}`}>
+                            <p className="font-medium text-white">
                               {userInfo?.name || 'Guest User'}
                             </p>
-                            <p className={`text-xs ${isDark ? 'text-glass-noir-text-muted' : 'text-gray-500 dark:text-gray-400'}`}>
+                            <p className="text-xs text-gray-400">
                               {userInfo?.username ? `@${userInfo?.username}` : userInfo?.email || 'Not signed in'}
                             </p>
                           </div>
@@ -491,11 +493,7 @@ const MainApp: React.FC = () => {
                             setActiveModule('settings');
                             setShowProfileDropdown(false);
                           }}
-                          className={`w-full px-4 py-2 flex items-center space-x-3 text-sm transition-all duration-300 rounded-xl ${
-                            isDark
-                              ? 'hover:bg-glass-noir-glass-medium text-glass-noir-text-primary'
-                              : 'hover:bg-gray-100'
-                          }`}
+                          className="w-full flex items-center gap-3 px-4 py-3 text-left text-gray-200 hover:bg-slate-700 transition-colors"
                         >
                           <Settings className="w-4 h-4" />
                           <span>Settings</span>
@@ -505,11 +503,7 @@ const MainApp: React.FC = () => {
                             toggleTheme();
                             setShowProfileDropdown(false);
                           }}
-                          className={`w-full px-4 py-2 flex items-center space-x-3 text-sm transition-all duration-300 rounded-xl ${
-                            isDark
-                              ? 'hover:bg-glass-noir-glass-medium text-glass-noir-text-primary'
-                              : 'hover:bg-gray-100'
-                          }`}
+                          className="w-full flex items-center gap-3 px-4 py-3 text-left text-gray-200 hover:bg-slate-700 transition-colors"
                         >
                           <Moon className="w-4 h-4" />
                           <span>Dark Mode</span>
@@ -534,11 +528,7 @@ const MainApp: React.FC = () => {
                             // Force redirect to premium React login page
                             window.location.href = "/";
                           }}
-                          className={`w-full px-4 py-2 flex items-center space-x-3 text-sm transition-all duration-300 rounded-xl ${
-                            isDark
-                              ? 'text-glass-noir-error hover:bg-glass-noir-error/20'
-                              : 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20'
-                          }`}
+                          className="w-full flex items-center gap-3 px-4 py-3 text-left text-red-400 hover:bg-red-500/20 transition-colors border-t border-slate-700"
                         >
                           <LogOut className="w-4 h-4" />
                           <span>Sign Out</span>
@@ -561,4 +551,4 @@ const MainApp: React.FC = () => {
   );
 };
 
-export default MainApp;
+export default MainAppUpdated;

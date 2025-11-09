@@ -1,13 +1,8 @@
 import React from 'react';
-import TasksPage from './components/tasks/TasksPage';
-import { TimerProvider } from './contexts/TimerContext';
+import TasksApp from './components/tasks/TasksApp';
 
-const TasksApp: React.FC = () => {
-  return (
-    <TimerProvider>
-      <TasksPage />
-    </TimerProvider>
-  );
+const Tasks: React.FC = () => {
+  return <TasksApp />;
 };
 
-export default TasksApp;
+export default Tasks;
