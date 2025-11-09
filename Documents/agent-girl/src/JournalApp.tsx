@@ -1,11 +1,11 @@
 import React from 'react';
 import { NotificationProvider } from './components/NotificationSystem';
-import JournalTab from '../JournalTab';
+import JournalEnhanced from './components/JournalEnhanced';
 
 const JournalApp: React.FC = () => {
   return (
     <NotificationProvider>
-      <JournalTab />
+      <JournalEnhanced />
     </NotificationProvider>
   );
 };
