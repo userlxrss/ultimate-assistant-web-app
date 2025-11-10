@@ -4721,6 +4721,155 @@ const JournalSimple: React.FC = () => {
 
               {/* CSS Animations */}
               <style>{`
+                /* Voice Recording Modal - Mobile First */
+                .mobile-modal-overlay {
+                  position: fixed !important;
+                  top: 0 !important;
+                  left: 0 !important;
+                  right: 0 !important;
+                  bottom: 0 !important;
+                  background: rgba(0, 0, 0, 0.6) !important;
+                  display: flex !important;
+                  align-items: flex-end !important;
+                  justify-content: center !important;
+                  z-index: 10000 !important;
+                  backdrop-filter: blur(4px) !important;
+                  padding: 0 !important;
+                  box-sizing: border-box !important;
+                }
+
+                .mobile-voice-modal {
+                  background: white !important;
+                  border-radius: 20px 20px 0 0 !important;
+                  max-width: 100% !important;
+                  width: 100% !important;
+                  max-height: 85vh !important;
+                  min-height: 300px !important;
+                  overflow-y: auto !important;
+                  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.3) !important;
+                  animation: slideUpMobile 0.4s cubic-bezier(0.32, 0.72, 0, 1) !important;
+                  position: relative !important;
+                  display: flex !important;
+                  flex-direction: column !important;
+                  -webkit-overflow-scrolling: touch !important;
+                }
+
+                /* Tablet and Desktop - Centered Modal */
+                @media (min-width: 768px) {
+                  .mobile-modal-overlay {
+                    align-items: center !important;
+                    padding: 1rem !important;
+                  }
+
+                  .mobile-voice-modal {
+                    border-radius: 16px !important;
+                    max-width: 600px !important;
+                    width: 100% !important;
+                    max-height: 90vh !important;
+                    min-height: 400px !important;
+                    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+                    animation: slideUp 0.3s ease-out !important;
+                  }
+                }
+
+                /* Large Desktop - Better Centering */
+                @media (min-width: 1024px) {
+                  .mobile-voice-modal {
+                    max-width: 700px !important;
+                    min-height: 450px !important;
+                  }
+                }
+
+                /* Small Mobile Phones */
+                @media (max-width: 380px) {
+                  .mobile-voice-modal {
+                    min-height: 250px !important;
+                    max-height: 80vh !important;
+                  }
+
+                  .mobile-modal-header {
+                    padding: 1rem !important;
+                  }
+
+                  .mobile-modal-title {
+                    font-size: 1.1rem !important;
+                  }
+
+                  .mobile-modal-subtitle {
+                    font-size: 0.85rem !important;
+                  }
+                }
+
+                .dark .mobile-voice-modal {
+                  background: #1e293b !important;
+                  color: #f8fafc !important;
+                }
+
+                .mobile-modal-handle {
+                  width: 50px !important;
+                  height: 5px !important;
+                  background: #d1d5db !important;
+                  border-radius: 3px !important;
+                  margin: 12px auto 8px auto !important;
+                  flex-shrink: 0 !important;
+                  touch-action: none !important;
+                  cursor: grab !important;
+                  transition: background 0.2s ease !important;
+                }
+
+                .mobile-modal-handle:hover {
+                  background: #9ca3af !important;
+                }
+
+                .mobile-modal-handle:active {
+                  background: #6b7280 !important;
+                  cursor: grabbing !important;
+                }
+
+                .dark .mobile-modal-handle {
+                  background: #475569 !important;
+                }
+
+                .dark .mobile-modal-handle:hover {
+                  background: #64748b !important;
+                }
+
+                .dark .mobile-modal-handle:active {
+                  background: #94a3b8 !important;
+                }
+
+                .mobile-modal-header {
+                  padding: 1.5rem !important;
+                  border-bottom: 1px solid #e5e7eb !important;
+                  flex-shrink: 0 !important;
+                }
+
+                .dark .mobile-modal-header {
+                  border-bottom-color: #475569 !important;
+                }
+
+                .mobile-modal-title {
+                  margin: 0 0 0.5rem 0 !important;
+                  font-size: 1.25rem !important;
+                  font-weight: 700 !important;
+                  color: #1f2937 !important;
+                }
+
+                .dark .mobile-modal-title {
+                  color: #f8fafc !important;
+                }
+
+                .mobile-modal-subtitle {
+                  margin: 0 !important;
+                  font-size: 0.9rem !important;
+                  color: #6b7280 !important;
+                  line-height: 1.4 !important;
+                }
+
+                .dark .mobile-modal-subtitle {
+                  color: #94a3b8 !important;
+                }
+
                 @keyframes pulse {
                   0%, 100% {
                     transform: scale(1);
@@ -4740,6 +4889,17 @@ const JournalSimple: React.FC = () => {
                   to {
                     opacity: 1;
                     transform: translateY(0);
+                  }
+                }
+
+                @keyframes slideUpMobile {
+                  from {
+                    opacity: 0;
+                    transform: translateY(100%) scale(1);
+                  }
+                  to {
+                    opacity: 1;
+                    transform: translateY(0) scale(1);
                   }
                 }
 
