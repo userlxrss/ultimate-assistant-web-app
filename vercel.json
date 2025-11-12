@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "root": "Documents/agent-girl/chat-ac5267c7",
+  "root": ".",
   "builds": [
     {
       "src": "package.json",
