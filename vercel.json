@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "root": ".",
+  "root": "Documents/agent-girl",
   "builds": [
     {
       "src": "package.json",
