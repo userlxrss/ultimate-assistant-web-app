@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { SecureUserJournalStorage } from '../utils/secureUserJournalStorage';
-import { JournalEntry } from '../utils/secureJournalStorage';import { JournalDataRecovery } from '../utils/journalDataRecovery';
+import { JournalEntry } from '../utils/secureJournalStorage';
+import { JournalDataRecovery } from '../utils/journalDataRecovery';
+import { CloudJournalSync } from '../utils/cloudJournalSync';
 import {
   saveJournalEntry,
   loadJournalEntries,
@@ -301,8 +303,8 @@ const JournalSimple: React.FC = () => {
       setSaving(true);
       setError('');
 
-      // Use secure storage for deletion
-      const deleteResult = await SecureUserJournalStorage.deleteEntry(entryToDelete.id);
+      // Use cloud storage for deletion
+      const deleteResult = await CloudJournalSync.deleteEntry(entryToDelete.id);
 
       if (!deleteResult.success) {
         throw new Error(deleteResult.error || 'Failed to delete entry');
@@ -351,8 +353,8 @@ const JournalSimple: React.FC = () => {
       setSaving(true);
       setError('');
 
-      // Use secure storage for saving
-      const saveResult = await SecureUserJournalStorage.saveEntry(editingEntry);
+      // Use cloud storage with automatic fallback
+      const saveResult = await CloudJournalSync.saveEntry(editingEntry);
 
       if (!saveResult.success) {
         throw new Error(saveResult.error || 'Failed to save entry');
@@ -679,8 +681,8 @@ const JournalSimple: React.FC = () => {
         timestamp: new Date().toISOString()
       };
 
-      // Use secure storage for saving
-      const saveResult = await SecureUserJournalStorage.saveEntry(newEntry);
+      // Use cloud storage with automatic fallback
+      const saveResult = await CloudJournalSync.saveEntry(newEntry);
 
       if (!saveResult.success) {
         throw new Error(saveResult.error || 'Failed to save entry');
@@ -1202,15 +1204,15 @@ const JournalSimple: React.FC = () => {
     alert(`Exported ${monthEntries.length} entries for ${monthYear}`);
   };
 
-  // Load entries on mount using secure storage
+  // Load entries on mount using CloudJournalSync (with automatic cloud/local fallback)
   useEffect(() => {
     const loadEntries = async () => {
       try {
         setLoading(true);
         console.log('📔 Loading journal entries...');
 
-        // Use secure storage to load entries
-        const loadResult = await SecureUserJournalStorage.loadEntries();
+        // Use CloudJournalSync for automatic cloud/local handling
+        const loadResult = await CloudJournalSync.loadEntries();
 
         if (!loadResult.success) {
           throw new Error(loadResult.error || 'Failed to load entries');
@@ -1218,56 +1220,35 @@ const JournalSimple: React.FC = () => {
 
         const loadedEntries = loadResult.data || [];
 
-        // If no entries found, try recovery
-        if (loadedEntries.length === 0) {
-          console.log('🔍 No entries found, attempting recovery...');
-          const recoveryResult = JournalDataRecovery.recoverEntries();
-          if (recoveryResult.success && recoveryResult.recoveredEntries.length > 0) {
-            console.log('✅ Recovery successful:', recoveryResult.message);
-            const recoveredEntries = recoveryResult.recoveredEntries;
-
-            // Save recovered entries using secure storage
-            for (const entry of recoveredEntries) {
-              await SecureUserJournalStorage.saveEntry(entry);
-            }
-
-            setEntries(recoveredEntries);
-            return;
-          }
-        }
-
-        // Filter out only obvious dummy/test entries, preserve real user entries
-        const cleanedEntries = loadedEntries.filter(entry => {
-          // Remove entries that are clearly dummy data FIRST
+        // Filter out dummy/test entries
+        const filteredEntries = loadedEntries.filter(entry => {
           if (entry.title && (entry.title.includes('Dummy') || entry.title.includes('Test') || entry.title.includes('Sample'))) return false;
           if (entry.reflections && (entry.reflections.toLowerCase().includes('dummy') || entry.reflections.toLowerCase().includes('sample') || entry.reflections.toLowerCase().includes('test'))) return false;
-
-          // Keep entries that have real user content
+          // Keep real user content
           if (entry.reflections && entry.reflections.trim().length > 20) return true;
           if (entry.gratitude && entry.gratitude.trim().length > 10) return true;
-          if (entry.title && entry.title.trim().length > 0 && !entry.title.toLowerCase().includes('dummy') && !entry.title.toLowerCase().includes('test')) return true;
-
-          // Keep entries that have IDs that look like real user entries (timestamps)
           if (entry.id && typeof entry.id === 'number' && entry.id > 1000000000000) return true;
-
-          // Default: reject if we get here
           return false;
         });
 
-        // If we filtered out entries, save the cleaned version
-        if (cleanedEntries.length !== loadedEntries.length) {
-          console.log(`🧹 Cleaned ${loadedEntries.length - cleanedEntries.length} invalid entries`);
-          // Save each cleaned entry
-          for (const entry of cleanedEntries) {
-            await SecureUserJournalStorage.saveEntry(entry);
+        setEntries(filteredEntries);
+        console.log(`✅ Loaded ${filteredEntries.length} journal entries`);
+        console.log('🔄 Entries will sync across devices when you\'re logged in!');
+
+        // Try to migrate any remaining local entries to cloud
+        const user = await getCurrentUser();
+        if (user && filteredEntries.length > 0) {
+          const migrationResult = await CloudJournalSync.migrateToCloud();
+          if (migrationResult.migrated > 0) {
+            console.log(`📤 Migrated ${migrationResult.migrated} entries to cloud storage`);
+            // Reload entries after migration
+            const reloadResult = await CloudJournalSync.loadEntries();
+            if (reloadResult.success) {
+              setEntries(reloadResult.data || []);
+            }
           }
         }
 
-        // Load the entries into state
-        setEntries(cleanedEntries);
-
-        console.log(`✅ Loaded ${cleanedEntries.length} journal entries`);
-        console.log('💡 Real user entries preserved and loaded successfully');
       } catch (error) {
         console.error('❌ Failed to load journal entries:', error);
         setError(`Failed to load entries: ${error.message}`);
