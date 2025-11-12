@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { BarChart3, PenSquare, CheckSquare, Calendar, Mail, Users, Settings, X, Search, Bell, User, LogOut, Sun, Moon } from 'lucide-react';
+import { BarChart3, PenSquare, CheckSquare, Calendar, Mail, Users, Settings, X, Search, Bell, User, LogOut, Sun, Moon, Clock } from 'lucide-react';
 import { authManager } from './utils/authManager';
 import { userAuthManager } from './utils/userAuth';
 import { userDataStorage } from './utils/userDataStorage';
@@ -13,10 +13,11 @@ import CalendarApp from './components/calendar/CalendarApp';
 import EmailApp from './EmailApp';
 import ContactsApp from './components/contacts/ContactsApp';
 import CleanSettingsPage from './components/CleanSettingsPage';
+import TimeTrackingApp from './components/TimeTrackingApp';
 import { NotificationProvider } from './components/NotificationSystem';
 import { SecureUserJournalStorage } from './utils/secureUserJournalStorage';
 
-type ActiveModule = 'dashboard' | 'journal' | 'tasks' | 'calendar' | 'email' | 'contacts' | 'settings';
+type ActiveModule = 'dashboard' | 'journal' | 'tasks' | 'calendar' | 'email' | 'contacts' | 'time-tracking' | 'settings';
 
 // Global theme management - unified with settings page
 const GLOBAL_THEME_KEY = 'app-theme';
@@ -98,6 +99,7 @@ const MainAppRouter: React.FC = () => {
     if (path.startsWith('/calendar')) return 'calendar';
     if (path.startsWith('/email')) return 'email';
     if (path.startsWith('/contacts')) return 'contacts';
+    if (path.startsWith('/time-tracking')) return 'time-tracking';
     if (path.startsWith('/settings')) return 'settings';
     return 'dashboard'; // default
   };
@@ -300,9 +302,21 @@ const MainAppRouter: React.FC = () => {
         await userAuthManager.logout();
       }
 
-      // Clear all storage
-      localStorage.clear();
-      sessionStorage.clear();
+      // Clear ONLY auth-related storage, NOT journal entries!
+      // Remove specific auth keys instead of nuking everything
+      const authKeysToRemove = [
+        'current_user_session_id',
+        'productivity_hub_auth',
+        'auth_token',
+        'user_session',
+        'supabase.auth.token',
+        // Add any other auth-specific keys here
+      ];
+
+      authKeysToRemove.forEach(key => {
+        localStorage.removeItem(key);
+        sessionStorage.removeItem(key);
+      });
 
       console.log("✅ Sign out successful - redirecting");
 
@@ -313,8 +327,23 @@ const MainAppRouter: React.FC = () => {
       console.error("Sign out error:", error);
 
       // EMERGENCY FALLBACK: Force redirect to premium React login page
-      localStorage.clear();
-      sessionStorage.clear();
+      // Clear only auth keys, preserve journal entries!
+      const emergencyAuthKeys = [
+        'current_user_session_id',
+        'productivity_hub_auth',
+        'auth_token',
+        'user_session',
+        'supabase.auth.token'
+      ];
+
+      emergencyAuthKeys.forEach(key => {
+        try {
+          localStorage.removeItem(key);
+          sessionStorage.removeItem(key);
+        } catch (e) {
+          console.warn('Failed to remove key:', key);
+        }
+      });
       window.location.href = "/";
     }
   }, []);
@@ -326,6 +355,7 @@ const MainAppRouter: React.FC = () => {
     { icon: Calendar, label: 'Calendar', id: 'calendar' as ActiveModule, path: '/calendar' },
     { icon: Mail, label: 'Email', id: 'email' as ActiveModule, path: '/email' },
     { icon: Users, label: 'Contacts', id: 'contacts' as ActiveModule, path: '/contacts' },
+    { icon: Clock, label: 'Time Tracking', id: 'time-tracking' as ActiveModule, path: '/time-tracking' },
     { icon: Settings, label: 'Settings', id: 'settings' as ActiveModule, path: '/settings' }
   ];
 
@@ -401,6 +431,7 @@ const MainAppRouter: React.FC = () => {
                   {activeModule === 'calendar' && 'Schedule and organize your events'}
                   {activeModule === 'email' && 'Manage your communications'}
                   {activeModule === 'contacts' && 'Organize your network'}
+                  {activeModule === 'time-tracking' && 'Track your work hours and manage your timesheet'}
                   {activeModule === 'settings' && 'Manage your settings'}
                 </p>
               </div>
@@ -497,23 +528,7 @@ const MainAppRouter: React.FC = () => {
 
                         {/* SIGN OUT BUTTON */}
                         <button
-                          onMouseDown={async (e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-
-                            // Close dropdown immediately
-                            setShowProfileDropdown(false);
-
-                            // Clear everything
-                            setIsAuthenticated(false);
-                            setUserInfo(null);
-                            setAvatarUrl(null);
-                            localStorage.clear();
-                            sessionStorage.clear();
-
-                            // Force redirect to premium React login page
-                            window.location.href = "/";
-                          }}
+                          onClick={handleSignOut}
                           className="w-full flex items-center gap-3 px-4 py-3 text-left text-red-400 hover:bg-red-500/20 transition-colors border-t border-slate-700"
                         >
                           <LogOut className="w-4 h-4" />
@@ -536,6 +551,7 @@ const MainAppRouter: React.FC = () => {
               <Route path="/calendar" element={<CalendarApp />} />
               <Route path="/email" element={<EmailApp />} />
               <Route path="/contacts" element={<ContactsApp />} />
+              <Route path="/time-tracking" element={<TimeTrackingApp />} />
               <Route path="/settings" element={<CleanSettingsPage />} />
               <Route path="/" element={<DashboardSimple />} />
             </Routes>

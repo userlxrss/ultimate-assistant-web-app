@@ -283,9 +283,21 @@ const MainApp: React.FC = () => {
         await userAuthManager.logout();
       }
 
-      // Clear all storage
-      localStorage.clear();
-      sessionStorage.clear();
+      // Clear ONLY auth-related storage, NOT journal entries!
+      // Remove specific auth keys instead of nuking everything
+      const authKeysToRemove = [
+        'current_user_session_id',
+        'productivity_hub_auth',
+        'auth_token',
+        'user_session',
+        'supabase.auth.token',
+        // Add any other auth-specific keys here
+      ];
+
+      authKeysToRemove.forEach(key => {
+        localStorage.removeItem(key);
+        sessionStorage.removeItem(key);
+      });
 
       console.log("✅ Sign out successful - redirecting");
 
@@ -296,8 +308,23 @@ const MainApp: React.FC = () => {
       console.error("Sign out error:", error);
 
       // EMERGENCY FALLBACK: Force redirect to premium React login page
-      localStorage.clear();
-      sessionStorage.clear();
+      // Clear only auth keys, preserve journal entries!
+      const emergencyAuthKeys = [
+        'current_user_session_id',
+        'productivity_hub_auth',
+        'auth_token',
+        'user_session',
+        'supabase.auth.token'
+      ];
+
+      emergencyAuthKeys.forEach(key => {
+        try {
+          localStorage.removeItem(key);
+          sessionStorage.removeItem(key);
+        } catch (e) {
+          console.warn('Failed to remove key:', key);
+        }
+      });
       window.location.href = "/";
     }
   }, []);
@@ -518,12 +545,24 @@ const MainApp: React.FC = () => {
                             // Close dropdown immediately
                             setShowProfileDropdown(false);
 
-                            // Clear everything
+                            // Clear only auth data, preserve journal entries!
                             setIsAuthenticated(false);
                             setUserInfo(null);
                             setAvatarUrl(null);
-                            localStorage.clear();
-                            sessionStorage.clear();
+
+                            // Remove only auth-specific keys, not journal entries
+                            const signOutKeys = [
+                              'current_user_session_id',
+                              'productivity_hub_auth',
+                              'auth_token',
+                              'user_session',
+                              'supabase.auth.token'
+                            ];
+
+                            signOutKeys.forEach(key => {
+                              localStorage.removeItem(key);
+                              sessionStorage.removeItem(key);
+                            });
 
                             // Force redirect to premium React login page
                             window.location.href = "/";
