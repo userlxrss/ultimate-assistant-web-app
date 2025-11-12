@@ -325,3 +325,68 @@ export interface WeeklyComparison {
     meetingHours: number;
   };
 }
+
+// Time Tracking Types
+export interface TimeEntry {
+  id: string;
+  date: string; // YYYY-MM-DD format
+  clockIn: Date | null;
+  clockOut: Date | null;
+  lunchBreak: LunchBreak | null;
+  shortBreaks: ShortBreak[];
+  totalHours: number; // Calculated excluding breaks
+  status: 'not_started' | 'clocked_in' | 'on_break' | 'clocked_out';
+  notes?: string;
+  isLateArrival: boolean;
+  scheduledStartTime?: string; // HH:MM format
+}
+
+export interface LunchBreak {
+  id: string;
+  startTime: Date;
+  endTime: Date | null;
+  duration?: number; // in minutes
+}
+
+export interface ShortBreak {
+  id: string;
+  startTime: Date;
+  endTime: Date | null;
+  duration?: number; // in minutes
+  reason?: string;
+}
+
+export interface TimesheetFilter {
+  dateRange: {
+    start: Date;
+    end: Date;
+  };
+  status?: TimeEntry['status'];
+  showLateArrivalsOnly?: boolean;
+  minHours?: number;
+  maxHours?: number;
+}
+
+export interface TimesheetSummary {
+  totalDays: number;
+  totalHours: number;
+  averageHoursPerDay: number;
+  totalBreakTime: number;
+  lateArrivals: number;
+  onTimeArrivals: number;
+  overtimeHours: number;
+  regularHours: number;
+}
+
+export interface TimeTrackingSettings {
+  workdayStart: string; // HH:MM format
+  workdayEnd: string; // HH:MM format
+  lunchBreakDuration: number; // minutes
+  lateArrivalThreshold: number; // minutes after workdayStart
+  autoClockOut: boolean;
+  autoClockOutTime: string; // HH:MM format
+  roundTime: boolean;
+  roundToMinutes: number; // 5, 10, 15, etc.
+  enableNotifications: boolean;
+  breakReminderInterval: number; // minutes
+}

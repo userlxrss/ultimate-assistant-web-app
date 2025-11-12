@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, LogOut, Coffee, Pause, Play, Download, Calendar, Filter, Settings, AlertCircle } from 'lucide-react';
-import { TimeEntry, TimeTrackingSettings } from '../types';
-import { TimeTrackingManager } from '../utils/timeTrackingManager';
-import { TimeTrackingStorage } from '../utils/timeTrackingStorage';
-import { TimeTrackingCalculations } from '../utils/timeTrackingCalculations';
+import { TimeEntry, TimeTrackingSettings } from '../../types';
+import { TimeTrackingManager } from '../../utils/timeTrackingManager';
+import { TimeTrackingStorage } from '../../utils/timeTrackingStorage';
+import { TimeTrackingCalculations } from '../../utils/timeTrackingCalculations';
 import TimesheetView from './timesheet/TimesheetView';
 import TimeTrackingSettingsComponent from './timesheet/TimeTrackingSettings';
 
